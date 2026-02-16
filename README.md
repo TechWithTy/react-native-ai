@@ -28,6 +28,10 @@ npx rn-ai
 
 Next, either configure your environment variables with the CLI, or do so later.
 
+## Local Development
+
+See `RUNNING.md` for Windows + Android setup steps and troubleshooting.
+
 ### Running the app
 
 Change into the app directory and run:
