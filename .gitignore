@@ -1,0 +1,12 @@
+.idea/
+
+# Local logs and debug artifacts
+app/*.log
+app/*_output.txt
+app/*_config.js
+app/react-native.config.js
+app/reanimated_build.log
+app/kotlin_build.log
+
+# Android build logs
+app/android/*.log
