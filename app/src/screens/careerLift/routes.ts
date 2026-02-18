@@ -1,0 +1,19 @@
+export const careerLiftRoutes = [
+  { key: 'Splash', label: 'Career Lift Splash Screen' },
+  { key: 'OnboardingGoals', label: 'Onboarding: Career Goals' },
+  { key: 'OnboardingSetTargets', label: 'Onboarding: Set Targets' },
+  { key: 'ResumeIngestion', label: 'Onboarding: Resume Ingestion' },
+  { key: 'ResumeUpload', label: 'Onboarding: Resume Upload' },
+  { key: 'Dashboard', label: 'Career Lift Dashboard' },
+  { key: 'OutreachCenter', label: 'Outreach Follow-up Center' },
+  { key: 'JobTracker', label: 'Job Tracker Pipeline' },
+  { key: 'LinkedInKit', label: 'LinkedIn Optimization Kit' },
+  { key: 'MockInterview', label: 'Mock Interview Simulation' },
+  { key: 'AIOnboarding', label: 'AI Onboarding Assistant' },
+  { key: 'ATSResults', label: 'ATS Fit Scan Results' },
+  { key: 'WeeklyDigest', label: 'Weekly Progress Digest' },
+  { key: 'SettingsProfile', label: 'Settings and Profile' },
+  { key: 'ApplyPack', label: 'Apply Pack Review' },
+  { key: 'InterviewPrep', label: 'Interview Preparation Pack' },
+] as const
+

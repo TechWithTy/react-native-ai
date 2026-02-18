@@ -17,6 +17,20 @@ export interface Model {
   icon: any
 }
 
+export interface CareerSetupState {
+  roleTrack: string
+  seniority: string
+  workingStyle: string
+  targetRole: string
+  desiredSalaryRange: string
+  targetSeniority: string
+  locationPreference: string
+  selectedGoals: string[]
+  selectedSkills: string[]
+  sourceResumeName: string | null
+  baselineResumeName: string | null
+}
+
 export interface IAppContext {
   chatType: Model
   setChatType: Dispatch<SetStateAction<Model>>
