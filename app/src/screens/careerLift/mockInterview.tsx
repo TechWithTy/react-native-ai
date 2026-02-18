@@ -8,6 +8,8 @@ import {
   Dimensions,
   SafeAreaView,
   Platform,
+  Alert,
+  Modal
 } from 'react-native'
 import Animated, {
   useSharedValue,
@@ -21,6 +23,8 @@ import Animated, {
 } from 'react-native-reanimated'
 import { useNavigation, useRoute } from '@react-navigation/native'
 import { MaterialIcons, Feather } from '@expo/vector-icons'
+import { Audio } from 'expo-av'
+import * as Speech from 'expo-speech'
 import { CLTheme } from './theme'
 
 
@@ -35,14 +39,48 @@ export function MockInterviewScreen() {
   const sessionCategory = params?.category || "Behavioral"
 
   const [isRecording, setIsRecording] = useState(false)
+  const [recording, setRecording] = useState<Audio.Recording | null>(null)
+  const [permissionResponse, requestPermission] = Audio.usePermissions()
   const [showRubric, setShowRubric] = useState(false)
   const [timeLeft, setTimeLeft] = useState(105) // 01:45 = 105 seconds
   const [transcriptIndex, setTranscriptIndex] = useState(0)
+  const [isSpeaking, setIsSpeaking] = useState(false)
+  const [showMenu, setShowMenu] = useState(false)
   
   // Animation Values
   const pulseAnim = useSharedValue(1)
   const recordRipple = useSharedValue(0)
   
+  // Initial TTS
+  useEffect(() => {
+    // Speak the question when screen loads
+    const speakQuestion = async () => {
+      // Stop any previous speech
+      if (await Speech.isSpeakingAsync()) {
+        Speech.stop()
+      }
+      
+      setIsSpeaking(true)
+      Speech.speak(questionText, {
+        language: 'en-US',
+        rate: 0.9,
+        pitch: 1.0,
+        onDone: () => setIsSpeaking(false),
+        onStopped: () => setIsSpeaking(false),
+      })
+    }
+
+    // Small delay to ensure transition is done
+    const timeout = setTimeout(() => {
+        speakQuestion()
+    }, 500)
+
+    return () => {
+        clearTimeout(timeout)
+        Speech.stop()
+    }
+  }, [questionText])
+
   // Timer Logic
   useEffect(() => {
     let interval: NodeJS.Timeout
@@ -93,8 +131,67 @@ export function MockInterviewScreen() {
     opacity: isRecording ? withRepeat(withTiming(0, { duration: 1500 }), -1, false) : 0,
   }))
 
-  // Transcript Simulation
-  const fullTranscript = "So, in my previous role, I encountered a situation where the client's expectations were..."
+  // Real Recording Logic
+  const startRecording = async () => {
+    try {
+      if (permissionResponse?.status !== 'granted') {
+        const resetPermission = await requestPermission()
+        if (resetPermission.status !== 'granted') {
+           Alert.alert('Permission needed', 'Please grant microphone permission to record your answer.')
+           return
+        }
+      }
+
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+        playsInSilentModeIOS: true,
+      })
+
+      const { recording } = await Audio.Recording.createAsync(
+         Audio.RecordingOptionsPresets.HIGH_QUALITY
+      )
+      
+      setRecording(recording)
+      setIsRecording(true)
+      
+      // Stop TTS if still speaking
+      if (await Speech.isSpeakingAsync()) {
+          Speech.stop()
+          setIsSpeaking(false)
+      }
+
+    } catch (err) {
+      console.error('Failed to start recording', err)
+      Alert.alert('Error', 'Failed to start recording.')
+    }
+  }
+
+  const stopRecording = async () => {
+    if (!recording) return
+
+    setIsRecording(false)
+    await recording.stopAndUnloadAsync()
+    const uri = recording.getURI() 
+    setRecording(null)
+    
+    // Here you would normally send 'uri' to your backend for transcription (Whisper API)
+    console.log('Recording stored at', uri)
+    
+    // For demo purposes, we'll just simulate transcription continues if it was mid-way,
+    // or show a success message. 
+    // In a real app, we'd trigger the transcription API call here.
+  }
+
+  const handleToggleRecording = async () => {
+      if (isRecording) {
+          await stopRecording()
+      } else {
+          await startRecording()
+      }
+  }
+
+  // Transcript Simulation (Mocking the "live" aspect for now as we don't have real-time STT backend connected)
+  const fullTranscript = "So, in my previous role, I encountered a situation where the client's expectations were not aligned with our delivery timeline. I realized this early on during the sprint planning..."
   useEffect(() => {
     if (isRecording && transcriptIndex < fullTranscript.length) {
       const timeout = setTimeout(() => {
@@ -106,13 +203,22 @@ export function MockInterviewScreen() {
 
   const displayedTranscript = fullTranscript.substring(0, transcriptIndex)
 
+  // Re-read question handler
+  // const handleSpeakQuestion = () => {
+  //     Speech.speak(questionText)
+  // }
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity 
           style={styles.iconButton} 
-          onPress={() => navigation.goBack()}
+          testID="header-close"
+          onPress={() => {
+              Speech.stop()
+              navigation.goBack()
+          }}
         >
           <MaterialIcons name="close" size={24} color={CLTheme.text.secondary} />
         </TouchableOpacity>
@@ -128,7 +234,12 @@ export function MockInterviewScreen() {
           </View>
         </View>
 
-        <TouchableOpacity style={styles.iconButton}>
+        <TouchableOpacity 
+            style={styles.iconButton}
+            testID="header-menu"
+            onPress={() => setShowMenu(true)}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
           <MaterialIcons name="more-horiz" size={24} color={CLTheme.text.secondary} />
         </TouchableOpacity>
       </View>
@@ -138,7 +249,7 @@ export function MockInterviewScreen() {
         {/* Timer */}
         <View style={styles.timerContainer}>
           <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
-            <Text style={styles.timerText}>{formatTime(timeLeft)}</Text>
+            <Text style={styles.timerText} testID="timer-text">{formatTime(timeLeft)}</Text>
             <Animated.View style={[styles.pulsingDot, dotStyle]} />
           </View>
           <Text style={styles.timerLabel}>Time Remaining</Text>
@@ -153,6 +264,9 @@ export function MockInterviewScreen() {
             <View style={styles.badgeContainer}>
               <Text style={styles.badgeText}>Q2 OF 5</Text>
             </View>
+            <TouchableOpacity onPress={() => Speech.speak(questionText)}>
+                 <Feather name="volume-2" size={20} color={CLTheme.accent} style={{marginLeft: 12}} />
+            </TouchableOpacity>
           </View>
 
           <Text style={styles.questionText}>
@@ -209,9 +323,11 @@ export function MockInterviewScreen() {
           {/* Reset Button */}
           <TouchableOpacity 
             style={styles.controlBtnSecondary}
-            onPress={() => {
+            onPress={async () => {
+              Speech.stop()
               setTranscriptIndex(0)
               setIsRecording(false)
+              if(recording) await stopRecording()
               setTimeLeft(105)
             }}
           >
@@ -226,13 +342,14 @@ export function MockInterviewScreen() {
              <Animated.View style={[styles.recordRipple, rippleStyle]} />
              <TouchableOpacity 
                style={styles.recordButton}
-               onPress={() => setIsRecording(prev => !prev)}
+               onPress={handleToggleRecording}
                activeOpacity={0.9}
+               testID="record-button"
              >
                 {isRecording ? (
                   <View style={styles.stopIcon} />
                 ) : (
-                  <View style={styles.recordIcon} /> // Changed to just circle or square
+                  <View style={styles.recordIcon} /> 
                 )}
              </TouchableOpacity>
           </View>
@@ -240,7 +357,11 @@ export function MockInterviewScreen() {
           {/* Done Button */}
           <TouchableOpacity 
             style={styles.controlBtnSecondary}
-            onPress={() => navigation.goBack()}
+            onPress={async () => {
+                Speech.stop()
+                if (isRecording && recording) await stopRecording()
+                navigation.goBack()
+            }}
           >
             <View style={styles.circleBtnSmall}>
               <MaterialIcons name="check" size={24} color={CLTheme.text.secondary} />
@@ -252,6 +373,52 @@ export function MockInterviewScreen() {
         {/* iOS Home Indicator Spacer */}
         <View style={styles.homeIndicator} />
       </View>
+
+      {/* Menu Modal */}
+      <Modal visible={showMenu} animationType="slide" transparent>
+        <TouchableOpacity 
+           style={styles.menuOverlay}
+           activeOpacity={1}
+           onPress={() => setShowMenu(false)}
+        >
+            <View style={styles.menuContainer}>
+               <View style={styles.menuHeader}>
+                   <Text style={styles.menuTitle}>Session Options</Text>
+                   <TouchableOpacity onPress={() => setShowMenu(false)}>
+                       <Feather name="x" size={24} color={CLTheme.text.secondary} />
+                   </TouchableOpacity>
+               </View>
+               
+               <TouchableOpacity style={styles.menuOption} onPress={async () => { 
+                   setShowMenu(false)
+                   Speech.stop()
+                   setIsRecording(false)
+                   if(recording) await stopRecording()
+                   setTimeLeft(105)
+                   setTranscriptIndex(0)
+               }}>
+                   <MaterialIcons name="refresh" size={20} color={CLTheme.text.secondary} />
+                   <Text style={styles.menuOptionText}>Restart Session</Text>
+               </TouchableOpacity>
+               
+               <TouchableOpacity style={styles.menuOption} onPress={() => { 
+                   setShowMenu(false)
+                   Speech.stop()
+                   setTimeLeft(105)
+                   setTranscriptIndex(0)
+                   Alert.alert('Skipped', 'New question loaded (mock).')
+               }}>
+                   <MaterialIcons name="skip-next" size={20} color={CLTheme.text.secondary} />
+                   <Text style={styles.menuOptionText}>Skip Question</Text>
+               </TouchableOpacity>
+
+               <TouchableOpacity style={[styles.menuOption, { borderBottomWidth: 0, marginTop: 12 }]} onPress={() => setShowMenu(false)}>
+                   <Text style={[styles.menuOptionText, { marginLeft: 0, color: '#ef4444', textAlign: 'center', width: '100%' }]}>Cancel</Text>
+               </TouchableOpacity>
+            </View>
+        </TouchableOpacity>
+      </Modal>
+
     </SafeAreaView>
   )
 }
@@ -300,7 +467,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: Platform.OS === 'android' ? 40 : 10,
     paddingBottom: 10,
-    zIndex: 10,
+    zIndex: 100, // Fixed zIndex
   },
   iconButton: {
     width: 40,
@@ -391,6 +558,8 @@ const styles = StyleSheet.create({
   questionHeader: {
     flexDirection: 'row',
     marginBottom: 12,
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   badgeContainer: {
     backgroundColor: 'rgba(13, 108, 242, 0.2)', // primary/20
@@ -552,5 +721,44 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     marginTop: 16,
     opacity: 0.3,
-  }
+  },
+  // Menu Styles
+  menuOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'flex-end',
+  },
+  menuContainer: {
+    backgroundColor: CLTheme.card,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 24,
+    paddingBottom: 40,
+    borderTopWidth: 1,
+    borderTopColor: CLTheme.border,
+  },
+  menuHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  menuTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: CLTheme.text.primary,
+  },
+  menuOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.05)',
+  },
+  menuOptionText: {
+    fontSize: 16,
+    color: CLTheme.text.primary,
+    marginLeft: 16,
+    fontWeight: '500',
+  },
 })

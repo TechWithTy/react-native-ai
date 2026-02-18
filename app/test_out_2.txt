@@ -1,0 +1,385 @@
+npm warn Unknown project config "node-linker". This will stop working in the next major version of npm.
+npm warn Unknown project config "shamefully-hoist". This will stop working in the next major version of npm.
+npm warn Unknown project config "public-hoist-pattern". This will stop working in the next major version of npm.
+  console.error
+    Warning: Internal React error: Attempted to capture a commit phase error inside a detached tree. This indicates a bug in React. Likely causes include deleting the same fiber more than once, committing an already-finished tree, or an inconsistent return pointer.
+    
+    Error message:
+    
+    TypeError: Speech.stop is not a function
+        at MockInterviewScreen (C:\Users\tyriq\Documents\Github\react-native-ai\app\src\screens\careerLift\mockInterview.tsx:40:49)
+
+      at printWarning (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:72:30)
+      at error (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:46:7)
+      at captureCommitPhaseError (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:16415:5)
+      at safelyCallDestroy (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:12844:5)
+      at commitHookEffectListUnmount (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:13003:11)
+      at commitPassiveUnmountInsideDeletedTreeOnFiber (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14628:11)
+      at commitPassiveUnmountEffectsInsideOfDeletedTree_begin (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14578:5)
+      at commitPassiveUnmountEffects_begin (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14486:11)
+      at commitPassiveUnmountEffects (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14471:3)
+      at flushPassiveEffectsImpl (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:16286:3)
+      at flushPassiveEffects (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:16236:14)
+      at node_modules/react-test-renderer/cjs/react-test-renderer.development.js:16051:9
+      at flushActQueue (node_modules/react/cjs/react.development.js:2667:24)
+      at recursivelyFlushAsyncActWork (node_modules/react/cjs/react.development.js:2633:9)
+      at node_modules/react/cjs/react.development.js:2545:15
+
+  console.error
+    Warning: Internal React error: Attempted to capture a commit phase error inside a detached tree. This indicates a bug in React. Likely causes include deleting the same fiber more than once, committing an already-finished tree, or an inconsistent return pointer.
+    
+    Error message:
+    
+    TypeError: Speech.stop is not a function
+        at MockInterviewScreen (C:\Users\tyriq\Documents\Github\react-native-ai\app\src\screens\careerLift\mockInterview.tsx:40:49)
+
+      at printWarning (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:72:30)
+      at error (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:46:7)
+      at captureCommitPhaseError (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:16415:5)
+      at safelyCallDestroy (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:12844:5)
+      at commitHookEffectListUnmount (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:13003:11)
+      at commitPassiveUnmountInsideDeletedTreeOnFiber (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14628:11)
+      at commitPassiveUnmountEffectsInsideOfDeletedTree_begin (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14578:5)
+      at commitPassiveUnmountEffects_begin (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14486:11)
+      at commitPassiveUnmountEffects (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14471:3)
+      at flushPassiveEffectsImpl (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:16286:3)
+      at flushPassiveEffects (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:16236:14)
+      at node_modules/react-test-renderer/cjs/react-test-renderer.development.js:16051:9
+      at flushActQueue (node_modules/react/cjs/react.development.js:2667:24)
+      at recursivelyFlushAsyncActWork (node_modules/react/cjs/react.development.js:2633:9)
+      at node_modules/react/cjs/react.development.js:2545:15
+
+  console.error
+    Warning: Internal React error: Attempted to capture a commit phase error inside a detached tree. This indicates a bug in React. Likely causes include deleting the same fiber more than once, committing an already-finished tree, or an inconsistent return pointer.
+    
+    Error message:
+    
+    TypeError: Speech.stop is not a function
+        at MockInterviewScreen (C:\Users\tyriq\Documents\Github\react-native-ai\app\src\screens\careerLift\mockInterview.tsx:40:49)
+
+      at printWarning (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:72:30)
+      at error (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:46:7)
+      at captureCommitPhaseError (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:16415:5)
+      at safelyCallDestroy (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:12844:5)
+      at commitHookEffectListUnmount (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:13003:11)
+      at commitPassiveUnmountInsideDeletedTreeOnFiber (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14628:11)
+      at commitPassiveUnmountEffectsInsideOfDeletedTree_begin (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14578:5)
+      at commitPassiveUnmountEffects_begin (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14486:11)
+      at commitPassiveUnmountEffects (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14471:3)
+      at flushPassiveEffectsImpl (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:16286:3)
+      at flushPassiveEffects (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:16236:14)
+      at node_modules/react-test-renderer/cjs/react-test-renderer.development.js:16051:9
+      at flushActQueue (node_modules/react/cjs/react.development.js:2667:24)
+      at recursivelyFlushAsyncActWork (node_modules/react/cjs/react.development.js:2633:9)
+      at node_modules/react/cjs/react.development.js:2545:15
+
+  console.error
+    Warning: An update to MockInterviewScreen inside a test was not wrapped in act(...).
+    
+    When testing, code that causes React state updates should be wrapped into act(...):
+    
+    act(() => {
+      /* fire events that update state */
+    });
+    /* assert on the output */
+    
+    This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+        at MockInterviewScreen (C:\Users\tyriq\Documents\Github\react-native-ai\app\src\screens\careerLift\mockInterview.tsx:40:49)
+
+    [0m [90m 150 |[39m       )
+     [90m 151 |[39m       
+    [31m[1m>[22m[39m[90m 152 |[39m       setRecording(recording)
+     [90m     |[39m       [31m[1m^[22m[39m
+     [90m 153 |[39m       setIsRecording([36mtrue[39m)
+     [90m 154 |[39m       
+     [90m 155 |[39m       [90m// Stop TTS if still speaking[39m[0m
+
+      at printWarning (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:72:30)
+      at error (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:46:7)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:16716:9)
+      at scheduleUpdateOnFiber (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14916:5)
+      at dispatchSetState (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:6767:7)
+      at setRecording (src/screens/careerLift/mockInterview.tsx:152:7)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+
+  console.error
+    Warning: An update to MockInterviewScreen inside a test was not wrapped in act(...).
+    
+    When testing, code that causes React state updates should be wrapped into act(...):
+    
+    act(() => {
+      /* fire events that update state */
+    });
+    /* assert on the output */
+    
+    This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+        at MockInterviewScreen (C:\Users\tyriq\Documents\Github\react-native-ai\app\src\screens\careerLift\mockInterview.tsx:40:49)
+
+    [0m [90m 151 |[39m       
+     [90m 152 |[39m       setRecording(recording)
+    [31m[1m>[22m[39m[90m 153 |[39m       setIsRecording([36mtrue[39m)
+     [90m     |[39m       [31m[1m^[22m[39m
+     [90m 154 |[39m       
+     [90m 155 |[39m       [90m// Stop TTS if still speaking[39m
+     [90m 156 |[39m       [36mif[39m ([36mawait[39m [33mSpeech[39m[33m.[39misSpeakingAsync()) {[0m
+
+      at printWarning (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:72:30)
+      at error (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:46:7)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:16716:9)
+      at scheduleUpdateOnFiber (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14916:5)
+      at dispatchSetState (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:6767:7)
+      at setIsRecording (src/screens/careerLift/mockInterview.tsx:153:7)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+
+  console.error
+    Failed to start recording TypeError: Speech.isSpeakingAsync is not a function
+        at isSpeakingAsync (C:\Users\tyriq\Documents\Github\react-native-ai\app\src\screens\careerLift\mockInterview.tsx:156:24)
+        at Generator.next (<anonymous>)
+        at asyncGeneratorStep (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\@babel\runtime\helpers\asyncToGenerator.js:3:17)
+        at _next (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\@babel\runtime\helpers\asyncToGenerator.js:17:9)
+
+    [0m [90m 160 |[39m
+     [90m 161 |[39m     } [36mcatch[39m (err) {
+    [31m[1m>[22m[39m[90m 162 |[39m       console[33m.[39merror([32m'Failed to start recording'[39m[33m,[39m err)
+     [90m     |[39m               [31m[1m^[22m[39m
+     [90m 163 |[39m       [33mAlert[39m[33m.[39malert([32m'Error'[39m[33m,[39m [32m'Failed to start recording.'[39m)
+     [90m 164 |[39m     }
+     [90m 165 |[39m   }[0m
+
+      at error (src/screens/careerLift/mockInterview.tsx:162:15)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+
+  console.error
+    Warning: Internal React error: Attempted to capture a commit phase error inside a detached tree. This indicates a bug in React. Likely causes include deleting the same fiber more than once, committing an already-finished tree, or an inconsistent return pointer.
+    
+    Error message:
+    
+    TypeError: Speech.stop is not a function
+        at MockInterviewScreen (C:\Users\tyriq\Documents\Github\react-native-ai\app\src\screens\careerLift\mockInterview.tsx:40:49)
+
+      at printWarning (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:72:30)
+      at error (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:46:7)
+      at captureCommitPhaseError (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:16415:5)
+      at safelyCallDestroy (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:12844:5)
+      at commitHookEffectListUnmount (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:13003:11)
+      at commitPassiveUnmountInsideDeletedTreeOnFiber (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14628:11)
+      at commitPassiveUnmountEffectsInsideOfDeletedTree_begin (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14578:5)
+      at commitPassiveUnmountEffects_begin (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14486:11)
+      at commitPassiveUnmountEffects (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14471:3)
+      at flushPassiveEffectsImpl (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:16286:3)
+      at flushPassiveEffects (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:16236:14)
+      at node_modules/react-test-renderer/cjs/react-test-renderer.development.js:16051:9
+      at flushActQueue (node_modules/react/cjs/react.development.js:2667:24)
+      at recursivelyFlushAsyncActWork (node_modules/react/cjs/react.development.js:2633:9)
+      at node_modules/react/cjs/react.development.js:2545:15
+
+  console.error
+    Warning: Internal React error: Attempted to capture a commit phase error inside a detached tree. This indicates a bug in React. Likely causes include deleting the same fiber more than once, committing an already-finished tree, or an inconsistent return pointer.
+    
+    Error message:
+    
+    TypeError: Speech.stop is not a function
+        at MockInterviewScreen (C:\Users\tyriq\Documents\Github\react-native-ai\app\src\screens\careerLift\mockInterview.tsx:40:49)
+
+      at printWarning (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:72:30)
+      at error (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:46:7)
+      at captureCommitPhaseError (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:16415:5)
+      at safelyCallDestroy (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:12844:5)
+      at commitHookEffectListUnmount (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:13003:11)
+      at commitPassiveUnmountInsideDeletedTreeOnFiber (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14628:11)
+      at commitPassiveUnmountEffectsInsideOfDeletedTree_begin (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14578:5)
+      at commitPassiveUnmountEffects_begin (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14486:11)
+      at commitPassiveUnmountEffects (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14471:3)
+      at flushPassiveEffectsImpl (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:16286:3)
+      at flushPassiveEffects (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:16236:14)
+      at node_modules/react-test-renderer/cjs/react-test-renderer.development.js:16051:9
+      at flushActQueue (node_modules/react/cjs/react.development.js:2667:24)
+      at recursivelyFlushAsyncActWork (node_modules/react/cjs/react.development.js:2633:9)
+      at node_modules/react/cjs/react.development.js:2545:15
+
+  console.error
+    Warning: Internal React error: Attempted to capture a commit phase error inside a detached tree. This indicates a bug in React. Likely causes include deleting the same fiber more than once, committing an already-finished tree, or an inconsistent return pointer.
+    
+    Error message:
+    
+    TypeError: Speech.stop is not a function
+        at MockInterviewScreen (C:\Users\tyriq\Documents\Github\react-native-ai\app\src\screens\careerLift\mockInterview.tsx:40:49)
+
+      at printWarning (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:72:30)
+      at error (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:46:7)
+      at captureCommitPhaseError (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:16415:5)
+      at safelyCallDestroy (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:12844:5)
+      at commitHookEffectListUnmount (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:13003:11)
+      at commitPassiveUnmountInsideDeletedTreeOnFiber (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14628:11)
+      at commitPassiveUnmountEffectsInsideOfDeletedTree_begin (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14578:5)
+      at commitPassiveUnmountEffects_begin (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14486:11)
+      at commitPassiveUnmountEffects (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14471:3)
+      at flushPassiveEffectsImpl (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:16286:3)
+      at flushPassiveEffects (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:16236:14)
+      at node_modules/react-test-renderer/cjs/react-test-renderer.development.js:16051:9
+      at flushActQueue (node_modules/react/cjs/react.development.js:2667:24)
+      at recursivelyFlushAsyncActWork (node_modules/react/cjs/react.development.js:2633:9)
+      at node_modules/react/cjs/react.development.js:2545:15
+
+FAIL src/screens/careerLift/__tests__/interviewPrep.test.tsx (16.102 s)
+  MockInterviewScreen
+    √ renders correctly with initial state (206 ms)
+    × starts speaking question on mount (1037 ms)
+    √ toggles rubric visibility (24 ms)
+    × handles recording toggle correctly (50 ms)
+    × shows alerts on menu press and handles restart (16 ms)
+    × resets session and handles done (13 ms)
+
+  ● MockInterviewScreen › starts speaking question on mount
+
+    TypeError: Speech.isSpeakingAsync is not a function
+
+    [0m [90m 55 |[39m     [36mconst[39m speakQuestion [33m=[39m [36masync[39m () [33m=>[39m {
+     [90m 56 |[39m       [90m// Stop any previous speech[39m
+    [31m[1m>[22m[39m[90m 57 |[39m       [36mif[39m ([36mawait[39m [33mSpeech[39m[33m.[39misSpeakingAsync()) {
+     [90m    |[39m                        [31m[1m^[22m[39m
+     [90m 58 |[39m         [33mSpeech[39m[33m.[39mstop()
+     [90m 59 |[39m       }
+     [90m 60 |[39m       [0m
+
+      at isSpeakingAsync (src/screens/careerLift/mockInterview.tsx:57:24)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12
+      at apply (src/screens/careerLift/mockInterview.tsx:55:24)
+      at Timeout.speakQuestion (src/screens/careerLift/mockInterview.tsx:73:9)
+
+  ● MockInterviewScreen › starts speaking question on mount
+
+    expect(jest.fn()).toHaveBeenCalledWith(...expected)
+
+    Expected: "Test Question?", Any<Object>
+
+    Number of calls: 0
+
+    [0m [90m 103 |[39m     render([33m<[39m[33mMockInterviewScreen[39m [33m/[39m[33m>[39m)
+     [90m 104 |[39m     
+    [31m[1m>[22m[39m[90m 105 |[39m     [36mawait[39m waitFor(() [33m=>[39m {
+     [90m     |[39m                  [31m[1m^[22m[39m
+     [90m 106 |[39m       expect(mockSpeak)[33m.[39mtoHaveBeenCalledWith([32m'Test Question?'[39m[33m,[39m expect[33m.[39many([33mObject[39m))
+     [90m 107 |[39m     }[33m,[39m { timeout[33m:[39m [35m1000[39m })
+     [90m 108 |[39m   })[0m
+
+      at Object.<anonymous> (src/screens/careerLift/__tests__/interviewPrep.test.tsx:105:18)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+
+  ● MockInterviewScreen › handles recording toggle correctly
+
+    expect(jest.fn()).toHaveBeenCalled()
+
+    Expected number of calls: >= 1
+    Received number of calls:    0
+
+    [0m [90m 128 |[39m     
+     [90m 129 |[39m     [90m// Check permission requested[39m
+    [31m[1m>[22m[39m[90m 130 |[39m     expect(mockRequestPermission)[33m.[39mtoHaveBeenCalled()
+     [90m     |[39m                                   [31m[1m^[22m[39m
+     [90m 131 |[39m     
+     [90m 132 |[39m     [90m// Wait for state update (startAsync logic)[39m
+     [90m 133 |[39m     [36mawait[39m waitFor(() [33m=>[39m {[0m
+
+      at Object.toHaveBeenCalled (src/screens/careerLift/__tests__/interviewPrep.test.tsx:130:35)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+
+  ● MockInterviewScreen › shows alerts on menu press and handles restart
+
+    TypeError: Speech.stop is not a function
+
+    [0m [90m 239 |[39m                 [33mAlert[39m[33m.[39malert([32m'Session Options'[39m[33m,[39m [32m'What would you like to do?'[39m[33m,[39m [
+     [90m 240 |[39m                     { text[33m:[39m [32m'Restart Session'[39m[33m,[39m onPress[33m:[39m [36masync[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 241 |[39m                          [33mSpeech[39m[33m.[39mstop()
+     [90m     |[39m                                 [31m[1m^[22m[39m
+     [90m 242 |[39m                          setIsRecording([36mfalse[39m)
+     [90m 243 |[39m                          [36mif[39m(recording) [36mawait[39m stopRecording()
+     [90m 244 |[39m                          setTimeLeft([35m105[39m)[0m
+
+      at Object.stop (src/screens/careerLift/mockInterview.tsx:241:33)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+      at Object.apply [as onPress] (src/screens/careerLift/mockInterview.tsx:240:55)
+      at onPress (src/screens/careerLift/__tests__/interviewPrep.test.tsx:169:29)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12
+      at callback (node_modules/@testing-library/react-native/src/act.ts:31:24)
+      at act (node_modules/react/cjs/react.development.js:2512:16)
+      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)
+      at Object.<anonymous> (src/screens/careerLift/__tests__/interviewPrep.test.tsx:168:14)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+
+  ● MockInterviewScreen › resets session and handles done
+
+    expect(jest.fn()).toHaveBeenCalled()
+
+    Expected number of calls: >= 1
+    Received number of calls:    0
+
+    [0m [90m 182 |[39m     fireEvent[33m.[39mpress(getByText([32m'Reset'[39m))
+     [90m 183 |[39m     [90m// Should stop speech[39m
+    [31m[1m>[22m[39m[90m 184 |[39m     expect(mockStop)[33m.[39mtoHaveBeenCalled()
+     [90m     |[39m                      [31m[1m^[22m[39m
+     [90m 185 |[39m     
+     [90m 186 |[39m     [90m// Press Done[39m
+     [90m 187 |[39m     fireEvent[33m.[39mpress(getByText([32m'Done'[39m))[0m
+
+      at Object.toHaveBeenCalled (src/screens/careerLift/__tests__/interviewPrep.test.tsx:184:22)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+
+  ● MockInterviewScreen › resets session and handles done
+
+    TypeError: Speech.stop is not a function
+
+    [0m [90m 340 |[39m             style[33m=[39m{styles[33m.[39mcontrolBtnSecondary}
+     [90m 341 |[39m             onPress[33m=[39m{[36masync[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 342 |[39m               [33mSpeech[39m[33m.[39mstop()
+     [90m     |[39m                      [31m[1m^[22m[39m
+     [90m 343 |[39m               setTranscriptIndex([35m0[39m)
+     [90m 344 |[39m               setIsRecording([36mfalse[39m)
+     [90m 345 |[39m               [36mif[39m(recording) [36mawait[39m stopRecording()[0m
+
+      at stop (src/screens/careerLift/mockInterview.tsx:342:22)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12
+      at handler (node_modules/@testing-library/react-native/src/fire-event.ts:123:19)
+      at callback (node_modules/@testing-library/react-native/src/act.ts:31:24)
+      at act (node_modules/react/cjs/react.development.js:2512:16)
+      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)
+      at fireEvent (node_modules/@testing-library/react-native/src/fire-event.ts:122:11)
+      at Function.fireEvent [as press] (node_modules/@testing-library/react-native/src/fire-event.ts:130:3)
+      at Object.press (src/screens/careerLift/__tests__/interviewPrep.test.tsx:182:15)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+
+Test Suites: 1 failed, 1 total
+Tests:       4 failed, 2 passed, 6 total
+Snapshots:   0 total
+Time:        18.014 s
+Ran all test suites matching /src\\screens\\careerLift\\__tests__\\interviewPrep.test.tsx/i.

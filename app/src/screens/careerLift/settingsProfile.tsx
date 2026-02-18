@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   View,
   Text,
@@ -8,26 +8,70 @@ import {
   Image,
   Switch,
   Alert,
+  Modal,
+  TextInput,
+  ActivityIndicator,
 } from 'react-native'
-import { MaterialIcons, FontAwesome5, Ionicons } from '@expo/vector-icons'
+import { MaterialIcons, FontAwesome5, Ionicons, Feather } from '@expo/vector-icons'
+import { useNavigation, useRoute } from '@react-navigation/native'
 import { CLTheme } from './theme'
-import { useCareerSetupStore } from '../../store/careerSetup'
+import { getRoleOptionsForTrack, getSalaryRangesForRole, useCareerSetupStore } from '../../store/careerSetup'
 import { useUserProfileStore } from '../../store/userProfileStore'
+import { useCreditsStore } from '../../store/creditsStore'
+import { SubscriptionModal } from './subscriptionModal'
+import { CustomInterviewPrepPayload } from '../../../types'
+import { ROLE_TRACKS_META } from '../../data/roles'
+import { TARGET_SENIORITY_OPTIONS } from '../../data/seniority'
+
+const CREDIT_PACKAGES = [
+  { id: 'pack_50', credits: 50, price: '$4.99', perCredit: '$0.10', popular: false },
+  { id: 'pack_150', credits: 150, price: '$9.99', perCredit: '$0.07', popular: true },
+  { id: 'pack_500', credits: 500, price: '$24.99', perCredit: '$0.05', popular: false },
+  { id: 'pack_1000', credits: 1000, price: '$39.99', perCredit: '$0.04', popular: false },
+] as const
+
+const ROLE_UPDATE_STEPS = [
+  'Validating job description source',
+  'Extracting role requirements',
+  'Rebuilding interview prep focus areas',
+  'Building your custom interview prep flow',
+]
+
+type ProfileSelectionType = 'industry' | 'seniority' | 'role' | 'salary' | 'openToWork' | null
 
 export function SettingsProfileScreen() {
+  const navigation = useNavigation()
+  const route = useRoute()
   const [calendarSync, setCalendarSync] = useState(true)
+  const [showRoleUpdateModal, setShowRoleUpdateModal] = useState(false)
+  const [showRoleUpdateProgress, setShowRoleUpdateProgress] = useState(false)
+  const [jobInputMode, setJobInputMode] = useState<'url' | 'text'>('url')
+  const [jobDescriptionUrl, setJobDescriptionUrl] = useState('')
+  const [jobDescriptionText, setJobDescriptionText] = useState('')
+  const [activeStep, setActiveStep] = useState(0)
+  const [isProcessingComplete, setIsProcessingComplete] = useState(false)
+  const [pendingTargetRole, setPendingTargetRole] = useState('')
+  const [generatedCustomPrep, setGeneratedCustomPrep] = useState<CustomInterviewPrepPayload | null>(null)
+  const [showSubscription, setShowSubscription] = useState(false)
+  const [showCreditPackages, setShowCreditPackages] = useState(false)
+  const [selectionType, setSelectionType] = useState<ProfileSelectionType>(null)
+  const [showLocationModal, setShowLocationModal] = useState(false)
+  const [locationInput, setLocationInput] = useState('')
+
   const { 
     targetRole, 
     roleTrack, 
     seniority, 
-    locationPreference 
+    desiredSalaryRange,
+    setCareerSetup,
   } = useCareerSetupStore()
   
   const { 
     name, 
     avatarUrl, 
     currentLocation, 
-    isOpenToWork 
+    isOpenToWork,
+    setProfile,
   } = useUserProfileStore()
 
   const handleEditProfile = () => {
@@ -48,6 +92,253 @@ export function SettingsProfileScreen() {
       ]
     )
   }
+
+  const inferTargetRole = (source: string) => {
+    const roleOptions = getRoleOptionsForTrack(roleTrack || 'Engineering')
+    const normalized = source.toLowerCase().replace(/[-_/]/g, ' ')
+
+    const exactMatch = roleOptions.find(option => normalized.includes(option.toLowerCase()))
+    if (exactMatch) return exactMatch
+
+    const partialMatch = roleOptions.find(option => {
+      const [firstWord] = option.toLowerCase().split(' ')
+      return firstWord.length > 2 && normalized.includes(firstWord)
+    })
+    if (partialMatch) return partialMatch
+
+    return targetRole || roleOptions[0] || 'Software Engineer'
+  }
+
+  const inferCompanyName = (source: string, mode: 'url' | 'text') => {
+    if (mode === 'url') {
+      try {
+        const host = new URL(source).hostname.replace('www.', '')
+        const [namePart] = host.split('.')
+        if (!namePart) return null
+        return namePart.charAt(0).toUpperCase() + namePart.slice(1)
+      } catch {
+        return null
+      }
+    }
+
+    const companyMatch = source.match(/(?:company|about)\s*:?\s*([A-Z][A-Za-z0-9 &.-]{2,40})/i)
+    return companyMatch?.[1]?.trim() ?? null
+  }
+
+  const inferFocusAreas = (source: string, inferredRole: string) => {
+    const normalized = source.toLowerCase()
+    const inferred: string[] = []
+
+    if (normalized.includes('stakeholder') || normalized.includes('cross-functional')) {
+      inferred.push('Stakeholder Management')
+    }
+    if (normalized.includes('data') || normalized.includes('analytics') || normalized.includes('sql')) {
+      inferred.push('Data-Driven Decisions')
+    }
+    if (normalized.includes('roadmap') || normalized.includes('strategy')) {
+      inferred.push('Product Strategy')
+    }
+    if (normalized.includes('lead') || normalized.includes('ownership')) {
+      inferred.push('Leadership')
+    }
+    if (normalized.includes('customer') || normalized.includes('user research')) {
+      inferred.push('Customer Empathy')
+    }
+
+    if (inferred.length === 0) {
+      inferred.push(`${inferredRole} Fundamentals`, 'Behavioral STAR Stories', 'Role-Specific Tradeoffs')
+    }
+
+    return inferred.slice(0, 4)
+  }
+
+  const roleOptions = getRoleOptionsForTrack(roleTrack || 'Engineering')
+  const salaryOptions = getSalaryRangesForRole(roleTrack || 'Engineering', targetRole || roleOptions[0])
+  const industryOptions = ROLE_TRACKS_META.map(item => item.label)
+
+  const getDisplaySeniority = () => {
+    const normalized = (seniority || '').toLowerCase()
+    const matched = TARGET_SENIORITY_OPTIONS.find(
+      item => item.label.toLowerCase() === normalized || item.legacy?.toLowerCase() === normalized
+    )
+    return matched?.label || seniority || 'Mid-Level'
+  }
+
+  const seniorityOptions = TARGET_SENIORITY_OPTIONS.map(item => item.label)
+
+  const selectionTitleMap: Record<Exclude<ProfileSelectionType, null>, string> = {
+    industry: 'Select Industry',
+    seniority: 'Select Seniority',
+    role: 'Select Target Role',
+    salary: 'Select Salary Range',
+    openToWork: 'Update Work Status',
+  }
+
+  const selectionOptions = (() => {
+    if (!selectionType) return []
+    if (selectionType === 'industry') return industryOptions
+    if (selectionType === 'seniority') return seniorityOptions
+    if (selectionType === 'role') return roleOptions
+    if (selectionType === 'salary') return salaryOptions
+    return ['Open to Work', 'Not Open to Work']
+  })()
+
+  const getSelectedSelectionValue = (() => {
+    if (!selectionType) return ''
+    if (selectionType === 'industry') return roleTrack || 'Engineering'
+    if (selectionType === 'seniority') return getDisplaySeniority()
+    if (selectionType === 'role') return targetRole || roleOptions[0]
+    if (selectionType === 'salary') return desiredSalaryRange || salaryOptions[0] || ''
+    return isOpenToWork ? 'Open to Work' : 'Not Open to Work'
+  })()
+
+  const handleSelectionPress = (value: string) => {
+    if (!selectionType) return
+
+    if (selectionType === 'industry') {
+      const nextRoleOptions = getRoleOptionsForTrack(value)
+      const nextRole = nextRoleOptions.includes(targetRole) ? targetRole : nextRoleOptions[0]
+      const nextSalary = getSalaryRangesForRole(value, nextRole)[0] || desiredSalaryRange
+      setCareerSetup({
+        roleTrack: value,
+        targetRole: nextRole,
+        desiredSalaryRange: nextSalary,
+      })
+      setSelectionType(null)
+      return
+    }
+
+    if (selectionType === 'seniority') {
+      setCareerSetup({ seniority: value, targetSeniority: value })
+      setSelectionType(null)
+      return
+    }
+
+    if (selectionType === 'role') {
+      const nextSalary = getSalaryRangesForRole(roleTrack || 'Engineering', value)[0] || desiredSalaryRange
+      setCareerSetup({ targetRole: value, desiredSalaryRange: nextSalary })
+      setSelectionType(null)
+      return
+    }
+
+    if (selectionType === 'salary') {
+      setCareerSetup({ desiredSalaryRange: value })
+      setSelectionType(null)
+      return
+    }
+
+    setProfile({ isOpenToWork: value === 'Open to Work' })
+    setSelectionType(null)
+  }
+
+  const resetRoleUpdateFlow = () => {
+    setShowRoleUpdateModal(false)
+    setShowRoleUpdateProgress(false)
+    setJobDescriptionUrl('')
+    setJobDescriptionText('')
+    setActiveStep(0)
+    setIsProcessingComplete(false)
+    setPendingTargetRole('')
+    setGeneratedCustomPrep(null)
+  }
+
+  const handleStartInterviewPrepUpdate = () => {
+    const source = jobInputMode === 'url' ? jobDescriptionUrl.trim() : jobDescriptionText.trim()
+    if (!source) {
+      Alert.alert('Missing Input', 'Paste a job description URL or job description text to continue.')
+      return
+    }
+
+    if (jobInputMode === 'url' && !/^https?:\/\/\S+$/i.test(source)) {
+      Alert.alert('Invalid URL', 'Enter a valid job description URL that starts with http:// or https://.')
+      return
+    }
+
+    const inferredRole = inferTargetRole(source)
+    const prepPayload: CustomInterviewPrepPayload = {
+      inferredRole,
+      roleTrack: roleTrack || 'Engineering',
+      companyName: inferCompanyName(source, jobInputMode),
+      sourceType: jobInputMode,
+      sourcePreview: source.slice(0, 180),
+      focusAreas: inferFocusAreas(source, inferredRole),
+      generatedAt: new Date().toISOString(),
+    }
+
+    setPendingTargetRole(inferredRole)
+    setGeneratedCustomPrep(prepPayload)
+    setShowRoleUpdateModal(false)
+    setShowRoleUpdateProgress(true)
+    setActiveStep(0)
+    setIsProcessingComplete(false)
+  }
+
+  const openCustomPrepAt = (route as any)?.params?.openCustomPrepAt as number | undefined
+  useEffect(() => {
+    if (!openCustomPrepAt) return
+    setShowRoleUpdateModal(true)
+  }, [openCustomPrepAt])
+
+  useEffect(() => {
+    setLocationInput(currentLocation || '')
+  }, [currentLocation])
+
+  const navigateToInterviewPrep = (customPrep: CustomInterviewPrepPayload) => {
+    let currentNavigation: any = navigation
+
+    while (currentNavigation) {
+      const routeNames = currentNavigation.getState?.()?.routeNames as string[] | undefined
+      if (routeNames?.includes('InterviewPrep')) {
+        currentNavigation.navigate('InterviewPrep', { customPrep })
+        return
+      }
+
+      currentNavigation = currentNavigation.getParent?.()
+    }
+
+    ;(navigation as any).navigate('InterviewPrep', { customPrep })
+  }
+
+  useEffect(() => {
+    if (!showRoleUpdateProgress) return
+    if (isProcessingComplete) return
+
+    if (activeStep >= ROLE_UPDATE_STEPS.length) {
+      setIsProcessingComplete(true)
+      setCareerSetup({ targetRole: pendingTargetRole || targetRole })
+      return
+    }
+
+    const timer = setTimeout(() => {
+      setActiveStep(step => step + 1)
+    }, 900)
+
+    return () => clearTimeout(timer)
+  }, [
+    showRoleUpdateProgress,
+    isProcessingComplete,
+    activeStep,
+    pendingTargetRole,
+    targetRole,
+    setCareerSetup,
+  ])
+
+  useEffect(() => {
+    if (!showRoleUpdateProgress || !isProcessingComplete || !generatedCustomPrep) return
+
+    const doneTimer = setTimeout(() => {
+      setShowRoleUpdateProgress(false)
+      navigateToInterviewPrep(generatedCustomPrep)
+      resetRoleUpdateFlow()
+    }, 700)
+
+    return () => clearTimeout(doneTimer)
+  }, [
+    showRoleUpdateProgress,
+    isProcessingComplete,
+    generatedCustomPrep,
+    navigation,
+  ])
 
   return (
     <View style={styles.container}>
@@ -71,14 +362,17 @@ export function SettingsProfileScreen() {
           <Text style={styles.roleText}>{targetRole || 'Software Engineer'}</Text>
 
           <View style={styles.pillRow}>
-            {isOpenToWork && (
-              <View style={[styles.pill, styles.pillBlue]}>
-                <Text style={styles.pillTextBlue}>Open to Work</Text>
-              </View>
-            )}
-            <View style={[styles.pill, styles.pillGray]}>
+            <TouchableOpacity
+              style={[styles.pill, isOpenToWork ? styles.pillBlue : styles.pillGray]}
+              onPress={() => setSelectionType('openToWork')}
+            >
+              <Text style={isOpenToWork ? styles.pillTextBlue : styles.pillTextGray}>
+                {isOpenToWork ? 'Open to Work' : 'Not Open to Work'}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.pill, styles.pillGray]} onPress={() => setShowLocationModal(true)}>
               <Text style={styles.pillTextGray}>{currentLocation}</Text>
-            </View>
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -86,7 +380,22 @@ export function SettingsProfileScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>TARGET ROLE TRACK</Text>
           <View style={styles.card}>
-            <TouchableOpacity style={styles.row}>
+            <TouchableOpacity style={styles.row} onPress={() => setSelectionType('industry')}>
+              <View style={styles.rowLeft}>
+                <View style={styles.iconBox}>
+                  <MaterialIcons name="layers" size={20} color={CLTheme.accent} />
+                </View>
+                <Text style={styles.rowLabel}>Industry</Text>
+              </View>
+              <View style={styles.rowRight}>
+                <Text style={styles.rowValue}>{roleTrack || 'Engineering'}</Text>
+                <MaterialIcons name="chevron-right" size={20} color={CLTheme.text.secondary} />
+              </View>
+            </TouchableOpacity>
+            
+            <View style={styles.separator} />
+
+            <TouchableOpacity style={styles.row} onPress={() => setSelectionType('seniority')}>
               <View style={styles.rowLeft}>
                 <View style={styles.iconBox}>
                   <MaterialIcons name="trending-up" size={20} color={CLTheme.accent} />
@@ -94,22 +403,52 @@ export function SettingsProfileScreen() {
                 <Text style={styles.rowLabel}>Seniority Level</Text>
               </View>
               <View style={styles.rowRight}>
-                <Text style={styles.rowValue}>{seniority || 'Mid-Level'}</Text>
+                <Text style={styles.rowValue}>{getDisplaySeniority()}</Text>
                 <MaterialIcons name="chevron-right" size={20} color={CLTheme.text.secondary} />
               </View>
             </TouchableOpacity>
-            
+
             <View style={styles.separator} />
 
-            <TouchableOpacity style={styles.row}>
+            <TouchableOpacity style={styles.row} onPress={() => setSelectionType('role')}>
               <View style={styles.rowLeft}>
                 <View style={styles.iconBox}>
                   <MaterialIcons name="work-outline" size={20} color={CLTheme.accent} />
                 </View>
-                <Text style={styles.rowLabel}>Role Preferences</Text>
+                <Text style={styles.rowLabel}>Target Role</Text>
               </View>
               <View style={styles.rowRight}>
-                <Text style={styles.rowValue}>{roleTrack || 'Engineering'}</Text>
+                <Text style={styles.rowValue}>{targetRole || roleOptions[0]}</Text>
+                <MaterialIcons name="chevron-right" size={20} color={CLTheme.text.secondary} />
+              </View>
+            </TouchableOpacity>
+
+            <View style={styles.separator} />
+
+            <TouchableOpacity style={styles.row} onPress={() => setSelectionType('salary')}>
+              <View style={styles.rowLeft}>
+                <View style={styles.iconBox}>
+                  <MaterialIcons name="attach-money" size={20} color={CLTheme.accent} />
+                </View>
+                <Text style={styles.rowLabel}>Salary Range</Text>
+              </View>
+              <View style={styles.rowRight}>
+                <Text style={styles.rowValue}>{desiredSalaryRange || salaryOptions[0]}</Text>
+                <MaterialIcons name="chevron-right" size={20} color={CLTheme.text.secondary} />
+              </View>
+            </TouchableOpacity>
+
+            <View style={styles.separator} />
+
+            <TouchableOpacity style={styles.row} onPress={() => setShowRoleUpdateModal(true)}>
+              <View style={styles.rowLeft}>
+                <View style={styles.iconBox}>
+                  <MaterialIcons name="description" size={20} color={CLTheme.accent} />
+                </View>
+                <Text style={styles.rowLabel}>Custom Interview Prep</Text>
+              </View>
+              <View style={styles.rowRight}>
+                <Text style={styles.rowValue}>URL or pasted JD</Text>
                 <MaterialIcons name="chevron-right" size={20} color={CLTheme.text.secondary} />
               </View>
             </TouchableOpacity>
@@ -192,6 +531,69 @@ export function SettingsProfileScreen() {
           </Text>
         </View>
 
+        {/* Section: AI Credits & Plans */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>AI CREDITS & PLANS</Text>
+          <View style={styles.card}>
+            {/* Credit Balance Row */}
+            <View style={styles.creditBalanceRow}>
+              <View style={styles.creditBalanceLeft}>
+                <View style={[styles.iconBoxLarge, { backgroundColor: 'rgba(16, 185, 129, 0.15)' }]}>
+                  <Feather name="zap" size={22} color="#10b981" />
+                </View>
+                <View>
+                  <Text style={styles.creditBalanceLabel}>Available Credits</Text>
+                  <Text style={styles.creditBalanceValue}>
+                    {useCreditsStore.getState().balance}
+                    <Text style={styles.creditBalanceSuffix}> credits</Text>
+                  </Text>
+                </View>
+              </View>
+              <TouchableOpacity
+                style={styles.addCreditsChip}
+                onPress={() => setShowCreditPackages(true)}
+              >
+                <Feather name="plus" size={14} color="#fff" />
+                <Text style={styles.addCreditsChipText}>Add</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.separator} />
+
+            {/* Buy Credit Packages */}
+            <TouchableOpacity style={styles.row} onPress={() => setShowCreditPackages(true)}>
+              <View style={styles.rowLeft}>
+                <View style={[styles.iconBox, { backgroundColor: 'rgba(99, 102, 241, 0.15)' }]}>
+                  <MaterialIcons name="shopping-cart" size={20} color="#6366f1" />
+                </View>
+                <View>
+                  <Text style={styles.rowLabel}>Buy Credit Packages</Text>
+                  <Text style={styles.rowHint}>One-time packs starting at $4.99</Text>
+                </View>
+              </View>
+              <MaterialIcons name="chevron-right" size={20} color={CLTheme.text.secondary} />
+            </TouchableOpacity>
+
+            <View style={styles.separator} />
+
+            {/* Subscription Upsell */}
+            <TouchableOpacity style={styles.row} onPress={() => setShowSubscription(true)}>
+              <View style={styles.rowLeft}>
+                <View style={[styles.iconBox, { backgroundColor: 'rgba(168, 85, 247, 0.15)' }]}>
+                  <MaterialIcons name="diamond" size={20} color="#a855f7" />
+                </View>
+                <View>
+                  <Text style={styles.rowLabel}>Upgrade Plan</Text>
+                  <Text style={styles.rowHint}>Unlock auto-apply & unlimited credits</Text>
+                </View>
+              </View>
+              <View style={styles.upgradePill}>
+                <Text style={styles.upgradePillText}>UPGRADE</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+        </View>
+
         {/* Section: Billing */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>BILLING</Text>
@@ -212,6 +614,10 @@ export function SettingsProfileScreen() {
             </View>
             <TouchableOpacity style={styles.manageButton} onPress={handleManageSubscription}>
               <Text style={styles.manageButtonText}>Manage Subscription</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.purchaseCreditsLink} onPress={() => setShowCreditPackages(true)}>
+              <Feather name="zap" size={14} color={CLTheme.accent} />
+              <Text style={styles.purchaseCreditsText}>Purchase AI Credits</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -246,6 +652,273 @@ export function SettingsProfileScreen() {
         <Text style={styles.versionText}>Career Lift v2.4.1 (Build 890)</Text>
         <View style={{ height: 40 }} />
       </ScrollView>
+
+      <Modal visible={showRoleUpdateModal} animationType='slide' transparent onRequestClose={resetRoleUpdateFlow}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Custom Interview Prep</Text>
+              <TouchableOpacity onPress={resetRoleUpdateFlow}>
+                <MaterialIcons name="close" size={22} color={CLTheme.text.secondary} />
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.modalSubtitle}>
+              Add a job URL or paste the job description to build a custom prep flow.
+            </Text>
+
+            <View style={styles.modeTabs}>
+              <TouchableOpacity
+                style={[styles.modeTab, jobInputMode === 'url' && styles.modeTabActive]}
+                onPress={() => setJobInputMode('url')}
+              >
+                <Text style={[styles.modeTabText, jobInputMode === 'url' && styles.modeTabTextActive]}>
+                  Job URL
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modeTab, jobInputMode === 'text' && styles.modeTabActive]}
+                onPress={() => setJobInputMode('text')}
+              >
+                <Text style={[styles.modeTabText, jobInputMode === 'text' && styles.modeTabTextActive]}>
+                  Paste Text
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {jobInputMode === 'url' ? (
+              <View style={styles.inputBlock}>
+                <Text style={styles.inputLabel}>Job Description URL</Text>
+                <TextInput
+                  value={jobDescriptionUrl}
+                  onChangeText={setJobDescriptionUrl}
+                  style={styles.textInput}
+                  placeholder='https://company.com/jobs/senior-pm'
+                  placeholderTextColor={CLTheme.text.muted}
+                  autoCapitalize='none'
+                  autoCorrect={false}
+                />
+              </View>
+            ) : (
+              <View style={styles.inputBlock}>
+                <Text style={styles.inputLabel}>Job Description Text</Text>
+                <TextInput
+                  value={jobDescriptionText}
+                  onChangeText={setJobDescriptionText}
+                  style={[styles.textInput, styles.textArea]}
+                  placeholder='Paste the full job description text here'
+                  placeholderTextColor={CLTheme.text.muted}
+                  multiline
+                  textAlignVertical='top'
+                />
+              </View>
+            )}
+
+            <View style={styles.modalActions}>
+              <TouchableOpacity style={styles.cancelButton} onPress={resetRoleUpdateFlow}>
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.primaryButton} onPress={handleStartInterviewPrepUpdate}>
+                <Text style={styles.primaryButtonText}>Update</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal visible={showRoleUpdateProgress} animationType='fade' transparent>
+        <View style={styles.modalOverlay}>
+          <View style={styles.processingCard}>
+            {isProcessingComplete ? (
+              <MaterialIcons name="check-circle" size={40} color={CLTheme.status.success} />
+            ) : (
+              <ActivityIndicator size='large' color={CLTheme.accent} />
+            )}
+            <Text style={styles.processingTitle}>
+              {isProcessingComplete ? 'Custom interview prep ready' : 'Building custom interview prep'}
+            </Text>
+            <Text style={styles.processingSubtitle}>
+              {isProcessingComplete
+                ? `Target role: ${pendingTargetRole || targetRole}`
+                : 'Analyzing your input and preparing a role-specific interview flow.'}
+            </Text>
+
+            <View style={styles.stepList}>
+              {ROLE_UPDATE_STEPS.map((step, index) => {
+                const isDone = isProcessingComplete || index < activeStep
+                const isActive = !isProcessingComplete && index === activeStep
+
+                return (
+                  <View key={step} style={styles.stepRow}>
+                    <MaterialIcons
+                      name={isDone ? 'check-circle' : isActive ? 'pending' : 'radio-button-unchecked'}
+                      size={18}
+                      color={
+                        isDone ? CLTheme.status.success : isActive ? CLTheme.accent : CLTheme.text.muted
+                      }
+                    />
+                    <Text
+                      style={[
+                        styles.stepText,
+                        isDone && styles.stepTextDone,
+                        isActive && styles.stepTextActive,
+                      ]}
+                    >
+                      {step}
+                    </Text>
+                  </View>
+                )
+              })}
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal visible={selectionType !== null} animationType='fade' transparent onRequestClose={() => setSelectionType(null)}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>{selectionType ? selectionTitleMap[selectionType] : ''}</Text>
+              <TouchableOpacity onPress={() => setSelectionType(null)}>
+                <MaterialIcons name="close" size={22} color={CLTheme.text.secondary} />
+              </TouchableOpacity>
+            </View>
+            <View style={styles.selectionList}>
+              {selectionOptions.map(option => {
+                const selected = option === getSelectedSelectionValue
+                return (
+                  <TouchableOpacity
+                    key={option}
+                    style={[styles.selectionOption, selected && styles.selectionOptionActive]}
+                    onPress={() => handleSelectionPress(option)}
+                  >
+                    <Text style={[styles.selectionOptionText, selected && styles.selectionOptionTextActive]}>
+                      {option}
+                    </Text>
+                    {selected && <Feather name="check" size={16} color={CLTheme.accent} />}
+                  </TouchableOpacity>
+                )
+              })}
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal visible={showLocationModal} animationType='fade' transparent onRequestClose={() => setShowLocationModal(false)}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Update Location</Text>
+              <TouchableOpacity onPress={() => setShowLocationModal(false)}>
+                <MaterialIcons name="close" size={22} color={CLTheme.text.secondary} />
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.modalSubtitle}>Set the location shown on your profile badge.</Text>
+            <TextInput
+              value={locationInput}
+              onChangeText={setLocationInput}
+              style={styles.textInput}
+              placeholder='City, State or Remote'
+              placeholderTextColor={CLTheme.text.muted}
+            />
+            <View style={styles.modalActions}>
+              <TouchableOpacity style={styles.cancelButton} onPress={() => setShowLocationModal(false)}>
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.primaryButton}
+                onPress={() => {
+                  const trimmedLocation = locationInput.trim()
+                  if (!trimmedLocation) {
+                    Alert.alert('Missing Location', 'Enter a location before saving.')
+                    return
+                  }
+                  setProfile({ currentLocation: trimmedLocation })
+                  setShowLocationModal(false)
+                }}
+              >
+                <Text style={styles.primaryButtonText}>Save</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Credit Packages Purchase Modal */}
+      <Modal visible={showCreditPackages} animationType='slide' transparent onRequestClose={() => setShowCreditPackages(false)}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Buy AI Credits</Text>
+              <TouchableOpacity onPress={() => setShowCreditPackages(false)}>
+                <MaterialIcons name="close" size={22} color={CLTheme.text.secondary} />
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.modalSubtitle}>
+              One-time credit packs — use them for mock interviews, AI applications, and more.
+            </Text>
+
+            <View style={styles.packagesContainer}>
+              {CREDIT_PACKAGES.map((pack) => (
+                <TouchableOpacity
+                  key={pack.id}
+                  style={[styles.packageCard, pack.popular && styles.packageCardPopular]}
+                  activeOpacity={0.8}
+                  onPress={() => {
+                    Alert.alert('Purchase Credits', `Add ${pack.credits} credits for ${pack.price}?`, [
+                      { text: 'Cancel', style: 'cancel' },
+                      {
+                        text: 'Buy Now',
+                        onPress: () => {
+                          useCreditsStore.getState().addCredits(pack.credits)
+                          setShowCreditPackages(false)
+                          Alert.alert('Credits Added!', `${pack.credits} credits have been added to your account.`)
+                        },
+                      },
+                    ])
+                  }}
+                >
+                  {pack.popular && (
+                    <View style={styles.packageBadge}>
+                      <Text style={styles.packageBadgeText}>BEST VALUE</Text>
+                    </View>
+                  )}
+                  <View style={styles.packageCreditsRow}>
+                    <Feather name="zap" size={18} color={pack.popular ? '#fbbf24' : CLTheme.accent} />
+                    <Text style={styles.packageCreditsText}>{pack.credits}</Text>
+                    <Text style={styles.packageCreditsLabel}>credits</Text>
+                  </View>
+                  <Text style={styles.packagePrice}>{pack.price}</Text>
+                  <Text style={styles.packagePerCredit}>{pack.perCredit}/credit</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <View style={styles.modalActions}>
+              <TouchableOpacity style={styles.cancelButton} onPress={() => setShowCreditPackages(false)}>
+                <Text style={styles.cancelButtonText}>Close</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.primaryButton, { backgroundColor: '#a855f7' }]}
+                onPress={() => {
+                  setShowCreditPackages(false)
+                  setShowSubscription(true)
+                }}
+              >
+                <Text style={styles.primaryButtonText}>See Plans Instead</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Subscription Upsell Modal */}
+      <SubscriptionModal
+        visible={showSubscription}
+        onClose={() => setShowSubscription(false)}
+        currentBalance={useCreditsStore.getState().balance}
+      />
     </View>
   )
 }
@@ -474,5 +1147,322 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: 20,
     opacity: 0.5,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+  },
+  modalCard: {
+    backgroundColor: CLTheme.card,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: CLTheme.border,
+    padding: 20,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: CLTheme.text.primary,
+  },
+  modalSubtitle: {
+    fontSize: 13,
+    lineHeight: 20,
+    color: CLTheme.text.secondary,
+    marginBottom: 14,
+  },
+  modeTabs: {
+    flexDirection: 'row',
+    backgroundColor: CLTheme.background,
+    borderRadius: 10,
+    padding: 4,
+    marginBottom: 16,
+  },
+  modeTab: {
+    flex: 1,
+    alignItems: 'center',
+    borderRadius: 8,
+    paddingVertical: 8,
+  },
+  modeTabActive: {
+    backgroundColor: 'rgba(13, 108, 242, 0.2)',
+  },
+  modeTabText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: CLTheme.text.secondary,
+  },
+  modeTabTextActive: {
+    color: CLTheme.accent,
+  },
+  inputBlock: {
+    marginBottom: 16,
+  },
+  inputLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: CLTheme.text.muted,
+    letterSpacing: 0.7,
+    textTransform: 'uppercase',
+    marginBottom: 8,
+  },
+  textInput: {
+    backgroundColor: CLTheme.background,
+    borderWidth: 1,
+    borderColor: CLTheme.border,
+    borderRadius: 10,
+    color: CLTheme.text.primary,
+    fontSize: 14,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  textArea: {
+    minHeight: 120,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  cancelButton: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: CLTheme.border,
+    borderRadius: 10,
+    paddingVertical: 12,
+  },
+  cancelButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: CLTheme.text.secondary,
+  },
+  primaryButton: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 10,
+    paddingVertical: 12,
+    backgroundColor: CLTheme.accent,
+  },
+  primaryButtonText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#fff',
+  },
+  processingCard: {
+    backgroundColor: CLTheme.card,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: CLTheme.border,
+    padding: 20,
+    alignItems: 'center',
+  },
+  processingTitle: {
+    marginTop: 12,
+    fontSize: 18,
+    fontWeight: '700',
+    color: CLTheme.text.primary,
+  },
+  processingSubtitle: {
+    marginTop: 8,
+    fontSize: 13,
+    lineHeight: 20,
+    color: CLTheme.text.secondary,
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  stepList: {
+    alignSelf: 'stretch',
+    gap: 10,
+  },
+  stepRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  stepText: {
+    fontSize: 13,
+    color: CLTheme.text.muted,
+    flex: 1,
+  },
+  stepTextActive: {
+    color: CLTheme.accent,
+    fontWeight: '600',
+  },
+  stepTextDone: {
+    color: CLTheme.text.secondary,
+  },
+  selectionList: {
+    gap: 10,
+    maxHeight: 320,
+  },
+  selectionOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: CLTheme.background,
+    borderWidth: 1,
+    borderColor: CLTheme.border,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 11,
+  },
+  selectionOptionActive: {
+    borderColor: CLTheme.accent,
+    backgroundColor: 'rgba(13, 108, 242, 0.08)',
+  },
+  selectionOptionText: {
+    fontSize: 14,
+    color: CLTheme.text.secondary,
+    fontWeight: '500',
+  },
+  selectionOptionTextActive: {
+    color: CLTheme.text.primary,
+    fontWeight: '700',
+  },
+  // ── AI Credits & Plans Section ──
+  creditBalanceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  },
+  creditBalanceLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  creditBalanceLabel: {
+    fontSize: 12,
+    color: CLTheme.text.muted,
+    fontWeight: '600',
+    textTransform: 'uppercase' as const,
+    letterSpacing: 0.5,
+  },
+  creditBalanceValue: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: CLTheme.text.primary,
+    marginTop: 2,
+  },
+  creditBalanceSuffix: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: CLTheme.text.secondary,
+  },
+  addCreditsChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: CLTheme.accent,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  addCreditsChipText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#fff',
+  },
+  rowHint: {
+    fontSize: 11,
+    color: CLTheme.text.muted,
+    marginTop: 2,
+  },
+  upgradePill: {
+    backgroundColor: 'rgba(168, 85, 247, 0.15)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  upgradePillText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#a855f7',
+    letterSpacing: 0.8,
+  },
+  purchaseCreditsLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    marginTop: 12,
+    paddingVertical: 8,
+  },
+  purchaseCreditsText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: CLTheme.accent,
+  },
+  // ── Credit Packages Modal ──
+  packagesContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginBottom: 16,
+  },
+  packageCard: {
+    flex: 1,
+    minWidth: '45%' as any,
+    backgroundColor: CLTheme.background,
+    borderWidth: 1,
+    borderColor: CLTheme.border,
+    borderRadius: 12,
+    padding: 12,
+    alignItems: 'center',
+  },
+  packageCardPopular: {
+    borderColor: '#fbbf24',
+    backgroundColor: 'rgba(251, 191, 36, 0.06)',
+  },
+  packageBadge: {
+    backgroundColor: '#fbbf24',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 8,
+    marginBottom: 6,
+  },
+  packageBadgeText: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: '#1a1a2e',
+    letterSpacing: 0.6,
+  },
+  packageCreditsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginBottom: 4,
+  },
+  packageCreditsText: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: CLTheme.text.primary,
+  },
+  packageCreditsLabel: {
+    fontSize: 11,
+    color: CLTheme.text.muted,
+    fontWeight: '500',
+  },
+  packagePrice: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: CLTheme.accent,
+    marginTop: 2,
+  },
+  packagePerCredit: {
+    fontSize: 10,
+    color: CLTheme.text.muted,
+    fontWeight: '500',
+    marginTop: 2,
   },
 })

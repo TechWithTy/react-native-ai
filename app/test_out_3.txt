@@ -1,0 +1,22 @@
+npm warn Unknown project config "node-linker". This will stop working in the next major version of npm.
+npm warn Unknown project config "shamefully-hoist". This will stop working in the next major version of npm.
+npm warn Unknown project config "public-hoist-pattern". This will stop working in the next major version of npm.
+  console.log
+    Recording stored at file://test.m4a
+
+      at log (src/screens/careerLift/mockInterview.tsx:176:13)
+
+PASS src/screens/careerLift/__tests__/interviewPrep.test.tsx (15.81 s)
+  MockInterviewScreen
+    √ renders correctly with initial state (181 ms)
+    √ starts speaking question on mount (572 ms)
+    √ toggles rubric visibility (24 ms)
+    √ handles recording toggle correctly (42 ms)
+    √ shows alerts on menu press and handles restart (13 ms)
+    √ resets session and handles done (13 ms)
+
+Test Suites: 1 passed, 1 total
+Tests:       6 passed, 6 total
+Snapshots:   0 total
+Time:        17.801 s
+Ran all test suites matching /src\\screens\\careerLift\\__tests__\\interviewPrep.test.tsx/i.

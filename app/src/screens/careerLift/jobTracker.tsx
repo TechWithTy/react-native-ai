@@ -20,6 +20,7 @@ import { MaterialIcons, Feather } from '@expo/vector-icons'
 import { useJobTrackerStore, JobEntry } from '../../store/jobTrackerStore'
 import { useUserProfileStore } from '../../store/userProfileStore'
 import { useCareerSetupStore } from '../../store/careerSetup'
+import { useCreditsStore, CREDIT_COSTS } from '../../store/creditsStore'
 import { CLTheme } from './theme'
 
 const { width, height } = Dimensions.get('window')
@@ -37,8 +38,12 @@ const COVER_LETTERS = [
 export function JobTrackerScreen() {
   const navigation = useNavigation<any>()
   const { thisWeek, nextUp, recommendedJobs, filters, activeFilter, setFilter, updateJobStatus, updateJobNotes } = useJobTrackerStore()
-  const { avatarUrl } = useUserProfileStore()
+  const { avatarUrl, customInterviewPreps = [] } = useUserProfileStore()
   const { roleTrack, targetRole, locationPreference } = useCareerSetupStore()
+  const { balance: creditBalance, canAfford: canAffordCredit } = useCreditsStore()
+  const applyCost = CREDIT_COSTS.aiApplicationSubmit
+  const canAffordApply = canAffordCredit('aiApplicationSubmit')
+  const creditColor = creditBalance > 30 ? '#10b981' : creditBalance > 10 ? '#f59e0b' : '#ef4444'
 
   // Dynamic Filters based on user profile
   const userFilters = ['All Roles', roleTrack, targetRole || 'Senior Engineer', locationPreference].filter(Boolean) as string[]
@@ -46,7 +51,7 @@ export function JobTrackerScreen() {
   const displayFilters = Array.from(new Set(['All Roles', ...userFilters]))
 
   const [searchQuery, setSearchQuery] = useState('')
-  const [activeStatus, setActiveStatus] = useState<'All' | 'Applied' | 'Interview' | 'Offer' | 'Target' | 'Not Interested'>('All')
+  const [activeStatus, setActiveStatus] = useState<'All' | 'Applied' | 'Interview' | 'Interviewing' | 'Offer' | 'Target' | 'Not Interested'>('All')
   
   // Job Detail Modal State
   const [selectedJob, setSelectedJob] = useState<JobEntry | null>(null)
@@ -147,6 +152,7 @@ export function JobTrackerScreen() {
         // 2. Status Filter
         const matchesStatus = activeStatus === 'All' ? true : 
                               activeStatus === 'Offer' ? job.status.includes('Offer') : 
+                              activeStatus === 'Interview' ? (job.status === 'Interview' || job.status === 'Interviewing') :
                               job.status === activeStatus
 
         // 3. Role/Tag Filter (Chips)
@@ -167,11 +173,11 @@ export function JobTrackerScreen() {
 
   // Counts
   const appliedCount = allActiveJobs.filter(j => j.status === 'Applied').length
-  const interviewCount = allActiveJobs.filter(j => j.status === 'Interview').length
+  const interviewCount = allActiveJobs.filter(j => j.status === 'Interview' || j.status === 'Interviewing').length
   const offerCount = allActiveJobs.filter(j => j.status.includes('Offer')).length
   const savedCount = allActiveJobs.filter(j => j.status === 'Target').length
 
-  const handleStatusPress = (status: 'All' | 'Applied' | 'Interview' | 'Offer' | 'Target' | 'Not Interested') => {
+  const handleStatusPress = (status: 'All' | 'Applied' | 'Interview' | 'Interviewing' | 'Offer' | 'Target' | 'Not Interested') => {
       if (activeStatus === status && status !== 'All') {
           setActiveStatus('All')
       } else {
@@ -179,7 +185,11 @@ export function JobTrackerScreen() {
       }
   }
 
-  const renderStatCard = (label: string, count: number, status: 'Applied' | 'Interview' | 'Offer' | 'Target' | 'Not Interested', color: string) => {
+  const handleStartCustomInterviewPrep = () => {
+    navigation.navigate('SettingsProfile', { openCustomPrepAt: Date.now() })
+  }
+
+  const renderStatCard = (label: string, count: number, status: 'Applied' | 'Interview' | 'Interviewing' | 'Offer' | 'Target' | 'Not Interested', color: string) => {
       const isActive = activeStatus === status
       return (
       <TouchableOpacity 
@@ -198,7 +208,7 @@ export function JobTrackerScreen() {
 
   const getSectionTitle = () => {
       if (activeStatus === 'Applied') return 'Applied Jobs'
-      if (activeStatus === 'Interview') return 'Interviews'
+      if (activeStatus === 'Interview' || activeStatus === 'Interviewing') return 'Interviews'
       if (activeStatus === 'Offer') return 'Offers'
       if (activeStatus === 'Target') return 'Saved Jobs'
       if (activeStatus === 'Not Interested') return 'Archived Jobs'
@@ -304,7 +314,7 @@ export function JobTrackerScreen() {
           {/* Stats Row */}
           <View style={styles.statsRow}>
               {renderStatCard('Applied', appliedCount, 'Applied', '#3b82f6')} 
-              {renderStatCard('Interview', interviewCount, 'Interview', CLTheme.accent)}
+              {renderStatCard('Interviewing', interviewCount, 'Interview', CLTheme.accent)}
               {renderStatCard('Offers', offerCount, 'Offer', '#10b981')}
               {renderStatCard('Saved', savedCount, 'Target', '#f97316')}
           </View>
@@ -332,6 +342,51 @@ export function JobTrackerScreen() {
                       </TouchableOpacity>
                   ))}
               </ScrollView>
+          </View>
+
+          <View style={styles.sectionHeader}>
+             <Text style={styles.sectionTitle}>Custom Interview Prep</Text>
+          </View>
+          <View style={styles.customPrepSection}>
+            <TouchableOpacity style={styles.customPrepStartButton} onPress={handleStartCustomInterviewPrep}>
+              <View style={styles.customPrepStartLeft}>
+                <View style={styles.customPrepStartIcon}>
+                  <Feather name="file-plus" size={16} color={CLTheme.accent} />
+                </View>
+                <View>
+                  <Text style={styles.customPrepStartTitle}>Start Custom Interview Prep</Text>
+                  <Text style={styles.customPrepStartSubtitle}>Paste a JD URL or full job description</Text>
+                </View>
+              </View>
+              <Feather name="chevron-right" size={18} color={CLTheme.text.secondary} />
+            </TouchableOpacity>
+
+            {customInterviewPreps.length === 0 ? (
+              <Text style={styles.customPrepEmptyText}>
+                No custom preps yet. Start one above and it will appear here.
+              </Text>
+            ) : (
+              <View style={styles.customPrepList}>
+                {customInterviewPreps.slice(0, 3).map(prep => (
+                  <TouchableOpacity
+                    key={prep.id}
+                    style={styles.customPrepItem}
+                    onPress={() => navigation.navigate('InterviewPrep', { customPrep: prep })}
+                  >
+                    <View style={[styles.logoBoxSmall, { backgroundColor: 'rgba(16, 185, 129, 0.15)' }]}>
+                      <Feather name="check-circle" size={15} color="#10b981" />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.customPrepItemRole}>{prep.inferredRole}</Text>
+                      <Text style={styles.customPrepItemMeta}>
+                        {prep.companyName || 'Custom role'} • {new Date(prep.savedAt).toLocaleDateString()}
+                      </Text>
+                    </View>
+                    <Feather name="chevron-right" size={16} color={CLTheme.text.muted} />
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
           </View>
 
           {/* Recommended Jobs Slider */}
@@ -478,7 +533,7 @@ export function JobTrackerScreen() {
                                       />
                                 </View>
 
-                                {selectedJob.status === 'Target' ? (
+                                 {selectedJob.status === 'Target' ? (
                                     <View>
                                         <TouchableOpacity 
                                             style={[styles.primaryBtn, { marginBottom: 12 }]} 
@@ -503,7 +558,7 @@ export function JobTrackerScreen() {
                                             <Text style={[styles.primaryBtnText, { color: CLTheme.text.primary }]}>Update Status</Text>
                                         </TouchableOpacity>
                                     </View>
-                                ) : selectedJob.status === 'Interview' ? (
+                                ) : (selectedJob.status === 'Interview' || selectedJob.status === 'Interviewing') ? (
                                     <View>
                                         <TouchableOpacity 
                                             style={[styles.primaryBtn, { marginBottom: 12 }]} 
@@ -551,7 +606,7 @@ export function JobTrackerScreen() {
                                   <Text style={styles.applyHeader}>Update Status</Text>
                                   
                                   <View style={{gap: 12}}>
-                                      {(['Applied', 'Interview', 'Offer Received', 'Offer Signed', 'Rejected', 'Not Interested'] as const)
+                                      {(['Applied', 'Interviewing', 'Offer Received', 'Offer Signed', 'Rejected', 'Not Interested'] as const)
                                         .filter(s => s !== selectedJob.status)
                                         .map((status) => (
                                           <TouchableOpacity 
@@ -613,11 +668,18 @@ export function JobTrackerScreen() {
                                   {renderDocumentSelector('coverLetter', selectedCoverLetter, COVER_LETTERS, setSelectedCoverLetter)}
 
                                   <View style={{marginTop: 40}}>
+                                      <View style={styles.creditCostRow}>
+                                          <View style={{flexDirection: 'row', alignItems: 'center', gap: 6}}>
+                                              <Feather name="zap" size={14} color={creditColor} />
+                                              <Text style={styles.creditBalanceSmall}>{creditBalance} credits</Text>
+                                          </View>
+                                          <Text style={styles.creditEstimate}>Est. cost: ~{applyCost} credits</Text>
+                                      </View>
                                       <Text style={[styles.detailLabel, {textAlign: 'center', marginBottom: 16}]}>Hold to Apply with AI</Text>
                                       <Pressable
-                                          onPressIn={handleHoldStart}
+                                          onPressIn={canAffordApply ? handleHoldStart : undefined}
                                           onPressOut={handleHoldEnd}
-                                          style={styles.holdBtnContainer}
+                                          style={[styles.holdBtnContainer, !canAffordApply && {opacity: 0.4}]}
                                       >
                                           <Animated.View style={[styles.holdFill, { width: fillWidth }]} />
                                           <View style={styles.holdContent}>
@@ -628,6 +690,9 @@ export function JobTrackerScreen() {
                                                <Text style={[styles.holdText, {opacity: 1}]}>Hold to Apply</Text>
                                           </View>
                                       </Pressable>
+                                      {!canAffordApply && (
+                                          <Text style={styles.creditWarning}>Not enough credits</Text>
+                                      )}
                                   </View>
 
                                   <TouchableOpacity style={{marginTop: 20, alignItems: 'center'}} onPress={() => setIsApplying(false)}>
@@ -721,7 +786,8 @@ const getActionIcon = (action: string) => {
 
 const getStatusColor = (status: JobEntry['status']) => {
     switch (status) {
-      case 'Interview': return CLTheme.accent
+      case 'Interview': 
+      case 'Interviewing': return CLTheme.accent
       case 'Target': return '#f97316' // Orange/Saved
       case 'Applied': return '#6366f1' // Indigo
       case 'Offer Received': return '#10b981' // Green
@@ -846,6 +912,80 @@ const styles = StyleSheet.create({
   },
   activeFilterText: {
       color: '#fff',
+  },
+  customPrepSection: {
+      marginHorizontal: 20,
+      marginBottom: 20,
+      backgroundColor: CLTheme.card,
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: CLTheme.border,
+      padding: 14,
+      gap: 12,
+  },
+  customPrepStartButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      borderWidth: 1,
+      borderColor: CLTheme.border,
+      borderRadius: 12,
+      backgroundColor: 'rgba(13, 108, 242, 0.08)',
+      paddingHorizontal: 12,
+      paddingVertical: 12,
+  },
+  customPrepStartLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      flex: 1,
+  },
+  customPrepStartIcon: {
+      width: 32,
+      height: 32,
+      borderRadius: 8,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: 'rgba(13, 108, 242, 0.12)',
+  },
+  customPrepStartTitle: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: CLTheme.text.primary,
+  },
+  customPrepStartSubtitle: {
+      fontSize: 12,
+      color: CLTheme.text.secondary,
+      marginTop: 2,
+  },
+  customPrepEmptyText: {
+      fontSize: 13,
+      color: CLTheme.text.secondary,
+      lineHeight: 19,
+      paddingHorizontal: 2,
+  },
+  customPrepList: {
+      gap: 10,
+  },
+  customPrepItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      backgroundColor: CLTheme.background,
+      borderWidth: 1,
+      borderColor: CLTheme.border,
+      borderRadius: 12,
+      padding: 10,
+  },
+  customPrepItemRole: {
+      fontSize: 13,
+      fontWeight: '700',
+      color: CLTheme.text.primary,
+  },
+  customPrepItemMeta: {
+      fontSize: 11,
+      color: CLTheme.text.muted,
+      marginTop: 2,
   },
 
   // Sections
@@ -1260,5 +1400,34 @@ const styles = StyleSheet.create({
       borderColor: CLTheme.border,
       overflow: 'hidden',
       marginTop: 8,
-  }
+  },
+  // --- Credit Styles ---
+  creditCostRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      backgroundColor: CLTheme.background,
+      borderRadius: 10,
+      paddingHorizontal: 14,
+      paddingVertical: 10,
+      marginBottom: 12,
+      borderWidth: 1,
+      borderColor: CLTheme.border,
+  },
+  creditBalanceSmall: {
+      fontSize: 12,
+      color: CLTheme.text.secondary,
+      fontWeight: '500',
+  },
+  creditEstimate: {
+      fontSize: 12,
+      color: CLTheme.text.muted,
+      fontWeight: '500',
+  },
+  creditWarning: {
+      fontSize: 12,
+      color: '#ef4444',
+      textAlign: 'center',
+      marginTop: 10,
+  },
 })

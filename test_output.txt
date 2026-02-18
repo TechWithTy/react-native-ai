@@ -1,0 +1,367 @@
+﻿node.exe : npm warn Unknown 
+project config 
+"node-linker". This will 
+stop working in the next 
+major version of npm.
+At C:\Users\tyriq\AppData\Roa
+ming\npm\npx.ps1:24 char:5
++     & "node$exe"  "$basedir
+/node_modules/npm/bin/npx-cli
+.js" $args
++     ~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~
+    + CategoryInfo           
+   : NotSpecified: (npm war  
+  n Unknow...version of np   
+ m.:String) [], RemoteExc    
+eption
+    + FullyQualifiedErrorId  
+   : NativeCommandError
+ 
+npm warn Unknown project 
+config "shamefully-hoist". 
+This will stop working in 
+the next major version of 
+npm.
+npm warn Unknown project 
+config 
+"public-hoist-pattern". This 
+will stop working in the 
+next major version of npm.
+FAIL src/screens/careerLift/_
+_tests__/careerLiftFlows.test
+.tsx
+  ΓùÅ Test suite failed to 
+run
+
+    Cannot find module 
+'../resumeIngestion' from 'sr
+c/screens/careerLift/__tests_
+_/careerLiftFlows.test.tsx'
+
+    [0m [90m 4 |[39m 
+[36mimport[39m { [33mOnboa
+rdingGoalsScreen[39m } 
+[36mfrom[39m [32m'../onboa
+rdingGoals'[39m
+     [90m 5 |[39m 
+[36mimport[39m { [33mOnboa
+rdingSetTargetsScreen[39m } 
+[36mfrom[39m [32m'../onboa
+rdingSetTargets'[39m
+    
+[31m[1m>[22m[39m[90m 6 
+|[39m [36mimport[39m { [3
+3mResumeIngestionScreen[39m 
+} [36mfrom[39m [32m'../res
+umeIngestion'[39m
+     [90m   |[39m 
+[31m[1m^[22m[39m
+     [90m 7 |[39m 
+[36mimport[39m { 
+[33mResumeUploadScreen[39m 
+} [36mfrom[39m 
+[32m'../resumeUpload'[39m
+     [90m 8 |[39m 
+[36mimport[39m { 
+useCareerSetupStore } 
+[36mfrom[39m [32m'../../..
+/store/careerSetup'[39m
+     [90m 9 |[39m[0m
+
+      at Resolver._throwModNo
+tFoundError (node_modules/jes
+t-resolve/build/resolver.js:4
+27:11)
+      at Object.require (src/
+screens/careerLift/__tests__/
+careerLiftFlows.test.tsx:6:1)
+
+FAIL src/screens/careerLift/_
+_tests__/careerLiftScreens.te
+st.tsx
+  ΓùÅ Test suite failed to 
+run
+
+    Cannot find module 
+'../resumeIngestion' from 'sr
+c/screens/careerLift/__tests_
+_/careerLiftScreens.test.tsx'
+
+    [0m [90m  6 |[39m 
+[36mimport[39m { [33mOnboa
+rdingGoalsScreen[39m } 
+[36mfrom[39m [32m'../onboa
+rdingGoals'[39m
+     [90m  7 |[39m 
+[36mimport[39m { [33mOnboa
+rdingSetTargetsScreen[39m } 
+[36mfrom[39m [32m'../onboa
+rdingSetTargets'[39m
+    
+[31m[1m>[22m[39m[90m  8 
+|[39m [36mimport[39m { [3
+3mResumeIngestionScreen[39m 
+} [36mfrom[39m [32m'../res
+umeIngestion'[39m
+     [90m    |[39m 
+[31m[1m^[22m[39m
+     [90m  9 |[39m 
+[36mimport[39m { 
+[33mResumeUploadScreen[39m 
+} [36mfrom[39m 
+[32m'../resumeUpload'[39m
+     [90m 10 |[39m 
+[36mimport[39m { 
+[33mDashboardScreen[39m } 
+[36mfrom[39m 
+[32m'../dashboard'[39m
+     [90m 11 |[39m 
+[36mimport[39m { [33mOutre
+achCenterScreen[39m } 
+[36mfrom[39m [32m'../outre
+achCenter'[39m[0m
+
+      at Resolver._throwModNo
+tFoundError (node_modules/jes
+t-resolve/build/resolver.js:4
+27:11)
+      at Object.require (src/
+screens/careerLift/__tests__/
+careerLiftScreens.test.tsx:8:
+1)
+
+PASS src/screens/careerLift/_
+_tests__/jobTrackerFilters.te
+st.tsx
+  JobTrackerScreen ΓÇö 
+Search Filtering
+    ΓêÜ filters jobs by role 
+name using search (864 ms)
+    ΓêÜ filters jobs by 
+company name using search 
+(45 ms)
+    ΓêÜ shows empty state 
+when search returns no 
+results (48 ms)
+    ΓêÜ case-insensitive 
+search works correctly (55 
+ms)
+    ΓêÜ clearing search 
+restores unfiltered view (63 
+ms)
+  JobTrackerScreen ΓÇö 
+Status + Search Combo
+    ΓêÜ combines status 
+filter with search query (48 
+ms)
+    ΓêÜ status filter shows 
+correct section titles (148 
+ms)
+    ΓêÜ filtered view shows 
+count badge (41 ms)
+  JobTrackerScreen ΓÇö Role 
+Filter Chips
+    ΓêÜ filters by role chip 
+when pressed (31 ms)
+    ΓêÜ displays dynamic 
+filter chips from user 
+profile (61 ms)
+
+PASS src/screens/careerLift/_
+_tests__/jobTracker.test.tsx
+  JobTrackerScreen ΓÇö Core 
+Rendering
+    ΓêÜ renders the header 
+with title and active job 
+count (845 ms)
+    ΓêÜ renders all four 
+stats cards with correct 
+labels (33 ms)
+    ΓêÜ renders stat card 
+counts correctly (34 ms)
+    ΓêÜ renders "This Week" 
+and "Next Up" sections when 
+not filtering (34 ms)
+    ΓêÜ renders recommended 
+jobs slider with company 
+names (31 ms)
+    ΓêÜ renders job cards 
+with role and status info 
+(34 ms)
+    ΓêÜ shows overdue 
+styling for overdue jobs (25 
+ms)
+    ΓêÜ renders offer card 
+with special badge text (25 
+ms)
+    ΓêÜ renders search input 
+with correct placeholder (22 
+ms)
+    ΓêÜ renders filter chips 
+including "All Roles" (27 ms)
+  JobTrackerScreen ΓÇö 
+Navigation
+    ΓêÜ navigates to 
+RecommendedJobs on "See All" 
+press (26 ms)
+  JobTrackerScreen ΓÇö Stats 
+Card Interaction
+    ΓêÜ toggles Applied 
+filter and hides default 
+sections (53 ms)
+    ΓêÜ toggles Interview 
+filter and shows 
+"Interviews" section (43 ms)
+    ΓêÜ toggles Offers 
+filter (33 ms)
+    ΓêÜ toggles Saved filter 
+and shows "Saved Jobs" 
+section (54 ms)
+    ΓêÜ double-pressing same 
+stat card resets to "All" 
+view (58 ms)
+
+PASS src/screens/careerLift/_
+_tests__/jobTrackerModal.test
+.tsx
+  JobTrackerScreen ΓÇö Job 
+Detail Modal
+    ΓêÜ opens modal with job 
+header on card press (786 ms)
+    ΓêÜ shows next action 
+info inside modal (66 ms)
+    ΓêÜ shows notes section 
+with editable input (67 ms)
+    ΓêÜ closes modal on X 
+button press (83 ms)
+    ΓêÜ shows Submit 
+Application for Target 
+status jobs (58 ms)
+    ΓêÜ shows Practice 
+Interview for Interview 
+status jobs (55 ms)
+    ΓêÜ navigates to 
+InterviewPrep on Practice 
+Interview press (82 ms)
+    ΓêÜ shows Offer 
+celebration for Offer 
+Received status (52 ms)
+  JobTrackerScreen ΓÇö 
+Update Status Flow
+    ΓêÜ opens update status 
+view with status options (75 
+ms)
+    ΓêÜ selecting a status 
+shows check icon (75 ms)
+    ΓêÜ shows reason input 
+when Rejected is selected 
+(77 ms)
+    ΓêÜ shows reason input 
+when Not Interested is 
+selected (62 ms)
+    ΓêÜ saves status update 
+and closes modal (84 ms)
+    ΓêÜ cancel returns to 
+detail view (62 ms)
+  JobTrackerScreen ΓÇö 
+Application Flow
+    ΓêÜ enters application 
+prep view for Target jobs 
+(58 ms)
+    ΓêÜ shows default resume 
+and cover letter selections 
+(49 ms)
+    ΓêÜ opens resume 
+dropdown and selects 
+alternative (80 ms)
+    ΓêÜ cancel exits 
+application prep view (72 ms)
+
+  console.log
+    Recording stored at file://test.m4a
+
+      at log (src/screens/careerLift/mockInterview.tsx:178:13)
+
+FAIL src/screens/careerLift/_
+_tests__/interviewPrep.test.t
+sx
+  MockInterviewScreen
+    ΓêÜ renders correctly 
+with initial state (227 ms)
+    ΓêÜ starts speaking 
+question on mount (560 ms)
+    ΓêÜ toggles rubric 
+visibility (22 ms)
+    ΓêÜ handles recording 
+toggle correctly (74 ms)
+    ├ù shows alerts on menu 
+press and handles restart 
+(22 ms)
+    ΓêÜ resets session and 
+handles done (11 ms)
+
+  ΓùÅ MockInterviewScreen 
+ΓÇ║ shows alerts on menu 
+press and handles restart
+
+    expect(jest.fn()).toHaveB
+eenCalledWith(...expected)
+
+    Expected: "Session 
+Options", "What would you 
+like to do?", Any<Array>
+
+    Number of calls: 0
+
+    [0m [90m 167 |[39m    
+ 
+     [90m 168 |[39m     
+[90m// Check Alert[39m
+    
+[31m[1m>[22m[39m[90m 
+169 |[39m     expect([33mAl
+ert[39m[33m.[39malert)[33
+m.[39mtoHaveBeenCalledWith(
+     [90m     |[39m        
+                 
+[31m[1m^[22m[39m
+     [90m 170 |[39m        
+ [32m'Session 
+Options'[39m[33m,[39m 
+     [90m 171 |[39m        
+ [32m'What would you like 
+to do?'[39m[33m,[39m 
+     [90m 172 |[39m        
+ expect[33m.[39many([33mAr
+ray[39m)[0m
+
+      at 
+Object.toHaveBeenCalledWith (
+src/screens/careerLift/__test
+s__/interviewPrep.test.tsx:16
+9:25)
+      at asyncGeneratorStep (
+node_modules/@babel/runtime/h
+elpers/asyncToGenerator.js:3:
+17)
+      at _next (node_modules/
+@babel/runtime/helpers/asyncT
+oGenerator.js:17:9)
+      at node_modules/@babel/
+runtime/helpers/asyncToGenera
+tor.js:22:7
+      at Object.<anonymous> (
+node_modules/@babel/runtime/h
+elpers/asyncToGenerator.js:14
+:12)
+
+Test Suites: 3 failed, 3 
+passed, 6 total
+Tests:       1 failed, 49 
+passed, 50 total
+Snapshots:   0 total
+Time:        4.659 s
+Ran all test suites matching 
+/careerLift/i.

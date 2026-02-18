@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   View,
   Text,
@@ -8,30 +8,94 @@ import {
   Dimensions,
   SafeAreaView,
   Platform,
-  Modal
+  Modal,
+  Alert,
 } from 'react-native'
-import { useNavigation } from '@react-navigation/native'
+import { useNavigation, useRoute } from '@react-navigation/native'
 import { Feather, MaterialIcons } from '@expo/vector-icons'
 import { CLTheme } from './theme'
 import Animated, { FadeInDown } from 'react-native-reanimated'
+import { useCreditsStore, CREDIT_COSTS } from '../../store/creditsStore'
+import { SubscriptionModal } from './subscriptionModal'
+import { useUserProfileStore } from '../../store/userProfileStore'
+import { CustomInterviewPrepPayload } from '../../../types'
 
 const { width } = Dimensions.get('window')
 
+const CUSTOM_FLOW_STEPS = [
+  'Role Snapshot',
+  'Focus Areas',
+  'Question Drill',
+] as const
+
 export function InterviewPrepScreen() {
   const navigation = useNavigation()
+  const route = useRoute()
   const [showStoryBank, setShowStoryBank] = useState(false)
   const [showQuestions, setShowQuestions] = useState(false)
   const [selectedStory, setSelectedStory] = useState<any>(null)
+  const [showRubric, setShowRubric] = useState(false)
+  const [showResearch, setShowResearch] = useState(false)
+  const [showMenu, setShowMenu] = useState(false)
+  const [showSubscription, setShowSubscription] = useState(false)
+  const [customFlowStep, setCustomFlowStep] = useState(0)
+  const [customPrepSaved, setCustomPrepSaved] = useState(false)
 
-  const readinessScore = 65
+  const { balance, canAfford } = useCreditsStore()
+  const { saveCustomInterviewPrep } = useUserProfileStore()
+  const interviewCost = CREDIT_COSTS.mockInterview
+  const hasEnoughCredits = canAfford('mockInterview')
+  const customPrep = (route as any)?.params?.customPrep as CustomInterviewPrepPayload | undefined
+  const isCustomFlow = Boolean(customPrep)
+
+  const generatedQuestions = customPrep?.focusAreas.map(
+    area => `Tell me about a time you showed strong ${area.toLowerCase()}.`
+  ) ?? []
+
+  useEffect(() => {
+    setCustomFlowStep(0)
+    setCustomPrepSaved(false)
+  }, [customPrep?.generatedAt])
+
+  const readinessScore = isCustomFlow
+    ? Math.min(90, 58 + (customPrep?.focusAreas.length || 0) * 8)
+    : 65
 
   // Navigation Logic
   const handleStartMock = () => {
-    (navigation as any).navigate('MockInterview')
+    if (isCustomFlow && customPrep) {
+      const openingQuestion = generatedQuestions[0] ||
+        `Why are you a strong fit for this ${customPrep.inferredRole} role?`
+
+      ;(navigation as any).navigate('MockInterview', {
+        question: openingQuestion,
+        category: customPrep.inferredRole,
+      })
+      return
+    }
+
+    ;(navigation as any).navigate('MockInterview')
+  }
+
+  const handleAdvanceCustomFlow = () => {
+    if (!customPrep) return
+
+    if (customFlowStep < CUSTOM_FLOW_STEPS.length - 1) {
+      setCustomFlowStep(step => step + 1)
+      return
+    }
+
+    if (customPrepSaved) return
+    saveCustomInterviewPrep(customPrep)
+    setCustomPrepSaved(true)
+    Alert.alert(
+      'Saved To Profile',
+      `Custom interview prep for "${customPrep.inferredRole}" is now attached to your profile.`
+    )
   }
 
   // Render Main Dashboard
-  if (!showStoryBank && !showQuestions) {
+  if (!showStoryBank && !showQuestions && !showRubric && !showResearch) {
     return (
       <SafeAreaView style={styles.container}>
         {/* Header */}
@@ -43,10 +107,18 @@ export function InterviewPrepScreen() {
             <Feather name="arrow-left" size={20} color={CLTheme.text.secondary} />
             </TouchableOpacity>
             <View style={styles.headerContent}>
-                <Text style={styles.headerTitle}>Interview Prep</Text>
-                <Text style={styles.headerSubtitle}>Senior Product Manager</Text>
+                <Text style={styles.headerTitle}>
+                  {isCustomFlow ? 'Custom Interview Prep' : 'Interview Prep'}
+                </Text>
+                <Text style={styles.headerSubtitle}>
+                  {isCustomFlow ? customPrep?.inferredRole || 'Custom Role' : 'Senior Product Manager'}
+                </Text>
             </View>
-            <TouchableOpacity style={styles.menuButton}>
+            <TouchableOpacity 
+                style={styles.menuButton} 
+                onPress={() => setShowMenu(true)}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
                 <Feather name="more-horizontal" size={20} color={CLTheme.text.secondary} />
             </TouchableOpacity>
         </View>
@@ -57,7 +129,11 @@ export function InterviewPrepScreen() {
                 <View style={styles.heroContent}>
                     <Text style={styles.heroLabel}>READINESS SCORE</Text>
                     <Text style={styles.heroValue}>{readinessScore}%</Text>
-                    <Text style={styles.heroText}>You are on track for your interview in 3 days.</Text>
+                    <Text style={styles.heroText}>
+                      {isCustomFlow
+                        ? `Built for ${customPrep?.companyName || 'your target company'} and your inferred role.`
+                        : 'You are on track for your interview in 3 days.'}
+                    </Text>
                 </View>
                 <View style={styles.heroGraph}>
                      {/* Placeholder for circular graph visual */}
@@ -67,21 +143,128 @@ export function InterviewPrepScreen() {
                 </View>
             </Animated.View>
 
+            {/* Credits Bar */}
+            <Animated.View entering={FadeInDown.delay(150).duration(400)}>
+                <View style={styles.creditsBar}>
+                    <View style={styles.creditsLeft}>
+                        <Feather name="zap" size={16} color={balance > 30 ? '#10b981' : balance > 10 ? '#f59e0b' : '#ef4444'} />
+                        <Text style={styles.creditsBalanceText}>
+                            <Text style={{fontWeight: '700', color: balance > 30 ? '#10b981' : balance > 10 ? '#f59e0b' : '#ef4444'}}>
+                                {balance}
+                            </Text>
+                            {' '}credits available
+                        </Text>
+                    </View>
+                    <TouchableOpacity style={styles.buyCreditsBtn} onPress={() => setShowSubscription(true)}>
+                        <Text style={styles.buyCreditsText}>Get More</Text>
+                    </TouchableOpacity>
+                </View>
+            </Animated.View>
+
             {/* Primary Action */}
             <Animated.View entering={FadeInDown.delay(200).duration(500)}>
-                <TouchableOpacity style={styles.primaryActionBtn} onPress={handleStartMock}>
+                <TouchableOpacity
+                    style={[styles.primaryActionBtn, !hasEnoughCredits && styles.primaryActionBtnDisabled]}
+                    onPress={handleStartMock}
+                    disabled={!hasEnoughCredits}
+                >
                     <View style={styles.actionIconBox}>
                         <MaterialIcons name="mic" size={28} color="#fff" />
                     </View>
                     <View style={{flex: 1}}>
-                        <Text style={styles.actionTitle}>Start Mock Interview</Text>
-                        <Text style={styles.actionSubtitle}>Simulate a 30-min behavioral session</Text>
+                        <Text style={styles.actionTitle}>
+                          {isCustomFlow ? 'Start Custom Mock Interview' : 'Start Mock Interview'}
+                        </Text>
+                        <Text style={styles.actionSubtitle}>
+                          {isCustomFlow
+                            ? 'Practice with questions generated from this job description'
+                            : 'Simulate a 30-min behavioral session'}
+                        </Text>
                     </View>
-                    <Feather name="chevron-right" size={24} color="rgba(255,255,255,0.5)" />
+                    <View style={{alignItems: 'flex-end'}}>
+                        <Feather name="chevron-right" size={24} color="rgba(255,255,255,0.5)" />
+                        <Text style={styles.costLabel}>~{interviewCost} credits</Text>
+                    </View>
                 </TouchableOpacity>
+                {!hasEnoughCredits && (
+                    <Text style={styles.insufficientText}>Insufficient credits for this action</Text>
+                )}
             </Animated.View>
 
-            <Text style={styles.sectionHeader}>Preparation Tools</Text>
+            {isCustomFlow && customPrep && (
+                <Animated.View entering={FadeInDown.delay(240).duration(450)} style={styles.customFlowCard}>
+                    <View style={styles.customFlowHeader}>
+                        <Text style={styles.customFlowTitle}>Custom Prep Flow</Text>
+                        <View style={[styles.customFlowBadge, customPrepSaved && styles.customFlowBadgeSaved]}>
+                            <Text style={styles.customFlowBadgeText}>
+                              {customPrepSaved ? 'Saved' : `Step ${customFlowStep + 1}/${CUSTOM_FLOW_STEPS.length}`}
+                            </Text>
+                        </View>
+                    </View>
+
+                    <Text style={styles.customFlowSubtitle}>
+                      {customPrep.companyName
+                        ? `${customPrep.inferredRole} at ${customPrep.companyName}`
+                        : `${customPrep.inferredRole} role focus`}
+                    </Text>
+
+                    <View style={styles.customStepRow}>
+                      {CUSTOM_FLOW_STEPS.map((step, index) => {
+                        const done = index < customFlowStep || customPrepSaved
+                        const active = index === customFlowStep && !customPrepSaved
+                        return (
+                          <View key={step} style={styles.customStepItem}>
+                            <MaterialIcons
+                              name={done ? 'check-circle' : active ? 'pending' : 'radio-button-unchecked'}
+                              size={16}
+                              color={done ? '#10b981' : active ? CLTheme.accent : CLTheme.text.muted}
+                            />
+                            <Text
+                              style={[
+                                styles.customStepText,
+                                active && styles.customStepTextActive,
+                                done && styles.customStepTextDone,
+                              ]}
+                            >
+                              {step}
+                            </Text>
+                          </View>
+                        )
+                      })}
+                    </View>
+
+                    <View style={styles.customFocusWrap}>
+                      {customPrep.focusAreas.map(area => (
+                        <View key={area} style={styles.customFocusChip}>
+                          <Text style={styles.customFocusText}>{area}</Text>
+                        </View>
+                      ))}
+                    </View>
+
+                    <Text style={styles.customQuestionLabel}>Generated opener</Text>
+                    <Text style={styles.customQuestionText}>
+                      {generatedQuestions[0] || `Walk me through why you're a fit for ${customPrep.inferredRole}.`}
+                    </Text>
+
+                    <TouchableOpacity
+                      style={[styles.customFlowButton, customPrepSaved && styles.customFlowButtonSaved]}
+                      onPress={handleAdvanceCustomFlow}
+                      disabled={customPrepSaved}
+                    >
+                      <Text style={styles.customFlowButtonText}>
+                        {customPrepSaved
+                          ? 'Saved To Profile'
+                          : customFlowStep < CUSTOM_FLOW_STEPS.length - 1
+                            ? 'Continue Custom Prep'
+                            : 'Finish & Save To Profile'}
+                      </Text>
+                    </TouchableOpacity>
+                </Animated.View>
+            )}
+
+            <Text style={styles.sectionHeader}>
+              {isCustomFlow ? 'Base Preparation Tools' : 'Preparation Tools'}
+            </Text>
 
             <View style={styles.gridContainer}>
                 {/* Story Bank Button */}
@@ -102,8 +285,8 @@ export function InterviewPrepScreen() {
                     <Text style={styles.gridSubtitle}>Top 50 behavioral Qs</Text>
                 </TouchableOpacity>
 
-                 {/* Rubric Review */}
-                 <TouchableOpacity style={styles.gridCard}>
+                {/* Rubric Review */}
+                 <TouchableOpacity style={styles.gridCard} onPress={() => setShowRubric(true)}>
                     <View style={[styles.gridIcon, { backgroundColor: 'rgba(99, 102, 241, 0.1)' }]}>
                         <Feather name="check-square" size={24} color="#6366f1" />
                     </View>
@@ -112,7 +295,7 @@ export function InterviewPrepScreen() {
                 </TouchableOpacity>
 
                 {/* Company Research */}
-                <TouchableOpacity style={styles.gridCard}>
+                <TouchableOpacity style={styles.gridCard} onPress={() => setShowResearch(true)}>
                     <View style={[styles.gridIcon, { backgroundColor: 'rgba(236, 72, 153, 0.1)' }]}>
                         <Feather name="search" size={24} color="#ec4899" />
                     </View>
@@ -122,6 +305,51 @@ export function InterviewPrepScreen() {
             </View>
 
         </ScrollView>
+        
+        {/* Quick Menu Modal (Dashboard) */}
+        <Modal visible={showMenu} animationType="slide" transparent>
+            <TouchableOpacity 
+            style={styles.menuOverlay}
+            activeOpacity={1}
+            onPress={() => setShowMenu(false)}
+            >
+                <View style={styles.menuContainer}>
+                <View style={styles.menuHeader}>
+                    <Text style={styles.menuTitle}>Dashboard Options</Text>
+                    <TouchableOpacity onPress={() => setShowMenu(false)}>
+                        <Feather name="x" size={24} color={CLTheme.text.secondary} />
+                    </TouchableOpacity>
+                </View>
+                
+                <TouchableOpacity style={styles.menuOption} onPress={() => { setShowMenu(false); alert('Edit Target Role') }}>
+                    <Feather name="edit" size={20} color={CLTheme.text.secondary} />
+                    <Text style={styles.menuOptionText}>Edit Target Role</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity style={styles.menuOption} onPress={() => { setShowMenu(false); alert('Notification Settings') }}>
+                    <Feather name="settings" size={20} color={CLTheme.text.secondary} />
+                    <Text style={styles.menuOptionText}>Notification Settings</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.menuOption} onPress={() => { setShowMenu(false); alert('Help & Support') }}>
+                    <Feather name="help-circle" size={20} color={CLTheme.text.secondary} />
+                    <Text style={styles.menuOptionText}>Help & Support</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={[styles.menuOption, { borderBottomWidth: 0, marginTop: 12 }]} onPress={() => { setShowMenu(false); alert('Reset Progress') }}>
+                    <Feather name="refresh-cw" size={20} color="#ef4444" />
+                    <Text style={[styles.menuOptionText, styles.menuOptionDestructive]}>Reset Progress</Text>
+                </TouchableOpacity>
+                </View>
+            </TouchableOpacity>
+        </Modal>
+
+        {/* Subscription / Get More Credits Modal */}
+        <SubscriptionModal
+          visible={showSubscription}
+          onClose={() => setShowSubscription(false)}
+          currentBalance={balance}
+        />
       </SafeAreaView>
     )
   }
@@ -135,21 +363,31 @@ export function InterviewPrepScreen() {
                 onPress={() => {
                     setShowStoryBank(false)
                     setShowQuestions(false)
+                    setShowRubric(false)
+                    setShowResearch(false)
                 }}
             >
                 <Feather name="arrow-left" size={20} color={CLTheme.text.secondary} />
             </TouchableOpacity>
             <View style={styles.headerContent}>
                 <Text style={styles.headerTitle}>
-                    {showStoryBank ? 'Story Bank' : 'Practice Questions'}
+                    {showStoryBank ? 'Story Bank' : showQuestions ? 'Practice Questions' : showRubric ? 'Evaluation Rubric' : 'Company Research'}
                 </Text>
             </View>
-            <View style={{width: 40}} /> 
+            <TouchableOpacity 
+                style={styles.menuButton} 
+                onPress={() => setShowMenu(true)}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+                <Feather name="more-horizontal" size={20} color={CLTheme.text.secondary} />
+            </TouchableOpacity>
         </View>
 
         <ScrollView contentContainerStyle={styles.scrollContent}>
             {showStoryBank && <StoriesSection onStoryPress={setSelectedStory} />}
             {showQuestions && <QuestionsSection />}
+            {showRubric && <RubricSection />}
+            {showResearch && <ResearchSection />}
         </ScrollView>
 
          {/* Story Detail Modal */}
@@ -196,6 +434,44 @@ export function InterviewPrepScreen() {
                 </View>
             </View>
         </View>
+      </Modal>
+
+      {/* Quick Menu Modal */}
+      <Modal visible={showMenu} animationType="slide" transparent>
+        <TouchableOpacity 
+           style={styles.menuOverlay}
+           activeOpacity={1}
+           onPress={() => setShowMenu(false)}
+        >
+            <View style={styles.menuContainer}>
+               <View style={styles.menuHeader}>
+                   <Text style={styles.menuTitle}>Dashboard Options</Text>
+                   <TouchableOpacity onPress={() => setShowMenu(false)}>
+                       <Feather name="x" size={24} color={CLTheme.text.secondary} />
+                   </TouchableOpacity>
+               </View>
+               
+               <TouchableOpacity style={styles.menuOption} onPress={() => { setShowMenu(false); alert('Edit Role') }}>
+                   <Feather name="edit" size={20} color={CLTheme.text.secondary} />
+                   <Text style={styles.menuOptionText}>Edit Target Role</Text>
+               </TouchableOpacity>
+               
+               <TouchableOpacity style={styles.menuOption} onPress={() => { setShowMenu(false); alert('Settings') }}>
+                   <Feather name="settings" size={20} color={CLTheme.text.secondary} />
+                   <Text style={styles.menuOptionText}>Notification Settings</Text>
+               </TouchableOpacity>
+
+               <TouchableOpacity style={styles.menuOption} onPress={() => { setShowMenu(false); alert('Help') }}>
+                   <Feather name="help-circle" size={20} color={CLTheme.text.secondary} />
+                   <Text style={styles.menuOptionText}>Help & Support</Text>
+               </TouchableOpacity>
+
+               <TouchableOpacity style={[styles.menuOption, { borderBottomWidth: 0, marginTop: 12 }]} onPress={() => { setShowMenu(false); alert('Reset') }}>
+                   <Feather name="refresh-cw" size={20} color="#ef4444" />
+                   <Text style={[styles.menuOptionText, styles.menuOptionDestructive]}>Reset Progress</Text>
+               </TouchableOpacity>
+            </View>
+        </TouchableOpacity>
       </Modal>
 
     </SafeAreaView>
@@ -275,6 +551,86 @@ function QuestionsSection() {
     )
 }
 
+function RubricSection() {
+    const criteria = [
+        { title: 'Product Sense', desc: 'Can you verify if a problem is worth solving?', weight: '30%' },
+        { title: 'Analytical & Technical', desc: 'Can you rely on data to make decisions?', weight: '25%' },
+        { title: 'Communication', desc: 'Are you structured, clear/concise, and influential?', weight: '25%' },
+        { title: 'Leadership & Strategy', desc: 'Can you define a vision and rally a team?', weight: '20%' },
+    ]
+
+    return (
+        <Animated.View entering={FadeInDown.delay(100).duration(400)} style={styles.sectionContainer}>
+             <View style={styles.infoCard}>
+                <Feather name="info" size={20} color={CLTheme.accent} style={{marginBottom: 8}} />
+                <Text style={styles.infoText}>This rubric is based on standard Senior PM interviews at Big Tech companies.</Text>
+            </View>
+
+            {criteria.map((item, index) => (
+                <View key={index} style={styles.rubricCard}>
+                    <View style={styles.rubricHeader}>
+                        <Text style={styles.rubricTitle}>{item.title}</Text>
+                        <View style={styles.weightBadge}>
+                            <Text style={styles.weightText}>{item.weight}</Text>
+                        </View>
+                    </View>
+                    <Text style={styles.rubricDesc}>{item.desc}</Text>
+                    
+                    <View style={{flexDirection: 'row', gap: 4, marginTop: 12}}>
+                        {[1,2,3,4,5].map(star => (
+                            <Feather key={star} name="star" size={16} color={CLTheme.text.muted} />
+                        ))}
+                    </View>
+                </View>
+            ))}
+        </Animated.View>
+    )
+}
+
+function ResearchSection() {
+    return (
+         <Animated.View entering={FadeInDown.delay(100).duration(400)} style={styles.sectionContainer}>
+            <View style={styles.companyHeader}>
+                <View style={[styles.logoBoxLarge, {backgroundColor: '#1db954'}]}>
+                   <Text style={{fontSize: 24, fontWeight: '700', color: '#fff'}}>S</Text>
+                </View>
+                <View>
+                    <Text style={styles.companyName}>Spotify</Text>
+                    <Text style={styles.companyTicker}>NYSE: SPOT</Text>
+                </View>
+            </View>
+
+            <View style={styles.researchSection}>
+                <Text style={styles.researchTitle}>Mission</Text>
+                <Text style={styles.researchText}>To unlock the potential of human creativity—by giving a million creative artists the opportunity to live off their art and billions of fans the opportunity to enjoy and be inspired by it.</Text>
+            </View>
+
+             <View style={styles.researchSection}>
+                <Text style={styles.researchTitle}>Core Values</Text>
+                <View style={{flexDirection: 'row', flexWrap: 'wrap', gap: 8}}>
+                    {['Innovative', 'Collaborative', 'Sincere', 'Passion', 'Playful'].map(val => (
+                        <View key={val} style={styles.valueChip}>
+                            <Text style={styles.valueText}>{val}</Text>
+                        </View>
+                    ))}
+                </View>
+            </View>
+
+            <View style={styles.researchSection}>
+                <Text style={styles.researchTitle}>Recent News</Text>
+                <View style={styles.newsCard}>
+                    <Text style={styles.newsHeadline}>Spotify Launches New AI DJ Feature</Text>
+                    <Text style={styles.newsDate}>2 days ago • TechCrunch</Text>
+                </View>
+                <View style={styles.newsCard}>
+                    <Text style={styles.newsHeadline}>Q4 Earnings Report: User Growth Exceeds Expectations</Text>
+                    <Text style={styles.newsDate}>1 week ago • Reuters</Text>
+                </View>
+            </View>
+         </Animated.View>
+    )
+}
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -290,6 +646,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: CLTheme.border,
     backgroundColor: CLTheme.background,
+    zIndex: 100,
   },
   backButton: {
     padding: 8,
@@ -314,6 +671,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
       padding: 20,
+      paddingBottom: 40,
   },
   heroCard: {
       backgroundColor: CLTheme.card,
@@ -401,6 +759,109 @@ const styles = StyleSheet.create({
       color: CLTheme.text.primary,
       marginBottom: 16,
   },
+  customFlowCard: {
+      backgroundColor: CLTheme.card,
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: CLTheme.border,
+      padding: 16,
+      marginBottom: 20,
+  },
+  customFlowHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 6,
+  },
+  customFlowTitle: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: CLTheme.text.primary,
+  },
+  customFlowBadge: {
+      backgroundColor: 'rgba(13, 108, 242, 0.15)',
+      borderRadius: 12,
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+  },
+  customFlowBadgeSaved: {
+      backgroundColor: 'rgba(16, 185, 129, 0.15)',
+  },
+  customFlowBadgeText: {
+      fontSize: 11,
+      fontWeight: '700',
+      color: CLTheme.accent,
+  },
+  customFlowSubtitle: {
+      fontSize: 13,
+      color: CLTheme.text.secondary,
+      marginBottom: 12,
+  },
+  customStepRow: {
+      gap: 8,
+      marginBottom: 12,
+  },
+  customStepItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+  },
+  customStepText: {
+      fontSize: 12,
+      color: CLTheme.text.muted,
+  },
+  customStepTextActive: {
+      color: CLTheme.accent,
+      fontWeight: '600',
+  },
+  customStepTextDone: {
+      color: '#10b981',
+  },
+  customFocusWrap: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 8,
+      marginBottom: 12,
+  },
+  customFocusChip: {
+      backgroundColor: 'rgba(13, 108, 242, 0.12)',
+      borderRadius: 999,
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+  },
+  customFocusText: {
+      fontSize: 11,
+      fontWeight: '600',
+      color: CLTheme.accent,
+  },
+  customQuestionLabel: {
+      fontSize: 11,
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
+      color: CLTheme.text.muted,
+      marginBottom: 4,
+  },
+  customQuestionText: {
+      fontSize: 13,
+      lineHeight: 20,
+      color: CLTheme.text.secondary,
+      marginBottom: 14,
+  },
+  customFlowButton: {
+      backgroundColor: CLTheme.accent,
+      borderRadius: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 12,
+  },
+  customFlowButtonSaved: {
+      backgroundColor: '#10b981',
+  },
+  customFlowButtonText: {
+      color: '#fff',
+      fontSize: 13,
+      fontWeight: '700',
+  },
   gridContainer: {
       flexDirection: 'row',
       flexWrap: 'wrap',
@@ -469,6 +930,7 @@ const styles = StyleSheet.create({
       paddingHorizontal: 8,
       paddingVertical: 2,
       borderRadius: 6,
+      backgroundColor: 'rgba(255,255,255,0.1)',
   },
   statusText: {
       fontSize: 10,
@@ -608,5 +1070,215 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '700',
+  },
+  // New Styles
+  infoCard: {
+      backgroundColor: 'rgba(99, 102, 241, 0.1)',
+      padding: 16,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: 'rgba(99, 102, 241, 0.2)',
+  },
+  infoText: {
+      color: CLTheme.text.secondary,
+      fontSize: 13,
+      lineHeight: 18,
+  },
+  rubricCard: {
+    backgroundColor: CLTheme.card,
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: CLTheme.border,
+  },
+  rubricHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  rubricTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: CLTheme.text.primary,
+  },
+  weightBadge: {
+    backgroundColor: CLTheme.background,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: CLTheme.border,
+  },
+  weightText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: CLTheme.text.secondary,
+  },
+  rubricDesc: {
+    fontSize: 14,
+    color: CLTheme.text.secondary,
+    lineHeight: 20,
+  },
+  companyHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 16,
+      marginBottom: 24,
+  },
+  logoBoxLarge: {
+      width: 64,
+      height: 64,
+      borderRadius: 16,
+      alignItems: 'center',
+      justifyContent: 'center',
+  },
+  companyName: {
+      fontSize: 24,
+      fontWeight: '700',
+      color: CLTheme.text.primary,
+  },
+  companyTicker: {
+      fontSize: 14,
+      color: CLTheme.text.secondary,
+      fontWeight: '600',
+  },
+  researchSection: {
+      marginBottom: 24,
+      backgroundColor: CLTheme.card,
+      padding: 16,
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: CLTheme.border,
+  },
+  researchTitle: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: CLTheme.accent,
+      textTransform: 'uppercase',
+      marginBottom: 12,
+      letterSpacing: 0.5,
+  },
+  researchText: {
+      fontSize: 15,
+      color: CLTheme.text.secondary,
+      lineHeight: 22,
+  },
+  valueChip: {
+      backgroundColor: 'rgba(255,255,255,0.05)',
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 99,
+      borderWidth: 1,
+      borderColor: 'rgba(255,255,255,0.1)',
+  },
+  valueText: {
+      fontSize: 13,
+      color: CLTheme.text.primary,
+  },
+  newsCard: {
+      marginBottom: 16,
+      paddingBottom: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: 'rgba(255,255,255,0.05)',
+  },
+  newsHeadline: {
+      fontSize: 15,
+      fontWeight: '600',
+      color: CLTheme.text.primary,
+      marginBottom: 4,
+  },
+  newsDate: {
+      fontSize: 12,
+      color: CLTheme.text.muted,
+  },
+  menuOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'flex-end',
+  },
+  menuContainer: {
+    backgroundColor: CLTheme.card,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 24,
+    paddingBottom: 40,
+    borderTopWidth: 1,
+    borderTopColor: CLTheme.border,
+  },
+  menuHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  menuTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: CLTheme.text.primary,
+  },
+  menuOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.05)',
+  },
+  menuOptionText: {
+    fontSize: 16,
+    color: CLTheme.text.primary,
+    marginLeft: 16,
+    fontWeight: '500',
+  },
+  menuOptionDestructive: {
+    color: '#ef4444',
+  },
+  // --- Credits Styles ---
+  creditsBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: CLTheme.card,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: CLTheme.border,
+  },
+  creditsLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  creditsBalanceText: {
+    fontSize: 13,
+    color: CLTheme.text.secondary,
+  },
+  buyCreditsBtn: {
+    backgroundColor: 'rgba(13, 108, 242, 0.15)',
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  buyCreditsText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: CLTheme.accent,
+  },
+  primaryActionBtnDisabled: {
+    opacity: 0.5,
+  },
+  costLabel: {
+    fontSize: 11,
+    color: 'rgba(255,255,255,0.6)',
+    marginTop: 4,
+  },
+  insufficientText: {
+    fontSize: 12,
+    color: '#ef4444',
+    textAlign: 'center',
+    marginTop: -20,
+    marginBottom: 16,
   },
 })

@@ -1,0 +1,2095 @@
+npm warn Unknown project config "node-linker". This will stop working in the next major version of npm.
+npm warn Unknown project config "shamefully-hoist". This will stop working in the next major version of npm.
+npm warn Unknown project config "public-hoist-pattern". This will stop working in the next major version of npm.
+  console.error
+    The above error occurred in the <Icon> component:
+    
+        at Icon (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\@expo\vector-icons\build\createIconSet.js:11:5)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Animated\createAnimatedComponent.js:38:59
+        at TouchableOpacity (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Components\Touchable\TouchableOpacity.js:132:23)
+        at TouchableOpacity
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at RCTSafeAreaView
+        at Component (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockNativeComponent.js:17:18)
+        at MockInterviewScreen (C:\Users\tyriq\Documents\Github\react-native-ai\app\src\screens\careerLift\mockInterview.tsx:40:49)
+    
+    Consider adding an error boundary to your tree to customize error handling behavior.
+    Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+
+    [0m [90m 82 |[39m
+     [90m 83 |[39m   it([32m'renders correctly with initial state'[39m[33m,[39m [36masync[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 84 |[39m     [36mconst[39m { getByText } [33m=[39m render([33m<[39m[33mMockInterviewScreen[39m [33m/[39m[33m>[39m)
+     [90m    |[39m                                 [31m[1m^[22m[39m
+     [90m 85 |[39m     
+     [90m 86 |[39m     [90m// Check Header[39m
+     [90m 87 |[39m     expect(getByText([32m'BEHAVIORAL'[39m))[33m.[39mtoBeTruthy()[0m
+
+      at logCapturedError (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8678:23)
+      at update.callback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8711:5)
+      at callCallback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5175:12)
+      at commitUpdateQueue (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5196:9)
+      at commitLayoutEffectOnFiber (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:13271:13)
+      at commitLayoutMountEffects_complete (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14369:9)
+      at commitLayoutEffects_begin (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14355:7)
+      at commitLayoutEffects (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14340:3)
+      at commitRootImpl (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:16101:5)
+      at commitRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15972:5)
+      at finishConcurrentRender (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15268:9)
+      at performConcurrentWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15185:7)
+      at flushActQueue (node_modules/react/cjs/react.development.js:2667:24)
+      at act (node_modules/react/cjs/react.development.js:2582:11)
+      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)
+      at renderWithAct (node_modules/@testing-library/react-native/src/render-act.ts:13:11)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:69:33)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:44:10)
+      at Object.<anonymous> (src/screens/careerLift/__tests__/interviewPrep.test.tsx:84:33)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+
+  console.error
+    The above error occurred in the <Icon> component:
+    
+        at Icon (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\@expo\vector-icons\build\createIconSet.js:11:5)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Animated\createAnimatedComponent.js:38:59
+        at TouchableOpacity (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Components\Touchable\TouchableOpacity.js:132:23)
+        at TouchableOpacity
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at RCTSafeAreaView
+        at Component (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockNativeComponent.js:17:18)
+        at MockInterviewScreen (C:\Users\tyriq\Documents\Github\react-native-ai\app\src\screens\careerLift\mockInterview.tsx:40:49)
+    
+    Consider adding an error boundary to your tree to customize error handling behavior.
+    Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+
+    [0m [90m 82 |[39m
+     [90m 83 |[39m   it([32m'renders correctly with initial state'[39m[33m,[39m [36masync[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 84 |[39m     [36mconst[39m { getByText } [33m=[39m render([33m<[39m[33mMockInterviewScreen[39m [33m/[39m[33m>[39m)
+     [90m    |[39m                                 [31m[1m^[22m[39m
+     [90m 85 |[39m     
+     [90m 86 |[39m     [90m// Check Header[39m
+     [90m 87 |[39m     expect(getByText([32m'BEHAVIORAL'[39m))[33m.[39mtoBeTruthy()[0m
+
+      at logCapturedError (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8678:23)
+      at update.callback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8711:5)
+      at callCallback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5175:12)
+      at commitUpdateQueue (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5196:9)
+      at commitLayoutEffectOnFiber (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:13271:13)
+      at commitLayoutMountEffects_complete (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14369:9)
+      at commitLayoutEffects_begin (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14355:7)
+      at commitLayoutEffects (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14340:3)
+      at commitRootImpl (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:16101:5)
+      at commitRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15972:5)
+      at finishConcurrentRender (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15268:9)
+      at performConcurrentWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15185:7)
+      at flushActQueue (node_modules/react/cjs/react.development.js:2667:24)
+      at act (node_modules/react/cjs/react.development.js:2582:11)
+      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)
+      at renderWithAct (node_modules/@testing-library/react-native/src/render-act.ts:13:11)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:69:33)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:44:10)
+      at Object.<anonymous> (src/screens/careerLift/__tests__/interviewPrep.test.tsx:84:33)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+
+  console.error
+    The above error occurred in the <Icon> component:
+    
+        at Icon (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\@expo\vector-icons\build\createIconSet.js:11:5)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Animated\createAnimatedComponent.js:38:59
+        at TouchableOpacity (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Components\Touchable\TouchableOpacity.js:132:23)
+        at TouchableOpacity
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at RCTSafeAreaView
+        at Component (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockNativeComponent.js:17:18)
+        at MockInterviewScreen (C:\Users\tyriq\Documents\Github\react-native-ai\app\src\screens\careerLift\mockInterview.tsx:40:49)
+    
+    Consider adding an error boundary to your tree to customize error handling behavior.
+    Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+
+    [0m [90m 82 |[39m
+     [90m 83 |[39m   it([32m'renders correctly with initial state'[39m[33m,[39m [36masync[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 84 |[39m     [36mconst[39m { getByText } [33m=[39m render([33m<[39m[33mMockInterviewScreen[39m [33m/[39m[33m>[39m)
+     [90m    |[39m                                 [31m[1m^[22m[39m
+     [90m 85 |[39m     
+     [90m 86 |[39m     [90m// Check Header[39m
+     [90m 87 |[39m     expect(getByText([32m'BEHAVIORAL'[39m))[33m.[39mtoBeTruthy()[0m
+
+      at logCapturedError (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8678:23)
+      at update.callback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8711:5)
+      at callCallback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5175:12)
+      at commitUpdateQueue (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5196:9)
+      at commitLayoutEffectOnFiber (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:13271:13)
+      at commitLayoutMountEffects_complete (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14369:9)
+      at commitLayoutEffects_begin (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14355:7)
+      at commitLayoutEffects (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14340:3)
+      at commitRootImpl (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:16101:5)
+      at commitRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15972:5)
+      at finishConcurrentRender (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15268:9)
+      at performConcurrentWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15185:7)
+      at flushActQueue (node_modules/react/cjs/react.development.js:2667:24)
+      at act (node_modules/react/cjs/react.development.js:2582:11)
+      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)
+      at renderWithAct (node_modules/@testing-library/react-native/src/render-act.ts:13:11)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:69:33)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:44:10)
+      at Object.<anonymous> (src/screens/careerLift/__tests__/interviewPrep.test.tsx:84:33)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+
+  console.error
+    The above error occurred in the <Icon> component:
+    
+        at Icon (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\@expo\vector-icons\build\createIconSet.js:11:5)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Animated\createAnimatedComponent.js:38:59
+        at TouchableOpacity (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Components\Touchable\TouchableOpacity.js:132:23)
+        at TouchableOpacity
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at RCTSafeAreaView
+        at Component (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockNativeComponent.js:17:18)
+        at MockInterviewScreen (C:\Users\tyriq\Documents\Github\react-native-ai\app\src\screens\careerLift\mockInterview.tsx:40:49)
+    
+    Consider adding an error boundary to your tree to customize error handling behavior.
+    Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+
+    [0m [90m 82 |[39m
+     [90m 83 |[39m   it([32m'renders correctly with initial state'[39m[33m,[39m [36masync[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 84 |[39m     [36mconst[39m { getByText } [33m=[39m render([33m<[39m[33mMockInterviewScreen[39m [33m/[39m[33m>[39m)
+     [90m    |[39m                                 [31m[1m^[22m[39m
+     [90m 85 |[39m     
+     [90m 86 |[39m     [90m// Check Header[39m
+     [90m 87 |[39m     expect(getByText([32m'BEHAVIORAL'[39m))[33m.[39mtoBeTruthy()[0m
+
+      at logCapturedError (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8678:23)
+      at update.callback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8711:5)
+      at callCallback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5175:12)
+      at commitUpdateQueue (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5196:9)
+      at commitLayoutEffectOnFiber (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:13271:13)
+      at commitLayoutMountEffects_complete (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14369:9)
+      at commitLayoutEffects_begin (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14355:7)
+      at commitLayoutEffects (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14340:3)
+      at commitRootImpl (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:16101:5)
+      at commitRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15972:5)
+      at finishConcurrentRender (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15268:9)
+      at performConcurrentWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15185:7)
+      at flushActQueue (node_modules/react/cjs/react.development.js:2667:24)
+      at act (node_modules/react/cjs/react.development.js:2582:11)
+      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)
+      at renderWithAct (node_modules/@testing-library/react-native/src/render-act.ts:13:11)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:69:33)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:44:10)
+      at Object.<anonymous> (src/screens/careerLift/__tests__/interviewPrep.test.tsx:84:33)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+
+  console.error
+    The above error occurred in the <Icon> component:
+    
+        at Icon (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\@expo\vector-icons\build\createIconSet.js:11:5)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Animated\createAnimatedComponent.js:38:59
+        at TouchableOpacity (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Components\Touchable\TouchableOpacity.js:132:23)
+        at TouchableOpacity
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at RCTSafeAreaView
+        at Component (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockNativeComponent.js:17:18)
+        at MockInterviewScreen (C:\Users\tyriq\Documents\Github\react-native-ai\app\src\screens\careerLift\mockInterview.tsx:40:49)
+    
+    Consider adding an error boundary to your tree to customize error handling behavior.
+    Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+
+    [0m [90m 82 |[39m
+     [90m 83 |[39m   it([32m'renders correctly with initial state'[39m[33m,[39m [36masync[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 84 |[39m     [36mconst[39m { getByText } [33m=[39m render([33m<[39m[33mMockInterviewScreen[39m [33m/[39m[33m>[39m)
+     [90m    |[39m                                 [31m[1m^[22m[39m
+     [90m 85 |[39m     
+     [90m 86 |[39m     [90m// Check Header[39m
+     [90m 87 |[39m     expect(getByText([32m'BEHAVIORAL'[39m))[33m.[39mtoBeTruthy()[0m
+
+      at logCapturedError (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8678:23)
+      at update.callback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8711:5)
+      at callCallback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5175:12)
+      at commitUpdateQueue (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5196:9)
+      at commitLayoutEffectOnFiber (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:13271:13)
+      at commitLayoutMountEffects_complete (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14369:9)
+      at commitLayoutEffects_begin (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14355:7)
+      at commitLayoutEffects (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14340:3)
+      at commitRootImpl (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:16101:5)
+      at commitRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15972:5)
+      at finishConcurrentRender (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15268:9)
+      at performConcurrentWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15185:7)
+      at flushActQueue (node_modules/react/cjs/react.development.js:2667:24)
+      at act (node_modules/react/cjs/react.development.js:2582:11)
+      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)
+      at renderWithAct (node_modules/@testing-library/react-native/src/render-act.ts:13:11)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:69:33)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:44:10)
+      at Object.<anonymous> (src/screens/careerLift/__tests__/interviewPrep.test.tsx:84:33)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+
+  console.error
+    The above error occurred in the <Icon> component:
+    
+        at Icon (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\@expo\vector-icons\build\createIconSet.js:11:5)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Animated\createAnimatedComponent.js:38:59
+        at TouchableOpacity (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Components\Touchable\TouchableOpacity.js:132:23)
+        at TouchableOpacity
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at RCTSafeAreaView
+        at Component (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockNativeComponent.js:17:18)
+        at MockInterviewScreen (C:\Users\tyriq\Documents\Github\react-native-ai\app\src\screens\careerLift\mockInterview.tsx:40:49)
+    
+    Consider adding an error boundary to your tree to customize error handling behavior.
+    Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+
+    [0m [90m 82 |[39m
+     [90m 83 |[39m   it([32m'renders correctly with initial state'[39m[33m,[39m [36masync[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 84 |[39m     [36mconst[39m { getByText } [33m=[39m render([33m<[39m[33mMockInterviewScreen[39m [33m/[39m[33m>[39m)
+     [90m    |[39m                                 [31m[1m^[22m[39m
+     [90m 85 |[39m     
+     [90m 86 |[39m     [90m// Check Header[39m
+     [90m 87 |[39m     expect(getByText([32m'BEHAVIORAL'[39m))[33m.[39mtoBeTruthy()[0m
+
+      at logCapturedError (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8678:23)
+      at update.callback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8711:5)
+      at callCallback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5175:12)
+      at commitUpdateQueue (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5196:9)
+      at commitLayoutEffectOnFiber (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:13271:13)
+      at commitLayoutMountEffects_complete (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14369:9)
+      at commitLayoutEffects_begin (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14355:7)
+      at commitLayoutEffects (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14340:3)
+      at commitRootImpl (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:16101:5)
+      at commitRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15972:5)
+      at finishConcurrentRender (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15268:9)
+      at performConcurrentWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15185:7)
+      at flushActQueue (node_modules/react/cjs/react.development.js:2667:24)
+      at act (node_modules/react/cjs/react.development.js:2582:11)
+      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)
+      at renderWithAct (node_modules/@testing-library/react-native/src/render-act.ts:13:11)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:69:33)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:44:10)
+      at Object.<anonymous> (src/screens/careerLift/__tests__/interviewPrep.test.tsx:84:33)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+
+  console.error
+    The above error occurred in the <Icon> component:
+    
+        at Icon (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\@expo\vector-icons\build\createIconSet.js:11:5)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Animated\createAnimatedComponent.js:38:59
+        at TouchableOpacity (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Components\Touchable\TouchableOpacity.js:132:23)
+        at TouchableOpacity
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at RCTSafeAreaView
+        at Component (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockNativeComponent.js:17:18)
+        at MockInterviewScreen (C:\Users\tyriq\Documents\Github\react-native-ai\app\src\screens\careerLift\mockInterview.tsx:40:49)
+    
+    Consider adding an error boundary to your tree to customize error handling behavior.
+    Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+
+    [0m [90m  99 |[39m
+     [90m 100 |[39m   it([32m'starts speaking question on mount'[39m[33m,[39m [36masync[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 101 |[39m     render([33m<[39m[33mMockInterviewScreen[39m [33m/[39m[33m>[39m)
+     [90m     |[39m           [31m[1m^[22m[39m
+     [90m 102 |[39m     
+     [90m 103 |[39m     [36mawait[39m waitFor(() [33m=>[39m {
+     [90m 104 |[39m       expect(mockSpeak)[33m.[39mtoHaveBeenCalledWith([32m'Test Question?'[39m[33m,[39m expect[33m.[39many([33mObject[39m))[0m
+
+      at logCapturedError (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8678:23)
+      at update.callback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8711:5)
+      at callCallback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5175:12)
+      at commitUpdateQueue (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5196:9)
+      at commitLayoutEffectOnFiber (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:13271:13)
+      at commitLayoutMountEffects_complete (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14369:9)
+      at commitLayoutEffects_begin (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14355:7)
+      at commitLayoutEffects (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14340:3)
+      at commitRootImpl (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:16101:5)
+      at commitRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15972:5)
+      at finishConcurrentRender (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15268:9)
+      at performConcurrentWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15185:7)
+      at flushActQueue (node_modules/react/cjs/react.development.js:2667:24)
+      at act (node_modules/react/cjs/react.development.js:2582:11)
+      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)
+      at renderWithAct (node_modules/@testing-library/react-native/src/render-act.ts:13:11)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:69:33)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:44:10)
+      at Object.<anonymous> (src/screens/careerLift/__tests__/interviewPrep.test.tsx:101:11)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+
+  console.error
+    The above error occurred in the <Icon> component:
+    
+        at Icon (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\@expo\vector-icons\build\createIconSet.js:11:5)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Animated\createAnimatedComponent.js:38:59
+        at TouchableOpacity (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Components\Touchable\TouchableOpacity.js:132:23)
+        at TouchableOpacity
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at RCTSafeAreaView
+        at Component (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockNativeComponent.js:17:18)
+        at MockInterviewScreen (C:\Users\tyriq\Documents\Github\react-native-ai\app\src\screens\careerLift\mockInterview.tsx:40:49)
+    
+    Consider adding an error boundary to your tree to customize error handling behavior.
+    Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+
+    [0m [90m  99 |[39m
+     [90m 100 |[39m   it([32m'starts speaking question on mount'[39m[33m,[39m [36masync[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 101 |[39m     render([33m<[39m[33mMockInterviewScreen[39m [33m/[39m[33m>[39m)
+     [90m     |[39m           [31m[1m^[22m[39m
+     [90m 102 |[39m     
+     [90m 103 |[39m     [36mawait[39m waitFor(() [33m=>[39m {
+     [90m 104 |[39m       expect(mockSpeak)[33m.[39mtoHaveBeenCalledWith([32m'Test Question?'[39m[33m,[39m expect[33m.[39many([33mObject[39m))[0m
+
+      at logCapturedError (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8678:23)
+      at update.callback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8711:5)
+      at callCallback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5175:12)
+      at commitUpdateQueue (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5196:9)
+      at commitLayoutEffectOnFiber (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:13271:13)
+      at commitLayoutMountEffects_complete (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14369:9)
+      at commitLayoutEffects_begin (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14355:7)
+      at commitLayoutEffects (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14340:3)
+      at commitRootImpl (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:16101:5)
+      at commitRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15972:5)
+      at finishConcurrentRender (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15268:9)
+      at performConcurrentWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15185:7)
+      at flushActQueue (node_modules/react/cjs/react.development.js:2667:24)
+      at act (node_modules/react/cjs/react.development.js:2582:11)
+      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)
+      at renderWithAct (node_modules/@testing-library/react-native/src/render-act.ts:13:11)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:69:33)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:44:10)
+      at Object.<anonymous> (src/screens/careerLift/__tests__/interviewPrep.test.tsx:101:11)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+
+  console.error
+    The above error occurred in the <Icon> component:
+    
+        at Icon (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\@expo\vector-icons\build\createIconSet.js:11:5)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Animated\createAnimatedComponent.js:38:59
+        at TouchableOpacity (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Components\Touchable\TouchableOpacity.js:132:23)
+        at TouchableOpacity
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at RCTSafeAreaView
+        at Component (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockNativeComponent.js:17:18)
+        at MockInterviewScreen (C:\Users\tyriq\Documents\Github\react-native-ai\app\src\screens\careerLift\mockInterview.tsx:40:49)
+    
+    Consider adding an error boundary to your tree to customize error handling behavior.
+    Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+
+    [0m [90m  99 |[39m
+     [90m 100 |[39m   it([32m'starts speaking question on mount'[39m[33m,[39m [36masync[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 101 |[39m     render([33m<[39m[33mMockInterviewScreen[39m [33m/[39m[33m>[39m)
+     [90m     |[39m           [31m[1m^[22m[39m
+     [90m 102 |[39m     
+     [90m 103 |[39m     [36mawait[39m waitFor(() [33m=>[39m {
+     [90m 104 |[39m       expect(mockSpeak)[33m.[39mtoHaveBeenCalledWith([32m'Test Question?'[39m[33m,[39m expect[33m.[39many([33mObject[39m))[0m
+
+      at logCapturedError (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8678:23)
+      at update.callback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8711:5)
+      at callCallback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5175:12)
+      at commitUpdateQueue (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5196:9)
+      at commitLayoutEffectOnFiber (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:13271:13)
+      at commitLayoutMountEffects_complete (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14369:9)
+      at commitLayoutEffects_begin (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14355:7)
+      at commitLayoutEffects (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14340:3)
+      at commitRootImpl (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:16101:5)
+      at commitRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15972:5)
+      at finishConcurrentRender (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15268:9)
+      at performConcurrentWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15185:7)
+      at flushActQueue (node_modules/react/cjs/react.development.js:2667:24)
+      at act (node_modules/react/cjs/react.development.js:2582:11)
+      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)
+      at renderWithAct (node_modules/@testing-library/react-native/src/render-act.ts:13:11)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:69:33)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:44:10)
+      at Object.<anonymous> (src/screens/careerLift/__tests__/interviewPrep.test.tsx:101:11)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+
+  console.error
+    The above error occurred in the <Icon> component:
+    
+        at Icon (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\@expo\vector-icons\build\createIconSet.js:11:5)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Animated\createAnimatedComponent.js:38:59
+        at TouchableOpacity (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Components\Touchable\TouchableOpacity.js:132:23)
+        at TouchableOpacity
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at RCTSafeAreaView
+        at Component (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockNativeComponent.js:17:18)
+        at MockInterviewScreen (C:\Users\tyriq\Documents\Github\react-native-ai\app\src\screens\careerLift\mockInterview.tsx:40:49)
+    
+    Consider adding an error boundary to your tree to customize error handling behavior.
+    Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+
+    [0m [90m  99 |[39m
+     [90m 100 |[39m   it([32m'starts speaking question on mount'[39m[33m,[39m [36masync[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 101 |[39m     render([33m<[39m[33mMockInterviewScreen[39m [33m/[39m[33m>[39m)
+     [90m     |[39m           [31m[1m^[22m[39m
+     [90m 102 |[39m     
+     [90m 103 |[39m     [36mawait[39m waitFor(() [33m=>[39m {
+     [90m 104 |[39m       expect(mockSpeak)[33m.[39mtoHaveBeenCalledWith([32m'Test Question?'[39m[33m,[39m expect[33m.[39many([33mObject[39m))[0m
+
+      at logCapturedError (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8678:23)
+      at update.callback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8711:5)
+      at callCallback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5175:12)
+      at commitUpdateQueue (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5196:9)
+      at commitLayoutEffectOnFiber (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:13271:13)
+      at commitLayoutMountEffects_complete (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14369:9)
+      at commitLayoutEffects_begin (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14355:7)
+      at commitLayoutEffects (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14340:3)
+      at commitRootImpl (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:16101:5)
+      at commitRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15972:5)
+      at finishConcurrentRender (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15268:9)
+      at performConcurrentWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15185:7)
+      at flushActQueue (node_modules/react/cjs/react.development.js:2667:24)
+      at act (node_modules/react/cjs/react.development.js:2582:11)
+      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)
+      at renderWithAct (node_modules/@testing-library/react-native/src/render-act.ts:13:11)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:69:33)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:44:10)
+      at Object.<anonymous> (src/screens/careerLift/__tests__/interviewPrep.test.tsx:101:11)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+
+  console.error
+    The above error occurred in the <Icon> component:
+    
+        at Icon (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\@expo\vector-icons\build\createIconSet.js:11:5)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Animated\createAnimatedComponent.js:38:59
+        at TouchableOpacity (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Components\Touchable\TouchableOpacity.js:132:23)
+        at TouchableOpacity
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at RCTSafeAreaView
+        at Component (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockNativeComponent.js:17:18)
+        at MockInterviewScreen (C:\Users\tyriq\Documents\Github\react-native-ai\app\src\screens\careerLift\mockInterview.tsx:40:49)
+    
+    Consider adding an error boundary to your tree to customize error handling behavior.
+    Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+
+    [0m [90m  99 |[39m
+     [90m 100 |[39m   it([32m'starts speaking question on mount'[39m[33m,[39m [36masync[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 101 |[39m     render([33m<[39m[33mMockInterviewScreen[39m [33m/[39m[33m>[39m)
+     [90m     |[39m           [31m[1m^[22m[39m
+     [90m 102 |[39m     
+     [90m 103 |[39m     [36mawait[39m waitFor(() [33m=>[39m {
+     [90m 104 |[39m       expect(mockSpeak)[33m.[39mtoHaveBeenCalledWith([32m'Test Question?'[39m[33m,[39m expect[33m.[39many([33mObject[39m))[0m
+
+      at logCapturedError (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8678:23)
+      at update.callback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8711:5)
+      at callCallback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5175:12)
+      at commitUpdateQueue (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5196:9)
+      at commitLayoutEffectOnFiber (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:13271:13)
+      at commitLayoutMountEffects_complete (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14369:9)
+      at commitLayoutEffects_begin (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14355:7)
+      at commitLayoutEffects (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14340:3)
+      at commitRootImpl (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:16101:5)
+      at commitRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15972:5)
+      at finishConcurrentRender (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15268:9)
+      at performConcurrentWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15185:7)
+      at flushActQueue (node_modules/react/cjs/react.development.js:2667:24)
+      at act (node_modules/react/cjs/react.development.js:2582:11)
+      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)
+      at renderWithAct (node_modules/@testing-library/react-native/src/render-act.ts:13:11)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:69:33)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:44:10)
+      at Object.<anonymous> (src/screens/careerLift/__tests__/interviewPrep.test.tsx:101:11)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+
+  console.error
+    The above error occurred in the <Icon> component:
+    
+        at Icon (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\@expo\vector-icons\build\createIconSet.js:11:5)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Animated\createAnimatedComponent.js:38:59
+        at TouchableOpacity (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Components\Touchable\TouchableOpacity.js:132:23)
+        at TouchableOpacity
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at RCTSafeAreaView
+        at Component (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockNativeComponent.js:17:18)
+        at MockInterviewScreen (C:\Users\tyriq\Documents\Github\react-native-ai\app\src\screens\careerLift\mockInterview.tsx:40:49)
+    
+    Consider adding an error boundary to your tree to customize error handling behavior.
+    Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+
+    [0m [90m  99 |[39m
+     [90m 100 |[39m   it([32m'starts speaking question on mount'[39m[33m,[39m [36masync[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 101 |[39m     render([33m<[39m[33mMockInterviewScreen[39m [33m/[39m[33m>[39m)
+     [90m     |[39m           [31m[1m^[22m[39m
+     [90m 102 |[39m     
+     [90m 103 |[39m     [36mawait[39m waitFor(() [33m=>[39m {
+     [90m 104 |[39m       expect(mockSpeak)[33m.[39mtoHaveBeenCalledWith([32m'Test Question?'[39m[33m,[39m expect[33m.[39many([33mObject[39m))[0m
+
+      at logCapturedError (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8678:23)
+      at update.callback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8711:5)
+      at callCallback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5175:12)
+      at commitUpdateQueue (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5196:9)
+      at commitLayoutEffectOnFiber (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:13271:13)
+      at commitLayoutMountEffects_complete (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14369:9)
+      at commitLayoutEffects_begin (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14355:7)
+      at commitLayoutEffects (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14340:3)
+      at commitRootImpl (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:16101:5)
+      at commitRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15972:5)
+      at finishConcurrentRender (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15268:9)
+      at performConcurrentWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15185:7)
+      at flushActQueue (node_modules/react/cjs/react.development.js:2667:24)
+      at act (node_modules/react/cjs/react.development.js:2582:11)
+      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)
+      at renderWithAct (node_modules/@testing-library/react-native/src/render-act.ts:13:11)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:69:33)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:44:10)
+      at Object.<anonymous> (src/screens/careerLift/__tests__/interviewPrep.test.tsx:101:11)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+
+  console.error
+    The above error occurred in the <Icon> component:
+    
+        at Icon (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\@expo\vector-icons\build\createIconSet.js:11:5)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Animated\createAnimatedComponent.js:38:59
+        at TouchableOpacity (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Components\Touchable\TouchableOpacity.js:132:23)
+        at TouchableOpacity
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at RCTSafeAreaView
+        at Component (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockNativeComponent.js:17:18)
+        at MockInterviewScreen (C:\Users\tyriq\Documents\Github\react-native-ai\app\src\screens\careerLift\mockInterview.tsx:40:49)
+    
+    Consider adding an error boundary to your tree to customize error handling behavior.
+    Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+
+    [0m [90m 107 |[39m
+     [90m 108 |[39m   it([32m'toggles rubric visibility'[39m[33m,[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 109 |[39m     [36mconst[39m { getByText[33m,[39m queryByText } [33m=[39m render([33m<[39m[33mMockInterviewScreen[39m [33m/[39m[33m>[39m)
+     [90m     |[39m                                              [31m[1m^[22m[39m
+     [90m 110 |[39m     
+     [90m 111 |[39m     [90m// Initially hidden[39m
+     [90m 112 |[39m     expect(queryByText([32m'Conflict Resolution:'[39m))[33m.[39mtoBeNull()[0m
+
+      at logCapturedError (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8678:23)
+      at update.callback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8711:5)
+      at callCallback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5175:12)
+      at commitUpdateQueue (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5196:9)
+      at commitLayoutEffectOnFiber (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:13271:13)
+      at commitLayoutMountEffects_complete (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14369:9)
+      at commitLayoutEffects_begin (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14355:7)
+      at commitLayoutEffects (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14340:3)
+      at commitRootImpl (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:16101:5)
+      at commitRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15972:5)
+      at finishConcurrentRender (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15268:9)
+      at performConcurrentWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15185:7)
+      at flushActQueue (node_modules/react/cjs/react.development.js:2667:24)
+      at act (node_modules/react/cjs/react.development.js:2582:11)
+      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)
+      at renderWithAct (node_modules/@testing-library/react-native/src/render-act.ts:13:11)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:69:33)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:44:10)
+      at Object.<anonymous> (src/screens/careerLift/__tests__/interviewPrep.test.tsx:109:46)
+
+  console.error
+    The above error occurred in the <Icon> component:
+    
+        at Icon (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\@expo\vector-icons\build\createIconSet.js:11:5)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Animated\createAnimatedComponent.js:38:59
+        at TouchableOpacity (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Components\Touchable\TouchableOpacity.js:132:23)
+        at TouchableOpacity
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at RCTSafeAreaView
+        at Component (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockNativeComponent.js:17:18)
+        at MockInterviewScreen (C:\Users\tyriq\Documents\Github\react-native-ai\app\src\screens\careerLift\mockInterview.tsx:40:49)
+    
+    Consider adding an error boundary to your tree to customize error handling behavior.
+    Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+
+    [0m [90m 107 |[39m
+     [90m 108 |[39m   it([32m'toggles rubric visibility'[39m[33m,[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 109 |[39m     [36mconst[39m { getByText[33m,[39m queryByText } [33m=[39m render([33m<[39m[33mMockInterviewScreen[39m [33m/[39m[33m>[39m)
+     [90m     |[39m                                              [31m[1m^[22m[39m
+     [90m 110 |[39m     
+     [90m 111 |[39m     [90m// Initially hidden[39m
+     [90m 112 |[39m     expect(queryByText([32m'Conflict Resolution:'[39m))[33m.[39mtoBeNull()[0m
+
+      at logCapturedError (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8678:23)
+      at update.callback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8711:5)
+      at callCallback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5175:12)
+      at commitUpdateQueue (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5196:9)
+      at commitLayoutEffectOnFiber (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:13271:13)
+      at commitLayoutMountEffects_complete (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14369:9)
+      at commitLayoutEffects_begin (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14355:7)
+      at commitLayoutEffects (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14340:3)
+      at commitRootImpl (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:16101:5)
+      at commitRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15972:5)
+      at finishConcurrentRender (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15268:9)
+      at performConcurrentWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15185:7)
+      at flushActQueue (node_modules/react/cjs/react.development.js:2667:24)
+      at act (node_modules/react/cjs/react.development.js:2582:11)
+      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)
+      at renderWithAct (node_modules/@testing-library/react-native/src/render-act.ts:13:11)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:69:33)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:44:10)
+      at Object.<anonymous> (src/screens/careerLift/__tests__/interviewPrep.test.tsx:109:46)
+
+  console.error
+    The above error occurred in the <Icon> component:
+    
+        at Icon (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\@expo\vector-icons\build\createIconSet.js:11:5)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Animated\createAnimatedComponent.js:38:59
+        at TouchableOpacity (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Components\Touchable\TouchableOpacity.js:132:23)
+        at TouchableOpacity
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at RCTSafeAreaView
+        at Component (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockNativeComponent.js:17:18)
+        at MockInterviewScreen (C:\Users\tyriq\Documents\Github\react-native-ai\app\src\screens\careerLift\mockInterview.tsx:40:49)
+    
+    Consider adding an error boundary to your tree to customize error handling behavior.
+    Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+
+    [0m [90m 107 |[39m
+     [90m 108 |[39m   it([32m'toggles rubric visibility'[39m[33m,[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 109 |[39m     [36mconst[39m { getByText[33m,[39m queryByText } [33m=[39m render([33m<[39m[33mMockInterviewScreen[39m [33m/[39m[33m>[39m)
+     [90m     |[39m                                              [31m[1m^[22m[39m
+     [90m 110 |[39m     
+     [90m 111 |[39m     [90m// Initially hidden[39m
+     [90m 112 |[39m     expect(queryByText([32m'Conflict Resolution:'[39m))[33m.[39mtoBeNull()[0m
+
+      at logCapturedError (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8678:23)
+      at update.callback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8711:5)
+      at callCallback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5175:12)
+      at commitUpdateQueue (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5196:9)
+      at commitLayoutEffectOnFiber (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:13271:13)
+      at commitLayoutMountEffects_complete (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14369:9)
+      at commitLayoutEffects_begin (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14355:7)
+      at commitLayoutEffects (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14340:3)
+      at commitRootImpl (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:16101:5)
+      at commitRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15972:5)
+      at finishConcurrentRender (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15268:9)
+      at performConcurrentWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15185:7)
+      at flushActQueue (node_modules/react/cjs/react.development.js:2667:24)
+      at act (node_modules/react/cjs/react.development.js:2582:11)
+      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)
+      at renderWithAct (node_modules/@testing-library/react-native/src/render-act.ts:13:11)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:69:33)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:44:10)
+      at Object.<anonymous> (src/screens/careerLift/__tests__/interviewPrep.test.tsx:109:46)
+
+  console.error
+    The above error occurred in the <Icon> component:
+    
+        at Icon (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\@expo\vector-icons\build\createIconSet.js:11:5)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Animated\createAnimatedComponent.js:38:59
+        at TouchableOpacity (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Components\Touchable\TouchableOpacity.js:132:23)
+        at TouchableOpacity
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at RCTSafeAreaView
+        at Component (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockNativeComponent.js:17:18)
+        at MockInterviewScreen (C:\Users\tyriq\Documents\Github\react-native-ai\app\src\screens\careerLift\mockInterview.tsx:40:49)
+    
+    Consider adding an error boundary to your tree to customize error handling behavior.
+    Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+
+    [0m [90m 107 |[39m
+     [90m 108 |[39m   it([32m'toggles rubric visibility'[39m[33m,[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 109 |[39m     [36mconst[39m { getByText[33m,[39m queryByText } [33m=[39m render([33m<[39m[33mMockInterviewScreen[39m [33m/[39m[33m>[39m)
+     [90m     |[39m                                              [31m[1m^[22m[39m
+     [90m 110 |[39m     
+     [90m 111 |[39m     [90m// Initially hidden[39m
+     [90m 112 |[39m     expect(queryByText([32m'Conflict Resolution:'[39m))[33m.[39mtoBeNull()[0m
+
+      at logCapturedError (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8678:23)
+      at update.callback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8711:5)
+      at callCallback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5175:12)
+      at commitUpdateQueue (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5196:9)
+      at commitLayoutEffectOnFiber (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:13271:13)
+      at commitLayoutMountEffects_complete (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14369:9)
+      at commitLayoutEffects_begin (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14355:7)
+      at commitLayoutEffects (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14340:3)
+      at commitRootImpl (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:16101:5)
+      at commitRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15972:5)
+      at finishConcurrentRender (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15268:9)
+      at performConcurrentWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15185:7)
+      at flushActQueue (node_modules/react/cjs/react.development.js:2667:24)
+      at act (node_modules/react/cjs/react.development.js:2582:11)
+      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)
+      at renderWithAct (node_modules/@testing-library/react-native/src/render-act.ts:13:11)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:69:33)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:44:10)
+      at Object.<anonymous> (src/screens/careerLift/__tests__/interviewPrep.test.tsx:109:46)
+
+  console.error
+    The above error occurred in the <Icon> component:
+    
+        at Icon (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\@expo\vector-icons\build\createIconSet.js:11:5)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Animated\createAnimatedComponent.js:38:59
+        at TouchableOpacity (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Components\Touchable\TouchableOpacity.js:132:23)
+        at TouchableOpacity
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at RCTSafeAreaView
+        at Component (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockNativeComponent.js:17:18)
+        at MockInterviewScreen (C:\Users\tyriq\Documents\Github\react-native-ai\app\src\screens\careerLift\mockInterview.tsx:40:49)
+    
+    Consider adding an error boundary to your tree to customize error handling behavior.
+    Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+
+    [0m [90m 107 |[39m
+     [90m 108 |[39m   it([32m'toggles rubric visibility'[39m[33m,[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 109 |[39m     [36mconst[39m { getByText[33m,[39m queryByText } [33m=[39m render([33m<[39m[33mMockInterviewScreen[39m [33m/[39m[33m>[39m)
+     [90m     |[39m                                              [31m[1m^[22m[39m
+     [90m 110 |[39m     
+     [90m 111 |[39m     [90m// Initially hidden[39m
+     [90m 112 |[39m     expect(queryByText([32m'Conflict Resolution:'[39m))[33m.[39mtoBeNull()[0m
+
+      at logCapturedError (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8678:23)
+      at update.callback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8711:5)
+      at callCallback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5175:12)
+      at commitUpdateQueue (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5196:9)
+      at commitLayoutEffectOnFiber (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:13271:13)
+      at commitLayoutMountEffects_complete (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14369:9)
+      at commitLayoutEffects_begin (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14355:7)
+      at commitLayoutEffects (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14340:3)
+      at commitRootImpl (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:16101:5)
+      at commitRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15972:5)
+      at finishConcurrentRender (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15268:9)
+      at performConcurrentWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15185:7)
+      at flushActQueue (node_modules/react/cjs/react.development.js:2667:24)
+      at act (node_modules/react/cjs/react.development.js:2582:11)
+      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)
+      at renderWithAct (node_modules/@testing-library/react-native/src/render-act.ts:13:11)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:69:33)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:44:10)
+      at Object.<anonymous> (src/screens/careerLift/__tests__/interviewPrep.test.tsx:109:46)
+
+  console.error
+    The above error occurred in the <Icon> component:
+    
+        at Icon (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\@expo\vector-icons\build\createIconSet.js:11:5)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Animated\createAnimatedComponent.js:38:59
+        at TouchableOpacity (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Components\Touchable\TouchableOpacity.js:132:23)
+        at TouchableOpacity
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at RCTSafeAreaView
+        at Component (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockNativeComponent.js:17:18)
+        at MockInterviewScreen (C:\Users\tyriq\Documents\Github\react-native-ai\app\src\screens\careerLift\mockInterview.tsx:40:49)
+    
+    Consider adding an error boundary to your tree to customize error handling behavior.
+    Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+
+    [0m [90m 107 |[39m
+     [90m 108 |[39m   it([32m'toggles rubric visibility'[39m[33m,[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 109 |[39m     [36mconst[39m { getByText[33m,[39m queryByText } [33m=[39m render([33m<[39m[33mMockInterviewScreen[39m [33m/[39m[33m>[39m)
+     [90m     |[39m                                              [31m[1m^[22m[39m
+     [90m 110 |[39m     
+     [90m 111 |[39m     [90m// Initially hidden[39m
+     [90m 112 |[39m     expect(queryByText([32m'Conflict Resolution:'[39m))[33m.[39mtoBeNull()[0m
+
+      at logCapturedError (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8678:23)
+      at update.callback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8711:5)
+      at callCallback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5175:12)
+      at commitUpdateQueue (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5196:9)
+      at commitLayoutEffectOnFiber (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:13271:13)
+      at commitLayoutMountEffects_complete (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14369:9)
+      at commitLayoutEffects_begin (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14355:7)
+      at commitLayoutEffects (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14340:3)
+      at commitRootImpl (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:16101:5)
+      at commitRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15972:5)
+      at finishConcurrentRender (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15268:9)
+      at performConcurrentWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15185:7)
+      at flushActQueue (node_modules/react/cjs/react.development.js:2667:24)
+      at act (node_modules/react/cjs/react.development.js:2582:11)
+      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)
+      at renderWithAct (node_modules/@testing-library/react-native/src/render-act.ts:13:11)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:69:33)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:44:10)
+      at Object.<anonymous> (src/screens/careerLift/__tests__/interviewPrep.test.tsx:109:46)
+
+  console.error
+    The above error occurred in the <Icon> component:
+    
+        at Icon (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\@expo\vector-icons\build\createIconSet.js:11:5)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Animated\createAnimatedComponent.js:38:59
+        at TouchableOpacity (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Components\Touchable\TouchableOpacity.js:132:23)
+        at TouchableOpacity
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at RCTSafeAreaView
+        at Component (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockNativeComponent.js:17:18)
+        at MockInterviewScreen (C:\Users\tyriq\Documents\Github\react-native-ai\app\src\screens\careerLift\mockInterview.tsx:40:49)
+    
+    Consider adding an error boundary to your tree to customize error handling behavior.
+    Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+
+    [0m [90m 120 |[39m
+     [90m 121 |[39m   it([32m'handles recording toggle correctly'[39m[33m,[39m [36masync[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 122 |[39m     [36mconst[39m { getByTestId } [33m=[39m render([33m<[39m[33mMockInterviewScreen[39m [33m/[39m[33m>[39m)
+     [90m     |[39m                                   [31m[1m^[22m[39m
+     [90m 123 |[39m     
+     [90m 124 |[39m     [90m// Start Recording[39m
+     [90m 125 |[39m     fireEvent[33m.[39mpress(getByTestId([32m'record-button'[39m))[0m
+
+      at logCapturedError (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8678:23)
+      at update.callback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8711:5)
+      at callCallback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5175:12)
+      at commitUpdateQueue (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5196:9)
+      at commitLayoutEffectOnFiber (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:13271:13)
+      at commitLayoutMountEffects_complete (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14369:9)
+      at commitLayoutEffects_begin (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14355:7)
+      at commitLayoutEffects (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14340:3)
+      at commitRootImpl (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:16101:5)
+      at commitRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15972:5)
+      at finishConcurrentRender (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15268:9)
+      at performConcurrentWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15185:7)
+      at flushActQueue (node_modules/react/cjs/react.development.js:2667:24)
+      at act (node_modules/react/cjs/react.development.js:2582:11)
+      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)
+      at renderWithAct (node_modules/@testing-library/react-native/src/render-act.ts:13:11)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:69:33)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:44:10)
+      at Object.<anonymous> (src/screens/careerLift/__tests__/interviewPrep.test.tsx:122:35)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+
+  console.error
+    The above error occurred in the <Icon> component:
+    
+        at Icon (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\@expo\vector-icons\build\createIconSet.js:11:5)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Animated\createAnimatedComponent.js:38:59
+        at TouchableOpacity (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Components\Touchable\TouchableOpacity.js:132:23)
+        at TouchableOpacity
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at RCTSafeAreaView
+        at Component (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockNativeComponent.js:17:18)
+        at MockInterviewScreen (C:\Users\tyriq\Documents\Github\react-native-ai\app\src\screens\careerLift\mockInterview.tsx:40:49)
+    
+    Consider adding an error boundary to your tree to customize error handling behavior.
+    Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+
+    [0m [90m 120 |[39m
+     [90m 121 |[39m   it([32m'handles recording toggle correctly'[39m[33m,[39m [36masync[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 122 |[39m     [36mconst[39m { getByTestId } [33m=[39m render([33m<[39m[33mMockInterviewScreen[39m [33m/[39m[33m>[39m)
+     [90m     |[39m                                   [31m[1m^[22m[39m
+     [90m 123 |[39m     
+     [90m 124 |[39m     [90m// Start Recording[39m
+     [90m 125 |[39m     fireEvent[33m.[39mpress(getByTestId([32m'record-button'[39m))[0m
+
+      at logCapturedError (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8678:23)
+      at update.callback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8711:5)
+      at callCallback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5175:12)
+      at commitUpdateQueue (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5196:9)
+      at commitLayoutEffectOnFiber (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:13271:13)
+      at commitLayoutMountEffects_complete (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14369:9)
+      at commitLayoutEffects_begin (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14355:7)
+      at commitLayoutEffects (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14340:3)
+      at commitRootImpl (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:16101:5)
+      at commitRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15972:5)
+      at finishConcurrentRender (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15268:9)
+      at performConcurrentWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15185:7)
+      at flushActQueue (node_modules/react/cjs/react.development.js:2667:24)
+      at act (node_modules/react/cjs/react.development.js:2582:11)
+      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)
+      at renderWithAct (node_modules/@testing-library/react-native/src/render-act.ts:13:11)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:69:33)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:44:10)
+      at Object.<anonymous> (src/screens/careerLift/__tests__/interviewPrep.test.tsx:122:35)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+
+  console.error
+    The above error occurred in the <Icon> component:
+    
+        at Icon (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\@expo\vector-icons\build\createIconSet.js:11:5)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Animated\createAnimatedComponent.js:38:59
+        at TouchableOpacity (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Components\Touchable\TouchableOpacity.js:132:23)
+        at TouchableOpacity
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at RCTSafeAreaView
+        at Component (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockNativeComponent.js:17:18)
+        at MockInterviewScreen (C:\Users\tyriq\Documents\Github\react-native-ai\app\src\screens\careerLift\mockInterview.tsx:40:49)
+    
+    Consider adding an error boundary to your tree to customize error handling behavior.
+    Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+
+    [0m [90m 120 |[39m
+     [90m 121 |[39m   it([32m'handles recording toggle correctly'[39m[33m,[39m [36masync[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 122 |[39m     [36mconst[39m { getByTestId } [33m=[39m render([33m<[39m[33mMockInterviewScreen[39m [33m/[39m[33m>[39m)
+     [90m     |[39m                                   [31m[1m^[22m[39m
+     [90m 123 |[39m     
+     [90m 124 |[39m     [90m// Start Recording[39m
+     [90m 125 |[39m     fireEvent[33m.[39mpress(getByTestId([32m'record-button'[39m))[0m
+
+      at logCapturedError (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8678:23)
+      at update.callback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8711:5)
+      at callCallback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5175:12)
+      at commitUpdateQueue (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5196:9)
+      at commitLayoutEffectOnFiber (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:13271:13)
+      at commitLayoutMountEffects_complete (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14369:9)
+      at commitLayoutEffects_begin (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14355:7)
+      at commitLayoutEffects (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14340:3)
+      at commitRootImpl (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:16101:5)
+      at commitRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15972:5)
+      at finishConcurrentRender (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15268:9)
+      at performConcurrentWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15185:7)
+      at flushActQueue (node_modules/react/cjs/react.development.js:2667:24)
+      at act (node_modules/react/cjs/react.development.js:2582:11)
+      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)
+      at renderWithAct (node_modules/@testing-library/react-native/src/render-act.ts:13:11)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:69:33)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:44:10)
+      at Object.<anonymous> (src/screens/careerLift/__tests__/interviewPrep.test.tsx:122:35)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+
+  console.error
+    The above error occurred in the <Icon> component:
+    
+        at Icon (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\@expo\vector-icons\build\createIconSet.js:11:5)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Animated\createAnimatedComponent.js:38:59
+        at TouchableOpacity (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Components\Touchable\TouchableOpacity.js:132:23)
+        at TouchableOpacity
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at RCTSafeAreaView
+        at Component (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockNativeComponent.js:17:18)
+        at MockInterviewScreen (C:\Users\tyriq\Documents\Github\react-native-ai\app\src\screens\careerLift\mockInterview.tsx:40:49)
+    
+    Consider adding an error boundary to your tree to customize error handling behavior.
+    Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+
+    [0m [90m 120 |[39m
+     [90m 121 |[39m   it([32m'handles recording toggle correctly'[39m[33m,[39m [36masync[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 122 |[39m     [36mconst[39m { getByTestId } [33m=[39m render([33m<[39m[33mMockInterviewScreen[39m [33m/[39m[33m>[39m)
+     [90m     |[39m                                   [31m[1m^[22m[39m
+     [90m 123 |[39m     
+     [90m 124 |[39m     [90m// Start Recording[39m
+     [90m 125 |[39m     fireEvent[33m.[39mpress(getByTestId([32m'record-button'[39m))[0m
+
+      at logCapturedError (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8678:23)
+      at update.callback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8711:5)
+      at callCallback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5175:12)
+      at commitUpdateQueue (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5196:9)
+      at commitLayoutEffectOnFiber (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:13271:13)
+      at commitLayoutMountEffects_complete (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14369:9)
+      at commitLayoutEffects_begin (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14355:7)
+      at commitLayoutEffects (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14340:3)
+      at commitRootImpl (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:16101:5)
+      at commitRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15972:5)
+      at finishConcurrentRender (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15268:9)
+      at performConcurrentWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15185:7)
+      at flushActQueue (node_modules/react/cjs/react.development.js:2667:24)
+      at act (node_modules/react/cjs/react.development.js:2582:11)
+      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)
+      at renderWithAct (node_modules/@testing-library/react-native/src/render-act.ts:13:11)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:69:33)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:44:10)
+      at Object.<anonymous> (src/screens/careerLift/__tests__/interviewPrep.test.tsx:122:35)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+
+  console.error
+    The above error occurred in the <Icon> component:
+    
+        at Icon (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\@expo\vector-icons\build\createIconSet.js:11:5)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Animated\createAnimatedComponent.js:38:59
+        at TouchableOpacity (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Components\Touchable\TouchableOpacity.js:132:23)
+        at TouchableOpacity
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at RCTSafeAreaView
+        at Component (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockNativeComponent.js:17:18)
+        at MockInterviewScreen (C:\Users\tyriq\Documents\Github\react-native-ai\app\src\screens\careerLift\mockInterview.tsx:40:49)
+    
+    Consider adding an error boundary to your tree to customize error handling behavior.
+    Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+
+    [0m [90m 120 |[39m
+     [90m 121 |[39m   it([32m'handles recording toggle correctly'[39m[33m,[39m [36masync[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 122 |[39m     [36mconst[39m { getByTestId } [33m=[39m render([33m<[39m[33mMockInterviewScreen[39m [33m/[39m[33m>[39m)
+     [90m     |[39m                                   [31m[1m^[22m[39m
+     [90m 123 |[39m     
+     [90m 124 |[39m     [90m// Start Recording[39m
+     [90m 125 |[39m     fireEvent[33m.[39mpress(getByTestId([32m'record-button'[39m))[0m
+
+      at logCapturedError (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8678:23)
+      at update.callback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8711:5)
+      at callCallback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5175:12)
+      at commitUpdateQueue (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5196:9)
+      at commitLayoutEffectOnFiber (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:13271:13)
+      at commitLayoutMountEffects_complete (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14369:9)
+      at commitLayoutEffects_begin (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14355:7)
+      at commitLayoutEffects (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14340:3)
+      at commitRootImpl (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:16101:5)
+      at commitRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15972:5)
+      at finishConcurrentRender (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15268:9)
+      at performConcurrentWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15185:7)
+      at flushActQueue (node_modules/react/cjs/react.development.js:2667:24)
+      at act (node_modules/react/cjs/react.development.js:2582:11)
+      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)
+      at renderWithAct (node_modules/@testing-library/react-native/src/render-act.ts:13:11)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:69:33)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:44:10)
+      at Object.<anonymous> (src/screens/careerLift/__tests__/interviewPrep.test.tsx:122:35)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+
+  console.error
+    The above error occurred in the <Icon> component:
+    
+        at Icon (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\@expo\vector-icons\build\createIconSet.js:11:5)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Animated\createAnimatedComponent.js:38:59
+        at TouchableOpacity (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Components\Touchable\TouchableOpacity.js:132:23)
+        at TouchableOpacity
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at RCTSafeAreaView
+        at Component (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockNativeComponent.js:17:18)
+        at MockInterviewScreen (C:\Users\tyriq\Documents\Github\react-native-ai\app\src\screens\careerLift\mockInterview.tsx:40:49)
+    
+    Consider adding an error boundary to your tree to customize error handling behavior.
+    Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+
+    [0m [90m 120 |[39m
+     [90m 121 |[39m   it([32m'handles recording toggle correctly'[39m[33m,[39m [36masync[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 122 |[39m     [36mconst[39m { getByTestId } [33m=[39m render([33m<[39m[33mMockInterviewScreen[39m [33m/[39m[33m>[39m)
+     [90m     |[39m                                   [31m[1m^[22m[39m
+     [90m 123 |[39m     
+     [90m 124 |[39m     [90m// Start Recording[39m
+     [90m 125 |[39m     fireEvent[33m.[39mpress(getByTestId([32m'record-button'[39m))[0m
+
+      at logCapturedError (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8678:23)
+      at update.callback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8711:5)
+      at callCallback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5175:12)
+      at commitUpdateQueue (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5196:9)
+      at commitLayoutEffectOnFiber (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:13271:13)
+      at commitLayoutMountEffects_complete (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14369:9)
+      at commitLayoutEffects_begin (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14355:7)
+      at commitLayoutEffects (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14340:3)
+      at commitRootImpl (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:16101:5)
+      at commitRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15972:5)
+      at finishConcurrentRender (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15268:9)
+      at performConcurrentWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15185:7)
+      at flushActQueue (node_modules/react/cjs/react.development.js:2667:24)
+      at act (node_modules/react/cjs/react.development.js:2582:11)
+      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)
+      at renderWithAct (node_modules/@testing-library/react-native/src/render-act.ts:13:11)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:69:33)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:44:10)
+      at Object.<anonymous> (src/screens/careerLift/__tests__/interviewPrep.test.tsx:122:35)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+
+  console.error
+    The above error occurred in the <Icon> component:
+    
+        at Icon (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\@expo\vector-icons\build\createIconSet.js:11:5)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Animated\createAnimatedComponent.js:38:59
+        at TouchableOpacity (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Components\Touchable\TouchableOpacity.js:132:23)
+        at TouchableOpacity
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at RCTSafeAreaView
+        at Component (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockNativeComponent.js:17:18)
+        at MockInterviewScreen (C:\Users\tyriq\Documents\Github\react-native-ai\app\src\screens\careerLift\mockInterview.tsx:40:49)
+    
+    Consider adding an error boundary to your tree to customize error handling behavior.
+    Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+
+    [0m [90m 145 |[39m
+     [90m 146 |[39m   it([32m'shows alerts on menu press and handles restart'[39m[33m,[39m [36masync[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 147 |[39m     [36mconst[39m { getByTestId[33m,[39m getByText } [33m=[39m render([33m<[39m[33mMockInterviewScreen[39m [33m/[39m[33m>[39m)
+     [90m     |[39m                                              [31m[1m^[22m[39m
+     [90m 148 |[39m     
+     [90m 149 |[39m     [90m// Open Menu[39m
+     [90m 150 |[39m     fireEvent[33m.[39mpress(getByTestId([32m'header-menu'[39m))[0m
+
+      at logCapturedError (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8678:23)
+      at update.callback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8711:5)
+      at callCallback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5175:12)
+      at commitUpdateQueue (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5196:9)
+      at commitLayoutEffectOnFiber (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:13271:13)
+      at commitLayoutMountEffects_complete (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14369:9)
+      at commitLayoutEffects_begin (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14355:7)
+      at commitLayoutEffects (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14340:3)
+      at commitRootImpl (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:16101:5)
+      at commitRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15972:5)
+      at finishConcurrentRender (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15268:9)
+      at performConcurrentWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15185:7)
+      at flushActQueue (node_modules/react/cjs/react.development.js:2667:24)
+      at act (node_modules/react/cjs/react.development.js:2582:11)
+      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)
+      at renderWithAct (node_modules/@testing-library/react-native/src/render-act.ts:13:11)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:69:33)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:44:10)
+      at Object.<anonymous> (src/screens/careerLift/__tests__/interviewPrep.test.tsx:147:46)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+
+  console.error
+    The above error occurred in the <Icon> component:
+    
+        at Icon (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\@expo\vector-icons\build\createIconSet.js:11:5)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Animated\createAnimatedComponent.js:38:59
+        at TouchableOpacity (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Components\Touchable\TouchableOpacity.js:132:23)
+        at TouchableOpacity
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at RCTSafeAreaView
+        at Component (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockNativeComponent.js:17:18)
+        at MockInterviewScreen (C:\Users\tyriq\Documents\Github\react-native-ai\app\src\screens\careerLift\mockInterview.tsx:40:49)
+    
+    Consider adding an error boundary to your tree to customize error handling behavior.
+    Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+
+    [0m [90m 145 |[39m
+     [90m 146 |[39m   it([32m'shows alerts on menu press and handles restart'[39m[33m,[39m [36masync[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 147 |[39m     [36mconst[39m { getByTestId[33m,[39m getByText } [33m=[39m render([33m<[39m[33mMockInterviewScreen[39m [33m/[39m[33m>[39m)
+     [90m     |[39m                                              [31m[1m^[22m[39m
+     [90m 148 |[39m     
+     [90m 149 |[39m     [90m// Open Menu[39m
+     [90m 150 |[39m     fireEvent[33m.[39mpress(getByTestId([32m'header-menu'[39m))[0m
+
+      at logCapturedError (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8678:23)
+      at update.callback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8711:5)
+      at callCallback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5175:12)
+      at commitUpdateQueue (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5196:9)
+      at commitLayoutEffectOnFiber (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:13271:13)
+      at commitLayoutMountEffects_complete (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14369:9)
+      at commitLayoutEffects_begin (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14355:7)
+      at commitLayoutEffects (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14340:3)
+      at commitRootImpl (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:16101:5)
+      at commitRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15972:5)
+      at finishConcurrentRender (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15268:9)
+      at performConcurrentWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15185:7)
+      at flushActQueue (node_modules/react/cjs/react.development.js:2667:24)
+      at act (node_modules/react/cjs/react.development.js:2582:11)
+      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)
+      at renderWithAct (node_modules/@testing-library/react-native/src/render-act.ts:13:11)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:69:33)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:44:10)
+      at Object.<anonymous> (src/screens/careerLift/__tests__/interviewPrep.test.tsx:147:46)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+
+  console.error
+    The above error occurred in the <Icon> component:
+    
+        at Icon (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\@expo\vector-icons\build\createIconSet.js:11:5)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Animated\createAnimatedComponent.js:38:59
+        at TouchableOpacity (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Components\Touchable\TouchableOpacity.js:132:23)
+        at TouchableOpacity
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at RCTSafeAreaView
+        at Component (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockNativeComponent.js:17:18)
+        at MockInterviewScreen (C:\Users\tyriq\Documents\Github\react-native-ai\app\src\screens\careerLift\mockInterview.tsx:40:49)
+    
+    Consider adding an error boundary to your tree to customize error handling behavior.
+    Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+
+    [0m [90m 145 |[39m
+     [90m 146 |[39m   it([32m'shows alerts on menu press and handles restart'[39m[33m,[39m [36masync[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 147 |[39m     [36mconst[39m { getByTestId[33m,[39m getByText } [33m=[39m render([33m<[39m[33mMockInterviewScreen[39m [33m/[39m[33m>[39m)
+     [90m     |[39m                                              [31m[1m^[22m[39m
+     [90m 148 |[39m     
+     [90m 149 |[39m     [90m// Open Menu[39m
+     [90m 150 |[39m     fireEvent[33m.[39mpress(getByTestId([32m'header-menu'[39m))[0m
+
+      at logCapturedError (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8678:23)
+      at update.callback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8711:5)
+      at callCallback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5175:12)
+      at commitUpdateQueue (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5196:9)
+      at commitLayoutEffectOnFiber (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:13271:13)
+      at commitLayoutMountEffects_complete (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14369:9)
+      at commitLayoutEffects_begin (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14355:7)
+      at commitLayoutEffects (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14340:3)
+      at commitRootImpl (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:16101:5)
+      at commitRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15972:5)
+      at finishConcurrentRender (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15268:9)
+      at performConcurrentWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15185:7)
+      at flushActQueue (node_modules/react/cjs/react.development.js:2667:24)
+      at act (node_modules/react/cjs/react.development.js:2582:11)
+      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)
+      at renderWithAct (node_modules/@testing-library/react-native/src/render-act.ts:13:11)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:69:33)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:44:10)
+      at Object.<anonymous> (src/screens/careerLift/__tests__/interviewPrep.test.tsx:147:46)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+
+  console.error
+    The above error occurred in the <Icon> component:
+    
+        at Icon (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\@expo\vector-icons\build\createIconSet.js:11:5)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Animated\createAnimatedComponent.js:38:59
+        at TouchableOpacity (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Components\Touchable\TouchableOpacity.js:132:23)
+        at TouchableOpacity
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at RCTSafeAreaView
+        at Component (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockNativeComponent.js:17:18)
+        at MockInterviewScreen (C:\Users\tyriq\Documents\Github\react-native-ai\app\src\screens\careerLift\mockInterview.tsx:40:49)
+    
+    Consider adding an error boundary to your tree to customize error handling behavior.
+    Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+
+    [0m [90m 145 |[39m
+     [90m 146 |[39m   it([32m'shows alerts on menu press and handles restart'[39m[33m,[39m [36masync[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 147 |[39m     [36mconst[39m { getByTestId[33m,[39m getByText } [33m=[39m render([33m<[39m[33mMockInterviewScreen[39m [33m/[39m[33m>[39m)
+     [90m     |[39m                                              [31m[1m^[22m[39m
+     [90m 148 |[39m     
+     [90m 149 |[39m     [90m// Open Menu[39m
+     [90m 150 |[39m     fireEvent[33m.[39mpress(getByTestId([32m'header-menu'[39m))[0m
+
+      at logCapturedError (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8678:23)
+      at update.callback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8711:5)
+      at callCallback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5175:12)
+      at commitUpdateQueue (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5196:9)
+      at commitLayoutEffectOnFiber (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:13271:13)
+      at commitLayoutMountEffects_complete (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14369:9)
+      at commitLayoutEffects_begin (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14355:7)
+      at commitLayoutEffects (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14340:3)
+      at commitRootImpl (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:16101:5)
+      at commitRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15972:5)
+      at finishConcurrentRender (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15268:9)
+      at performConcurrentWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15185:7)
+      at flushActQueue (node_modules/react/cjs/react.development.js:2667:24)
+      at act (node_modules/react/cjs/react.development.js:2582:11)
+      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)
+      at renderWithAct (node_modules/@testing-library/react-native/src/render-act.ts:13:11)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:69:33)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:44:10)
+      at Object.<anonymous> (src/screens/careerLift/__tests__/interviewPrep.test.tsx:147:46)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+
+  console.error
+    The above error occurred in the <Icon> component:
+    
+        at Icon (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\@expo\vector-icons\build\createIconSet.js:11:5)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Animated\createAnimatedComponent.js:38:59
+        at TouchableOpacity (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Components\Touchable\TouchableOpacity.js:132:23)
+        at TouchableOpacity
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at RCTSafeAreaView
+        at Component (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockNativeComponent.js:17:18)
+        at MockInterviewScreen (C:\Users\tyriq\Documents\Github\react-native-ai\app\src\screens\careerLift\mockInterview.tsx:40:49)
+    
+    Consider adding an error boundary to your tree to customize error handling behavior.
+    Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+
+    [0m [90m 145 |[39m
+     [90m 146 |[39m   it([32m'shows alerts on menu press and handles restart'[39m[33m,[39m [36masync[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 147 |[39m     [36mconst[39m { getByTestId[33m,[39m getByText } [33m=[39m render([33m<[39m[33mMockInterviewScreen[39m [33m/[39m[33m>[39m)
+     [90m     |[39m                                              [31m[1m^[22m[39m
+     [90m 148 |[39m     
+     [90m 149 |[39m     [90m// Open Menu[39m
+     [90m 150 |[39m     fireEvent[33m.[39mpress(getByTestId([32m'header-menu'[39m))[0m
+
+      at logCapturedError (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8678:23)
+      at update.callback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8711:5)
+      at callCallback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5175:12)
+      at commitUpdateQueue (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5196:9)
+      at commitLayoutEffectOnFiber (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:13271:13)
+      at commitLayoutMountEffects_complete (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14369:9)
+      at commitLayoutEffects_begin (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14355:7)
+      at commitLayoutEffects (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14340:3)
+      at commitRootImpl (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:16101:5)
+      at commitRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15972:5)
+      at finishConcurrentRender (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15268:9)
+      at performConcurrentWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15185:7)
+      at flushActQueue (node_modules/react/cjs/react.development.js:2667:24)
+      at act (node_modules/react/cjs/react.development.js:2582:11)
+      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)
+      at renderWithAct (node_modules/@testing-library/react-native/src/render-act.ts:13:11)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:69:33)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:44:10)
+      at Object.<anonymous> (src/screens/careerLift/__tests__/interviewPrep.test.tsx:147:46)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+
+  console.error
+    The above error occurred in the <Icon> component:
+    
+        at Icon (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\@expo\vector-icons\build\createIconSet.js:11:5)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Animated\createAnimatedComponent.js:38:59
+        at TouchableOpacity (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Components\Touchable\TouchableOpacity.js:132:23)
+        at TouchableOpacity
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at RCTSafeAreaView
+        at Component (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockNativeComponent.js:17:18)
+        at MockInterviewScreen (C:\Users\tyriq\Documents\Github\react-native-ai\app\src\screens\careerLift\mockInterview.tsx:40:49)
+    
+    Consider adding an error boundary to your tree to customize error handling behavior.
+    Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+
+    [0m [90m 145 |[39m
+     [90m 146 |[39m   it([32m'shows alerts on menu press and handles restart'[39m[33m,[39m [36masync[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 147 |[39m     [36mconst[39m { getByTestId[33m,[39m getByText } [33m=[39m render([33m<[39m[33mMockInterviewScreen[39m [33m/[39m[33m>[39m)
+     [90m     |[39m                                              [31m[1m^[22m[39m
+     [90m 148 |[39m     
+     [90m 149 |[39m     [90m// Open Menu[39m
+     [90m 150 |[39m     fireEvent[33m.[39mpress(getByTestId([32m'header-menu'[39m))[0m
+
+      at logCapturedError (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8678:23)
+      at update.callback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8711:5)
+      at callCallback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5175:12)
+      at commitUpdateQueue (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5196:9)
+      at commitLayoutEffectOnFiber (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:13271:13)
+      at commitLayoutMountEffects_complete (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14369:9)
+      at commitLayoutEffects_begin (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14355:7)
+      at commitLayoutEffects (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14340:3)
+      at commitRootImpl (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:16101:5)
+      at commitRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15972:5)
+      at finishConcurrentRender (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15268:9)
+      at performConcurrentWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15185:7)
+      at flushActQueue (node_modules/react/cjs/react.development.js:2667:24)
+      at act (node_modules/react/cjs/react.development.js:2582:11)
+      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)
+      at renderWithAct (node_modules/@testing-library/react-native/src/render-act.ts:13:11)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:69:33)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:44:10)
+      at Object.<anonymous> (src/screens/careerLift/__tests__/interviewPrep.test.tsx:147:46)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+
+  console.error
+    The above error occurred in the <Icon> component:
+    
+        at Icon (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\@expo\vector-icons\build\createIconSet.js:11:5)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Animated\createAnimatedComponent.js:38:59
+        at TouchableOpacity (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Components\Touchable\TouchableOpacity.js:132:23)
+        at TouchableOpacity
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at RCTSafeAreaView
+        at Component (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockNativeComponent.js:17:18)
+        at MockInterviewScreen (C:\Users\tyriq\Documents\Github\react-native-ai\app\src\screens\careerLift\mockInterview.tsx:40:49)
+    
+    Consider adding an error boundary to your tree to customize error handling behavior.
+    Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+
+    [0m [90m 175 |[39m
+     [90m 176 |[39m   it([32m'resets session and handles done'[39m[33m,[39m [36masync[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 177 |[39m     [36mconst[39m { getByText[33m,[39m getByTestId } [33m=[39m render([33m<[39m[33mMockInterviewScreen[39m [33m/[39m[33m>[39m)
+     [90m     |[39m                                              [31m[1m^[22m[39m
+     [90m 178 |[39m     
+     [90m 179 |[39m     [90m// Press Reset[39m
+     [90m 180 |[39m     fireEvent[33m.[39mpress(getByText([32m'Reset'[39m))[0m
+
+      at logCapturedError (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8678:23)
+      at update.callback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8711:5)
+      at callCallback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5175:12)
+      at commitUpdateQueue (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5196:9)
+      at commitLayoutEffectOnFiber (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:13271:13)
+      at commitLayoutMountEffects_complete (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14369:9)
+      at commitLayoutEffects_begin (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14355:7)
+      at commitLayoutEffects (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14340:3)
+      at commitRootImpl (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:16101:5)
+      at commitRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15972:5)
+      at finishConcurrentRender (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15268:9)
+      at performConcurrentWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15185:7)
+      at flushActQueue (node_modules/react/cjs/react.development.js:2667:24)
+      at act (node_modules/react/cjs/react.development.js:2582:11)
+      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)
+      at renderWithAct (node_modules/@testing-library/react-native/src/render-act.ts:13:11)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:69:33)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:44:10)
+      at Object.<anonymous> (src/screens/careerLift/__tests__/interviewPrep.test.tsx:177:46)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+
+  console.error
+    The above error occurred in the <Icon> component:
+    
+        at Icon (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\@expo\vector-icons\build\createIconSet.js:11:5)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Animated\createAnimatedComponent.js:38:59
+        at TouchableOpacity (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Components\Touchable\TouchableOpacity.js:132:23)
+        at TouchableOpacity
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at RCTSafeAreaView
+        at Component (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockNativeComponent.js:17:18)
+        at MockInterviewScreen (C:\Users\tyriq\Documents\Github\react-native-ai\app\src\screens\careerLift\mockInterview.tsx:40:49)
+    
+    Consider adding an error boundary to your tree to customize error handling behavior.
+    Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+
+    [0m [90m 175 |[39m
+     [90m 176 |[39m   it([32m'resets session and handles done'[39m[33m,[39m [36masync[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 177 |[39m     [36mconst[39m { getByText[33m,[39m getByTestId } [33m=[39m render([33m<[39m[33mMockInterviewScreen[39m [33m/[39m[33m>[39m)
+     [90m     |[39m                                              [31m[1m^[22m[39m
+     [90m 178 |[39m     
+     [90m 179 |[39m     [90m// Press Reset[39m
+     [90m 180 |[39m     fireEvent[33m.[39mpress(getByText([32m'Reset'[39m))[0m
+
+      at logCapturedError (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8678:23)
+      at update.callback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8711:5)
+      at callCallback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5175:12)
+      at commitUpdateQueue (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5196:9)
+      at commitLayoutEffectOnFiber (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:13271:13)
+      at commitLayoutMountEffects_complete (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14369:9)
+      at commitLayoutEffects_begin (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14355:7)
+      at commitLayoutEffects (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14340:3)
+      at commitRootImpl (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:16101:5)
+      at commitRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15972:5)
+      at finishConcurrentRender (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15268:9)
+      at performConcurrentWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15185:7)
+      at flushActQueue (node_modules/react/cjs/react.development.js:2667:24)
+      at act (node_modules/react/cjs/react.development.js:2582:11)
+      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)
+      at renderWithAct (node_modules/@testing-library/react-native/src/render-act.ts:13:11)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:69:33)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:44:10)
+      at Object.<anonymous> (src/screens/careerLift/__tests__/interviewPrep.test.tsx:177:46)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+
+  console.error
+    The above error occurred in the <Icon> component:
+    
+        at Icon (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\@expo\vector-icons\build\createIconSet.js:11:5)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Animated\createAnimatedComponent.js:38:59
+        at TouchableOpacity (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Components\Touchable\TouchableOpacity.js:132:23)
+        at TouchableOpacity
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at RCTSafeAreaView
+        at Component (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockNativeComponent.js:17:18)
+        at MockInterviewScreen (C:\Users\tyriq\Documents\Github\react-native-ai\app\src\screens\careerLift\mockInterview.tsx:40:49)
+    
+    Consider adding an error boundary to your tree to customize error handling behavior.
+    Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+
+    [0m [90m 175 |[39m
+     [90m 176 |[39m   it([32m'resets session and handles done'[39m[33m,[39m [36masync[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 177 |[39m     [36mconst[39m { getByText[33m,[39m getByTestId } [33m=[39m render([33m<[39m[33mMockInterviewScreen[39m [33m/[39m[33m>[39m)
+     [90m     |[39m                                              [31m[1m^[22m[39m
+     [90m 178 |[39m     
+     [90m 179 |[39m     [90m// Press Reset[39m
+     [90m 180 |[39m     fireEvent[33m.[39mpress(getByText([32m'Reset'[39m))[0m
+
+      at logCapturedError (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8678:23)
+      at update.callback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8711:5)
+      at callCallback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5175:12)
+      at commitUpdateQueue (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5196:9)
+      at commitLayoutEffectOnFiber (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:13271:13)
+      at commitLayoutMountEffects_complete (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14369:9)
+      at commitLayoutEffects_begin (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14355:7)
+      at commitLayoutEffects (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14340:3)
+      at commitRootImpl (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:16101:5)
+      at commitRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15972:5)
+      at finishConcurrentRender (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15268:9)
+      at performConcurrentWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15185:7)
+      at flushActQueue (node_modules/react/cjs/react.development.js:2667:24)
+      at act (node_modules/react/cjs/react.development.js:2582:11)
+      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)
+      at renderWithAct (node_modules/@testing-library/react-native/src/render-act.ts:13:11)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:69:33)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:44:10)
+      at Object.<anonymous> (src/screens/careerLift/__tests__/interviewPrep.test.tsx:177:46)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+
+  console.error
+    The above error occurred in the <Icon> component:
+    
+        at Icon (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\@expo\vector-icons\build\createIconSet.js:11:5)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Animated\createAnimatedComponent.js:38:59
+        at TouchableOpacity (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Components\Touchable\TouchableOpacity.js:132:23)
+        at TouchableOpacity
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at RCTSafeAreaView
+        at Component (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockNativeComponent.js:17:18)
+        at MockInterviewScreen (C:\Users\tyriq\Documents\Github\react-native-ai\app\src\screens\careerLift\mockInterview.tsx:40:49)
+    
+    Consider adding an error boundary to your tree to customize error handling behavior.
+    Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+
+    [0m [90m 175 |[39m
+     [90m 176 |[39m   it([32m'resets session and handles done'[39m[33m,[39m [36masync[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 177 |[39m     [36mconst[39m { getByText[33m,[39m getByTestId } [33m=[39m render([33m<[39m[33mMockInterviewScreen[39m [33m/[39m[33m>[39m)
+     [90m     |[39m                                              [31m[1m^[22m[39m
+     [90m 178 |[39m     
+     [90m 179 |[39m     [90m// Press Reset[39m
+     [90m 180 |[39m     fireEvent[33m.[39mpress(getByText([32m'Reset'[39m))[0m
+
+      at logCapturedError (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8678:23)
+      at update.callback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8711:5)
+      at callCallback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5175:12)
+      at commitUpdateQueue (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5196:9)
+      at commitLayoutEffectOnFiber (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:13271:13)
+      at commitLayoutMountEffects_complete (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14369:9)
+      at commitLayoutEffects_begin (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14355:7)
+      at commitLayoutEffects (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14340:3)
+      at commitRootImpl (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:16101:5)
+      at commitRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15972:5)
+      at finishConcurrentRender (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15268:9)
+      at performConcurrentWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15185:7)
+      at flushActQueue (node_modules/react/cjs/react.development.js:2667:24)
+      at act (node_modules/react/cjs/react.development.js:2582:11)
+      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)
+      at renderWithAct (node_modules/@testing-library/react-native/src/render-act.ts:13:11)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:69:33)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:44:10)
+      at Object.<anonymous> (src/screens/careerLift/__tests__/interviewPrep.test.tsx:177:46)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+
+  console.error
+    The above error occurred in the <Icon> component:
+    
+        at Icon (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\@expo\vector-icons\build\createIconSet.js:11:5)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Animated\createAnimatedComponent.js:38:59
+        at TouchableOpacity (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Components\Touchable\TouchableOpacity.js:132:23)
+        at TouchableOpacity
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at RCTSafeAreaView
+        at Component (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockNativeComponent.js:17:18)
+        at MockInterviewScreen (C:\Users\tyriq\Documents\Github\react-native-ai\app\src\screens\careerLift\mockInterview.tsx:40:49)
+    
+    Consider adding an error boundary to your tree to customize error handling behavior.
+    Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+
+    [0m [90m 175 |[39m
+     [90m 176 |[39m   it([32m'resets session and handles done'[39m[33m,[39m [36masync[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 177 |[39m     [36mconst[39m { getByText[33m,[39m getByTestId } [33m=[39m render([33m<[39m[33mMockInterviewScreen[39m [33m/[39m[33m>[39m)
+     [90m     |[39m                                              [31m[1m^[22m[39m
+     [90m 178 |[39m     
+     [90m 179 |[39m     [90m// Press Reset[39m
+     [90m 180 |[39m     fireEvent[33m.[39mpress(getByText([32m'Reset'[39m))[0m
+
+      at logCapturedError (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8678:23)
+      at update.callback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8711:5)
+      at callCallback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5175:12)
+      at commitUpdateQueue (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5196:9)
+      at commitLayoutEffectOnFiber (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:13271:13)
+      at commitLayoutMountEffects_complete (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14369:9)
+      at commitLayoutEffects_begin (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14355:7)
+      at commitLayoutEffects (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14340:3)
+      at commitRootImpl (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:16101:5)
+      at commitRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15972:5)
+      at finishConcurrentRender (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15268:9)
+      at performConcurrentWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15185:7)
+      at flushActQueue (node_modules/react/cjs/react.development.js:2667:24)
+      at act (node_modules/react/cjs/react.development.js:2582:11)
+      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)
+      at renderWithAct (node_modules/@testing-library/react-native/src/render-act.ts:13:11)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:69:33)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:44:10)
+      at Object.<anonymous> (src/screens/careerLift/__tests__/interviewPrep.test.tsx:177:46)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+
+  console.error
+    The above error occurred in the <Icon> component:
+    
+        at Icon (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\@expo\vector-icons\build\createIconSet.js:11:5)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Animated\createAnimatedComponent.js:38:59
+        at TouchableOpacity (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\Libraries\Components\Touchable\TouchableOpacity.js:132:23)
+        at TouchableOpacity
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at View
+        at View (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockComponent.js:33:18)
+        at RCTSafeAreaView
+        at Component (C:\Users\tyriq\Documents\Github\react-native-ai\app\node_modules\react-native\jest\mockNativeComponent.js:17:18)
+        at MockInterviewScreen (C:\Users\tyriq\Documents\Github\react-native-ai\app\src\screens\careerLift\mockInterview.tsx:40:49)
+    
+    Consider adding an error boundary to your tree to customize error handling behavior.
+    Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+
+    [0m [90m 175 |[39m
+     [90m 176 |[39m   it([32m'resets session and handles done'[39m[33m,[39m [36masync[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 177 |[39m     [36mconst[39m { getByText[33m,[39m getByTestId } [33m=[39m render([33m<[39m[33mMockInterviewScreen[39m [33m/[39m[33m>[39m)
+     [90m     |[39m                                              [31m[1m^[22m[39m
+     [90m 178 |[39m     
+     [90m 179 |[39m     [90m// Press Reset[39m
+     [90m 180 |[39m     fireEvent[33m.[39mpress(getByText([32m'Reset'[39m))[0m
+
+      at logCapturedError (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8678:23)
+      at update.callback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8711:5)
+      at callCallback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5175:12)
+      at commitUpdateQueue (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5196:9)
+      at commitLayoutEffectOnFiber (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:13271:13)
+      at commitLayoutMountEffects_complete (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14369:9)
+      at commitLayoutEffects_begin (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14355:7)
+      at commitLayoutEffects (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14340:3)
+      at commitRootImpl (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:16101:5)
+      at commitRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15972:5)
+      at finishConcurrentRender (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15268:9)
+      at performConcurrentWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15185:7)
+      at flushActQueue (node_modules/react/cjs/react.development.js:2667:24)
+      at act (node_modules/react/cjs/react.development.js:2582:11)
+      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)
+      at renderWithAct (node_modules/@testing-library/react-native/src/render-act.ts:13:11)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:69:33)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:44:10)
+      at Object.<anonymous> (src/screens/careerLift/__tests__/interviewPrep.test.tsx:177:46)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+
+FAIL src/screens/careerLift/__tests__/interviewPrep.test.tsx (16.88 s)
+  MockInterviewScreen
+    × renders correctly with initial state (239 ms)
+    × starts speaking question on mount (57 ms)
+    × toggles rubric visibility (46 ms)
+    × handles recording toggle correctly (39 ms)
+    × shows alerts on menu press and handles restart (39 ms)
+    × resets session and handles done (40 ms)
+
+  ● MockInterviewScreen › renders correctly with initial state
+
+    TypeError: loadedNativeFonts.forEach is not a function
+
+    [0m [90m 82 |[39m
+     [90m 83 |[39m   it([32m'renders correctly with initial state'[39m[33m,[39m [36masync[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 84 |[39m     [36mconst[39m { getByText } [33m=[39m render([33m<[39m[33mMockInterviewScreen[39m [33m/[39m[33m>[39m)
+     [90m    |[39m                                 [31m[1m^[22m[39m
+     [90m 85 |[39m     
+     [90m 86 |[39m     [90m// Check Header[39m
+     [90m 87 |[39m     expect(getByText([32m'BEHAVIORAL'[39m))[33m.[39mtoBeTruthy()[0m
+
+      at forEach (node_modules/expo-font/build/memory.js:17:27)
+      at Object.isLoaded (node_modules/expo-font/build/Font.js:18:26)
+      at new isLoaded (node_modules/@expo/vector-icons/build/createIconSet.js:56:32)
+      at constructClassInstance (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8215:18)
+      at updateClassComponent (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:9592:5)
+      at beginWork (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:11375:16)
+      at performUnitOfWork (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15847:12)
+      at workLoopSync (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15784:5)
+      at renderRootSync (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15756:7)
+      at recoverFromConcurrentError (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15226:20)
+      at performConcurrentWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15126:22)
+      at flushActQueue (node_modules/react/cjs/react.development.js:2667:24)
+      at act (node_modules/react/cjs/react.development.js:2582:11)
+      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)
+      at renderWithAct (node_modules/@testing-library/react-native/src/render-act.ts:13:11)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:69:33)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:44:10)
+      at Object.<anonymous> (src/screens/careerLift/__tests__/interviewPrep.test.tsx:84:33)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+
+  ● MockInterviewScreen › starts speaking question on mount
+
+    TypeError: loadedNativeFonts.forEach is not a function
+
+    [0m [90m  99 |[39m
+     [90m 100 |[39m   it([32m'starts speaking question on mount'[39m[33m,[39m [36masync[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 101 |[39m     render([33m<[39m[33mMockInterviewScreen[39m [33m/[39m[33m>[39m)
+     [90m     |[39m           [31m[1m^[22m[39m
+     [90m 102 |[39m     
+     [90m 103 |[39m     [36mawait[39m waitFor(() [33m=>[39m {
+     [90m 104 |[39m       expect(mockSpeak)[33m.[39mtoHaveBeenCalledWith([32m'Test Question?'[39m[33m,[39m expect[33m.[39many([33mObject[39m))[0m
+
+      at forEach (node_modules/expo-font/build/memory.js:17:27)
+      at Object.isLoaded (node_modules/expo-font/build/Font.js:18:26)
+      at new isLoaded (node_modules/@expo/vector-icons/build/createIconSet.js:56:32)
+      at constructClassInstance (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8215:18)
+      at updateClassComponent (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:9592:5)
+      at beginWork (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:11375:16)
+      at performUnitOfWork (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15847:12)
+      at workLoopSync (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15784:5)
+      at renderRootSync (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15756:7)
+      at recoverFromConcurrentError (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15226:20)
+      at performConcurrentWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15126:22)
+      at flushActQueue (node_modules/react/cjs/react.development.js:2667:24)
+      at act (node_modules/react/cjs/react.development.js:2582:11)
+      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)
+      at renderWithAct (node_modules/@testing-library/react-native/src/render-act.ts:13:11)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:69:33)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:44:10)
+      at Object.<anonymous> (src/screens/careerLift/__tests__/interviewPrep.test.tsx:101:11)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+
+  ● MockInterviewScreen › toggles rubric visibility
+
+    TypeError: loadedNativeFonts.forEach is not a function
+
+    [0m [90m 107 |[39m
+     [90m 108 |[39m   it([32m'toggles rubric visibility'[39m[33m,[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 109 |[39m     [36mconst[39m { getByText[33m,[39m queryByText } [33m=[39m render([33m<[39m[33mMockInterviewScreen[39m [33m/[39m[33m>[39m)
+     [90m     |[39m                                              [31m[1m^[22m[39m
+     [90m 110 |[39m     
+     [90m 111 |[39m     [90m// Initially hidden[39m
+     [90m 112 |[39m     expect(queryByText([32m'Conflict Resolution:'[39m))[33m.[39mtoBeNull()[0m
+
+      at forEach (node_modules/expo-font/build/memory.js:17:27)
+      at Object.isLoaded (node_modules/expo-font/build/Font.js:18:26)
+      at new isLoaded (node_modules/@expo/vector-icons/build/createIconSet.js:56:32)
+      at constructClassInstance (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8215:18)
+      at updateClassComponent (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:9592:5)
+      at beginWork (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:11375:16)
+      at performUnitOfWork (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15847:12)
+      at workLoopSync (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15784:5)
+      at renderRootSync (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15756:7)
+      at recoverFromConcurrentError (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15226:20)
+      at performConcurrentWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15126:22)
+      at flushActQueue (node_modules/react/cjs/react.development.js:2667:24)
+      at act (node_modules/react/cjs/react.development.js:2582:11)
+      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)
+      at renderWithAct (node_modules/@testing-library/react-native/src/render-act.ts:13:11)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:69:33)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:44:10)
+      at Object.<anonymous> (src/screens/careerLift/__tests__/interviewPrep.test.tsx:109:46)
+
+  ● MockInterviewScreen › handles recording toggle correctly
+
+    TypeError: loadedNativeFonts.forEach is not a function
+
+    [0m [90m 120 |[39m
+     [90m 121 |[39m   it([32m'handles recording toggle correctly'[39m[33m,[39m [36masync[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 122 |[39m     [36mconst[39m { getByTestId } [33m=[39m render([33m<[39m[33mMockInterviewScreen[39m [33m/[39m[33m>[39m)
+     [90m     |[39m                                   [31m[1m^[22m[39m
+     [90m 123 |[39m     
+     [90m 124 |[39m     [90m// Start Recording[39m
+     [90m 125 |[39m     fireEvent[33m.[39mpress(getByTestId([32m'record-button'[39m))[0m
+
+      at forEach (node_modules/expo-font/build/memory.js:17:27)
+      at Object.isLoaded (node_modules/expo-font/build/Font.js:18:26)
+      at new isLoaded (node_modules/@expo/vector-icons/build/createIconSet.js:56:32)
+      at constructClassInstance (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8215:18)
+      at updateClassComponent (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:9592:5)
+      at beginWork (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:11375:16)
+      at performUnitOfWork (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15847:12)
+      at workLoopSync (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15784:5)
+      at renderRootSync (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15756:7)
+      at recoverFromConcurrentError (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15226:20)
+      at performConcurrentWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15126:22)
+      at flushActQueue (node_modules/react/cjs/react.development.js:2667:24)
+      at act (node_modules/react/cjs/react.development.js:2582:11)
+      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)
+      at renderWithAct (node_modules/@testing-library/react-native/src/render-act.ts:13:11)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:69:33)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:44:10)
+      at Object.<anonymous> (src/screens/careerLift/__tests__/interviewPrep.test.tsx:122:35)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+
+  ● MockInterviewScreen › shows alerts on menu press and handles restart
+
+    TypeError: loadedNativeFonts.forEach is not a function
+
+    [0m [90m 145 |[39m
+     [90m 146 |[39m   it([32m'shows alerts on menu press and handles restart'[39m[33m,[39m [36masync[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 147 |[39m     [36mconst[39m { getByTestId[33m,[39m getByText } [33m=[39m render([33m<[39m[33mMockInterviewScreen[39m [33m/[39m[33m>[39m)
+     [90m     |[39m                                              [31m[1m^[22m[39m
+     [90m 148 |[39m     
+     [90m 149 |[39m     [90m// Open Menu[39m
+     [90m 150 |[39m     fireEvent[33m.[39mpress(getByTestId([32m'header-menu'[39m))[0m
+
+      at forEach (node_modules/expo-font/build/memory.js:17:27)
+      at Object.isLoaded (node_modules/expo-font/build/Font.js:18:26)
+      at new isLoaded (node_modules/@expo/vector-icons/build/createIconSet.js:56:32)
+      at constructClassInstance (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8215:18)
+      at updateClassComponent (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:9592:5)
+      at beginWork (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:11375:16)
+      at performUnitOfWork (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15847:12)
+      at workLoopSync (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15784:5)
+      at renderRootSync (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15756:7)
+      at recoverFromConcurrentError (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15226:20)
+      at performConcurrentWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15126:22)
+      at flushActQueue (node_modules/react/cjs/react.development.js:2667:24)
+      at act (node_modules/react/cjs/react.development.js:2582:11)
+      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)
+      at renderWithAct (node_modules/@testing-library/react-native/src/render-act.ts:13:11)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:69:33)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:44:10)
+      at Object.<anonymous> (src/screens/careerLift/__tests__/interviewPrep.test.tsx:147:46)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+
+  ● MockInterviewScreen › resets session and handles done
+
+    TypeError: loadedNativeFonts.forEach is not a function
+
+    [0m [90m 175 |[39m
+     [90m 176 |[39m   it([32m'resets session and handles done'[39m[33m,[39m [36masync[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 177 |[39m     [36mconst[39m { getByText[33m,[39m getByTestId } [33m=[39m render([33m<[39m[33mMockInterviewScreen[39m [33m/[39m[33m>[39m)
+     [90m     |[39m                                              [31m[1m^[22m[39m
+     [90m 178 |[39m     
+     [90m 179 |[39m     [90m// Press Reset[39m
+     [90m 180 |[39m     fireEvent[33m.[39mpress(getByText([32m'Reset'[39m))[0m
+
+      at forEach (node_modules/expo-font/build/memory.js:17:27)
+      at Object.isLoaded (node_modules/expo-font/build/Font.js:18:26)
+      at new isLoaded (node_modules/@expo/vector-icons/build/createIconSet.js:56:32)
+      at constructClassInstance (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8215:18)
+      at updateClassComponent (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:9592:5)
+      at beginWork (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:11375:16)
+      at performUnitOfWork (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15847:12)
+      at workLoopSync (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15784:5)
+      at renderRootSync (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15756:7)
+      at recoverFromConcurrentError (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15226:20)
+      at performConcurrentWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15126:22)
+      at flushActQueue (node_modules/react/cjs/react.development.js:2667:24)
+      at act (node_modules/react/cjs/react.development.js:2582:11)
+      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)
+      at renderWithAct (node_modules/@testing-library/react-native/src/render-act.ts:13:11)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:69:33)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:44:10)
+      at Object.<anonymous> (src/screens/careerLift/__tests__/interviewPrep.test.tsx:177:46)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+
+Test Suites: 1 failed, 1 total
+Tests:       6 failed, 6 total
+Snapshots:   0 total
+Time:        18.997 s
+Ran all test suites matching /src\\screens\\careerLift\\__tests__\\interviewPrep.test.tsx/i.

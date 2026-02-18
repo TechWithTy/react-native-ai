@@ -129,10 +129,10 @@ describe('JobTrackerScreen — Status + Search Combo', () => {
     // Reset by pressing again
     fireEvent.press(getAllByText('Applied')[0])
 
-    fireEvent.press(getAllByText('Interview')[0])
+    fireEvent.press(getAllByText('Interviewing')[0])
     expect(getByText('Interviews')).toBeTruthy()
 
-    fireEvent.press(getAllByText('Interview')[0])
+    fireEvent.press(getAllByText('Interviewing')[0])
 
     fireEvent.press(getAllByText('Saved')[0])
     expect(getByText('Saved Jobs')).toBeTruthy()

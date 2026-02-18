@@ -135,6 +135,8 @@ describe('JobTrackerScreen — Update Status Flow', () => {
 
     // Status options (not including current "Interview")
     expect(getAllByText('Applied').length).toBeGreaterThanOrEqual(1)
+    // "Interviewing" should be an option if not already in that status
+    expect(getAllByText('Interviewing').length).toBeGreaterThanOrEqual(1)
     // 'Offer Received' may appear in background card + status option
     expect(getAllByText('Offer Received').length).toBeGreaterThanOrEqual(1)
     expect(getByText('Rejected')).toBeTruthy()

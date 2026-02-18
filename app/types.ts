@@ -31,6 +31,21 @@ export interface CareerSetupState {
   baselineResumeName: string | null
 }
 
+export interface CustomInterviewPrepPayload {
+  inferredRole: string
+  roleTrack: string
+  companyName: string | null
+  sourceType: 'url' | 'text'
+  sourcePreview: string
+  focusAreas: string[]
+  generatedAt: string
+}
+
+export interface CustomInterviewPrepRecord extends CustomInterviewPrepPayload {
+  id: string
+  savedAt: string
+}
+
 export interface IAppContext {
   chatType: Model
   setChatType: Dispatch<SetStateAction<Model>>

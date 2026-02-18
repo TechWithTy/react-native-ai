@@ -43,7 +43,9 @@ describe('JobTrackerScreen — Core Rendering', () => {
 
     // "Applied" appears in stat card label + job badge(s)
     expect(getAllByText('Applied').length).toBeGreaterThanOrEqual(1)
-    // "Interview" appears in stat card + Google's badge
+    // "Interviewing" is now the label for the stat card
+    expect(getAllByText('Interviewing').length).toBeGreaterThanOrEqual(1)
+    // "Interview" still appears in job card badge (Google)
     expect(getAllByText('Interview').length).toBeGreaterThanOrEqual(1)
     // "Offers" only appears in the stat card label
     expect(getAllByText('Offers').length).toBe(1)
@@ -119,6 +121,73 @@ describe('JobTrackerScreen — Navigation', () => {
   })
 })
 
+describe('JobTrackerScreen — Custom Interview Prep Surface', () => {
+  beforeEach(() => {
+    jest.clearAllMocks()
+    useUserProfileStore.getState().resetProfile()
+  })
+
+  it('always renders Start Custom Interview Prep button', () => {
+    const { getByText } = render(<JobTrackerScreen />)
+    expect(getByText('Custom Interview Prep')).toBeTruthy()
+    expect(getByText('Start Custom Interview Prep')).toBeTruthy()
+  })
+
+  it('keeps Start Custom Interview Prep visible when saved preps exist', () => {
+    useUserProfileStore.getState().saveCustomInterviewPrep({
+      inferredRole: 'Staff Data Scientist',
+      roleTrack: 'Data',
+      companyName: 'Northwind',
+      sourceType: 'url',
+      sourcePreview: 'https://northwind.dev/jobs/staff-data-scientist',
+      focusAreas: ['ML Systems'],
+      generatedAt: new Date().toISOString(),
+    })
+
+    const { getByText } = render(<JobTrackerScreen />)
+    expect(getByText('Start Custom Interview Prep')).toBeTruthy()
+    expect(getByText('Staff Data Scientist')).toBeTruthy()
+  })
+
+  it('navigates to profile custom-prep entry flow when start button is pressed', () => {
+    const { getByText } = render(<JobTrackerScreen />)
+    fireEvent.press(getByText('Start Custom Interview Prep'))
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      'SettingsProfile',
+      expect.objectContaining({ openCustomPrepAt: expect.any(Number) })
+    )
+  })
+
+  it('shows saved custom preps in tracker and opens one in InterviewPrep', () => {
+    useUserProfileStore.getState().saveCustomInterviewPrep({
+      inferredRole: 'Data Scientist',
+      roleTrack: 'Engineering',
+      companyName: 'DataCo',
+      sourceType: 'text',
+      sourcePreview: 'JD text',
+      focusAreas: ['ML Modeling'],
+      generatedAt: new Date().toISOString(),
+    })
+
+    const { getByText, queryByText } = render(<JobTrackerScreen />)
+
+    expect(getByText('Data Scientist')).toBeTruthy()
+    expect(getByText(/DataCo/)).toBeTruthy()
+    expect(queryByText(/No custom preps yet/)).toBeNull()
+
+    fireEvent.press(getByText('Data Scientist'))
+    expect(mockNavigate).toHaveBeenCalledWith(
+      'InterviewPrep',
+      expect.objectContaining({
+        customPrep: expect.objectContaining({
+          inferredRole: 'Data Scientist',
+        }),
+      })
+    )
+  })
+})
+
 describe('JobTrackerScreen — Stats Card Interaction', () => {
   beforeEach(() => {
     jest.clearAllMocks()
@@ -139,7 +208,7 @@ describe('JobTrackerScreen — Stats Card Interaction', () => {
   it('toggles Interview filter and shows "Interviews" section', () => {
     const { getAllByText, queryByText, getByText } = render(<JobTrackerScreen />)
 
-    fireEvent.press(getAllByText('Interview')[0])
+    fireEvent.press(getAllByText('Interviewing')[0])
     expect(getByText('Interviews')).toBeTruthy()
     expect(queryByText('This Week')).toBeNull()
   })

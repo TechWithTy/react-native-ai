@@ -5,7 +5,7 @@ export type JobEntry = {
   company: string
   role: string
   location: string
-  status: 'Interview' | 'Applied' | 'Target' | 'Offer Received' | 'Offer Signed' | 'Rejected' | 'Not Interested'
+  status: 'Interview' | 'Interviewing' | 'Applied' | 'Target' | 'Offer Received' | 'Offer Signed' | 'Rejected' | 'Not Interested'
   nextAction: string
   nextActionDate: string
   isOverdue?: boolean
