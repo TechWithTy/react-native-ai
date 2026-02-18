@@ -17,12 +17,13 @@ function run(command, args, envOverrides) {
   return result.status ?? 1
 }
 
-function runQuiet(command, args) {
+function runQuiet(command, args, timeout = 5000) {
   return spawnSync(command, args, {
     cwd: projectRoot,
     stdio: 'pipe',
     shell: process.platform === 'win32',
     encoding: 'utf8',
+    timeout,
   })
 }
 
@@ -68,7 +69,7 @@ function hasHostArg(args) {
 }
 
 function ensureAdbReverse(port) {
-  const devices = runQuiet('adb', ['devices'])
+  const devices = runQuiet('adb', ['devices'], 3000)
   if (devices.status !== 0) {
     console.warn('[start-safe] adb not available; skipping adb reverse setup.')
     return
@@ -86,7 +87,7 @@ function ensureAdbReverse(port) {
     return
   }
 
-  const reverse = runQuiet('adb', ['reverse', `tcp:${port}`, `tcp:${port}`])
+  const reverse = runQuiet('adb', ['reverse', `tcp:${port}`, `tcp:${port}`], 3000)
   if (reverse.status === 0) {
     console.log(`[start-safe] adb reverse set: tcp:${port} -> tcp:${port}`)
   } else {
@@ -102,6 +103,7 @@ function main() {
   }
 
   const extraArgs = process.argv.slice(2)
+  const expoArgs = extraArgs.filter(arg => arg !== '--no-adb')
   const startEnv = {}
   if (!process.env.CI && process.env.ALLOW_HMR !== '1') {
     // Disables Metro reload/delta behavior that can intermittently emit malformed hot updates.
@@ -109,12 +111,20 @@ function main() {
     console.log('[start-safe] Running in stable mode (CI=1). Set ALLOW_HMR=1 to re-enable hot reload.')
   }
   const metroPort = process.env.RCT_METRO_PORT || '8081'
-  ensureAdbReverse(metroPort)
+  const skipAdb = extraArgs.includes('--no-adb')
+  if (!skipAdb) {
+    ensureAdbReverse(metroPort)
+  } else {
+    console.log('[start-safe] Skipping adb reverse (found --no-adb)')
+  }
 
-  const hostArgs = hasHostArg(extraArgs) ? [] : ['--localhost']
+  const hostArgs = hasHostArg(expoArgs) ? [] : ['--localhost']
+  if (hostArgs.includes('--localhost')) {
+    console.log('[start-safe] Defaulting to --localhost. If using a physical phone, run: pnpm start --lan')
+  }
   const startExitCode = run(
     'pnpm',
-    ['exec', 'expo', 'start', '--clear', ...hostArgs, ...extraArgs],
+    ['exec', 'expo', 'start', '--clear', ...hostArgs, ...expoArgs],
     startEnv
   )
   process.exit(startExitCode)
