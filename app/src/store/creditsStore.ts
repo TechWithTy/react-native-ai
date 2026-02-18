@@ -8,6 +8,7 @@ export const CREDIT_COSTS = {
   storyPractice: 5,        // Practice a single STAR story
   resumeTailor: 4,         // AI resume tailoring only
   coverLetterGen: 4,       // AI cover letter generation only
+  linkedInOptimize: 6,     // LinkedIn optimization kit generation
 } as const
 
 export type CreditAction = keyof typeof CREDIT_COSTS

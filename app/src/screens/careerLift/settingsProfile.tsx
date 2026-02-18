@@ -8,17 +8,20 @@ import {
   Image,
   Switch,
   Alert,
-  Modal,
   TextInput,
   ActivityIndicator,
 } from 'react-native'
 import { MaterialIcons, FontAwesome5, Ionicons, Feather } from '@expo/vector-icons'
 import { useNavigation, useRoute } from '@react-navigation/native'
+import * as DocumentPicker from 'expo-document-picker'
+import * as Location from 'expo-location'
 import { CLTheme } from './theme'
 import { getRoleOptionsForTrack, getSalaryRangesForRole, useCareerSetupStore } from '../../store/careerSetup'
 import { useUserProfileStore } from '../../store/userProfileStore'
 import { useCreditsStore } from '../../store/creditsStore'
 import { SubscriptionModal } from './subscriptionModal'
+import { ModalContainer } from './components/modalContainer'
+import { LocationAutocomplete } from './components/locationAutocomplete'
 import { CustomInterviewPrepPayload } from '../../../types'
 import { ROLE_TRACKS_META } from '../../data/roles'
 import { TARGET_SENIORITY_OPTIONS } from '../../data/seniority'
@@ -57,6 +60,7 @@ export function SettingsProfileScreen() {
   const [selectionType, setSelectionType] = useState<ProfileSelectionType>(null)
   const [showLocationModal, setShowLocationModal] = useState(false)
   const [locationInput, setLocationInput] = useState('')
+  const [isLocating, setIsLocating] = useState(false)
 
   const { 
     targetRole, 
@@ -74,8 +78,23 @@ export function SettingsProfileScreen() {
     setProfile,
   } = useUserProfileStore()
 
-  const handleEditProfile = () => {
-    Alert.alert('Edit Profile', 'Navigate to edit profile screen')
+  const handleEditProfile = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: ['image/*'],
+        multiple: false,
+        copyToCacheDirectory: true,
+      })
+
+      if (result.canceled || !result.assets?.length) return
+
+      const selectedImage = result.assets[0]?.uri
+      if (!selectedImage) return
+
+      setProfile({ avatarUrl: selectedImage })
+    } catch {
+      Alert.alert('Upload failed', 'Could not open file picker.')
+    }
   }
 
   const handleManageSubscription = () => {
@@ -283,6 +302,56 @@ export function SettingsProfileScreen() {
     setLocationInput(currentLocation || '')
   }, [currentLocation])
 
+  const formatGpsLocation = (
+    latitude: number,
+    longitude: number,
+    geo?: { city?: string | null; region?: string | null; district?: string | null }
+  ) => {
+    if (geo?.city && geo?.region) return `${geo.city}, ${geo.region}`
+    if (geo?.city && geo?.district) return `${geo.city}, ${geo.district}`
+    return `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`
+  }
+
+  const handleUseCurrentLocation = async () => {
+    try {
+      setIsLocating(true)
+      const permission = await Location.requestForegroundPermissionsAsync()
+      if (permission.status !== 'granted') {
+        Alert.alert('Location Permission Needed', 'Allow location access to auto-fill your current location.')
+        return
+      }
+
+      const coords = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+      })
+
+      const geocoded = await Location.reverseGeocodeAsync({
+        latitude: coords.coords.latitude,
+        longitude: coords.coords.longitude,
+      })
+
+      const formatted = formatGpsLocation(
+        coords.coords.latitude,
+        coords.coords.longitude,
+        geocoded?.[0]
+          ? {
+              city: geocoded[0].city,
+              region: geocoded[0].region,
+              district: geocoded[0].district,
+            }
+          : undefined
+      )
+
+      setLocationInput(formatted)
+      setProfile({ currentLocation: formatted })
+      setShowLocationModal(false)
+    } catch {
+      Alert.alert('Unable to detect location', 'Try searching and selecting a location manually.')
+    } finally {
+      setIsLocating(false)
+    }
+  }
+
   const navigateToInterviewPrep = (customPrep: CustomInterviewPrepPayload) => {
     let currentNavigation: any = navigation
 
@@ -354,7 +423,11 @@ export function SettingsProfileScreen() {
               source={{ uri: avatarUrl || 'https://i.pravatar.cc/150' }}
               style={styles.avatar}
             />
-            <TouchableOpacity style={styles.editButton} onPress={handleEditProfile}>
+            <TouchableOpacity
+              style={styles.editButton}
+              onPress={handleEditProfile}
+              accessibilityLabel='Edit profile photo'
+            >
               <MaterialIcons name="edit" size={14} color="#fff" />
             </TouchableOpacity>
           </View>
@@ -653,265 +726,309 @@ export function SettingsProfileScreen() {
         <View style={{ height: 40 }} />
       </ScrollView>
 
-      <Modal visible={showRoleUpdateModal} animationType='slide' transparent onRequestClose={resetRoleUpdateFlow}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Custom Interview Prep</Text>
-              <TouchableOpacity onPress={resetRoleUpdateFlow}>
-                <MaterialIcons name="close" size={22} color={CLTheme.text.secondary} />
-              </TouchableOpacity>
+      <ModalContainer
+        visible={showRoleUpdateModal}
+        onClose={resetRoleUpdateFlow}
+        animationType='slide'
+        backdropTestID='custom-prep-modal-backdrop'
+      >
+        <View style={styles.modalCard}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>Custom Interview Prep</Text>
+            <TouchableOpacity onPress={resetRoleUpdateFlow}>
+              <MaterialIcons name="close" size={22} color={CLTheme.text.secondary} />
+            </TouchableOpacity>
+          </View>
+
+          <Text style={styles.modalSubtitle}>
+            Add a job URL or paste the job description to build a custom prep flow.
+          </Text>
+
+          <View style={styles.modeTabs}>
+            <TouchableOpacity
+              style={[styles.modeTab, jobInputMode === 'url' && styles.modeTabActive]}
+              onPress={() => setJobInputMode('url')}
+            >
+              <Text style={[styles.modeTabText, jobInputMode === 'url' && styles.modeTabTextActive]}>
+                Job URL
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.modeTab, jobInputMode === 'text' && styles.modeTabActive]}
+              onPress={() => setJobInputMode('text')}
+            >
+              <Text style={[styles.modeTabText, jobInputMode === 'text' && styles.modeTabTextActive]}>
+                Paste Text
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {jobInputMode === 'url' ? (
+            <View style={styles.inputBlock}>
+              <Text style={styles.inputLabel}>Job Description URL</Text>
+              <TextInput
+                value={jobDescriptionUrl}
+                onChangeText={setJobDescriptionUrl}
+                style={styles.textInput}
+                placeholder='https://company.com/jobs/senior-pm'
+                placeholderTextColor={CLTheme.text.muted}
+                autoCapitalize='none'
+                autoCorrect={false}
+              />
             </View>
-
-            <Text style={styles.modalSubtitle}>
-              Add a job URL or paste the job description to build a custom prep flow.
-            </Text>
-
-            <View style={styles.modeTabs}>
-              <TouchableOpacity
-                style={[styles.modeTab, jobInputMode === 'url' && styles.modeTabActive]}
-                onPress={() => setJobInputMode('url')}
-              >
-                <Text style={[styles.modeTabText, jobInputMode === 'url' && styles.modeTabTextActive]}>
-                  Job URL
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.modeTab, jobInputMode === 'text' && styles.modeTabActive]}
-                onPress={() => setJobInputMode('text')}
-              >
-                <Text style={[styles.modeTabText, jobInputMode === 'text' && styles.modeTabTextActive]}>
-                  Paste Text
-                </Text>
-              </TouchableOpacity>
+          ) : (
+            <View style={styles.inputBlock}>
+              <Text style={styles.inputLabel}>Job Description Text</Text>
+              <TextInput
+                value={jobDescriptionText}
+                onChangeText={setJobDescriptionText}
+                style={[styles.textInput, styles.textArea]}
+                placeholder='Paste the full job description text here'
+                placeholderTextColor={CLTheme.text.muted}
+                multiline
+                textAlignVertical='top'
+              />
             </View>
+          )}
 
-            {jobInputMode === 'url' ? (
-              <View style={styles.inputBlock}>
-                <Text style={styles.inputLabel}>Job Description URL</Text>
-                <TextInput
-                  value={jobDescriptionUrl}
-                  onChangeText={setJobDescriptionUrl}
-                  style={styles.textInput}
-                  placeholder='https://company.com/jobs/senior-pm'
-                  placeholderTextColor={CLTheme.text.muted}
-                  autoCapitalize='none'
-                  autoCorrect={false}
-                />
-              </View>
-            ) : (
-              <View style={styles.inputBlock}>
-                <Text style={styles.inputLabel}>Job Description Text</Text>
-                <TextInput
-                  value={jobDescriptionText}
-                  onChangeText={setJobDescriptionText}
-                  style={[styles.textInput, styles.textArea]}
-                  placeholder='Paste the full job description text here'
-                  placeholderTextColor={CLTheme.text.muted}
-                  multiline
-                  textAlignVertical='top'
-                />
-              </View>
-            )}
-
-            <View style={styles.modalActions}>
-              <TouchableOpacity style={styles.cancelButton} onPress={resetRoleUpdateFlow}>
-                <Text style={styles.cancelButtonText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.primaryButton} onPress={handleStartInterviewPrepUpdate}>
-                <Text style={styles.primaryButtonText}>Update</Text>
-              </TouchableOpacity>
-            </View>
+          <View style={styles.modalActions}>
+            <TouchableOpacity style={styles.cancelButton} onPress={resetRoleUpdateFlow}>
+              <Text style={styles.cancelButtonText}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.primaryButton} onPress={handleStartInterviewPrepUpdate}>
+              <Text style={styles.primaryButtonText}>Update</Text>
+            </TouchableOpacity>
           </View>
         </View>
-      </Modal>
+      </ModalContainer>
 
-      <Modal visible={showRoleUpdateProgress} animationType='fade' transparent>
-        <View style={styles.modalOverlay}>
-          <View style={styles.processingCard}>
-            {isProcessingComplete ? (
-              <MaterialIcons name="check-circle" size={40} color={CLTheme.status.success} />
-            ) : (
-              <ActivityIndicator size='large' color={CLTheme.accent} />
-            )}
-            <Text style={styles.processingTitle}>
-              {isProcessingComplete ? 'Custom interview prep ready' : 'Building custom interview prep'}
-            </Text>
-            <Text style={styles.processingSubtitle}>
-              {isProcessingComplete
-                ? `Target role: ${pendingTargetRole || targetRole}`
-                : 'Analyzing your input and preparing a role-specific interview flow.'}
-            </Text>
+      <ModalContainer
+        visible={showRoleUpdateProgress}
+        onClose={resetRoleUpdateFlow}
+        animationType='fade'
+        backdropTestID='processing-modal-backdrop'
+      >
+        <View style={styles.processingCard}>
+          {isProcessingComplete ? (
+            <MaterialIcons name="check-circle" size={40} color={CLTheme.status.success} />
+          ) : (
+            <ActivityIndicator size='large' color={CLTheme.accent} />
+          )}
+          <Text style={styles.processingTitle}>
+            {isProcessingComplete ? 'Custom interview prep ready' : 'Building custom interview prep'}
+          </Text>
+          <Text style={styles.processingSubtitle}>
+            {isProcessingComplete
+              ? `Target role: ${pendingTargetRole || targetRole}`
+              : 'Analyzing your input and preparing a role-specific interview flow.'}
+          </Text>
 
-            <View style={styles.stepList}>
-              {ROLE_UPDATE_STEPS.map((step, index) => {
-                const isDone = isProcessingComplete || index < activeStep
-                const isActive = !isProcessingComplete && index === activeStep
+          <View style={styles.stepList}>
+            {ROLE_UPDATE_STEPS.map((step, index) => {
+              const isDone = isProcessingComplete || index < activeStep
+              const isActive = !isProcessingComplete && index === activeStep
 
-                return (
-                  <View key={step} style={styles.stepRow}>
-                    <MaterialIcons
-                      name={isDone ? 'check-circle' : isActive ? 'pending' : 'radio-button-unchecked'}
-                      size={18}
-                      color={
-                        isDone ? CLTheme.status.success : isActive ? CLTheme.accent : CLTheme.text.muted
-                      }
-                    />
-                    <Text
-                      style={[
-                        styles.stepText,
-                        isDone && styles.stepTextDone,
-                        isActive && styles.stepTextActive,
-                      ]}
-                    >
-                      {step}
-                    </Text>
-                  </View>
-                )
-              })}
-            </View>
-          </View>
-        </View>
-      </Modal>
-
-      <Modal visible={selectionType !== null} animationType='fade' transparent onRequestClose={() => setSelectionType(null)}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>{selectionType ? selectionTitleMap[selectionType] : ''}</Text>
-              <TouchableOpacity onPress={() => setSelectionType(null)}>
-                <MaterialIcons name="close" size={22} color={CLTheme.text.secondary} />
-              </TouchableOpacity>
-            </View>
-            <View style={styles.selectionList}>
-              {selectionOptions.map(option => {
-                const selected = option === getSelectedSelectionValue
-                return (
-                  <TouchableOpacity
-                    key={option}
-                    style={[styles.selectionOption, selected && styles.selectionOptionActive]}
-                    onPress={() => handleSelectionPress(option)}
+              return (
+                <View key={step} style={styles.stepRow}>
+                  <MaterialIcons
+                    name={isDone ? 'check-circle' : isActive ? 'pending' : 'radio-button-unchecked'}
+                    size={18}
+                    color={
+                      isDone ? CLTheme.status.success : isActive ? CLTheme.accent : CLTheme.text.muted
+                    }
+                  />
+                  <Text
+                    style={[
+                      styles.stepText,
+                      isDone && styles.stepTextDone,
+                      isActive && styles.stepTextActive,
+                    ]}
                   >
-                    <Text style={[styles.selectionOptionText, selected && styles.selectionOptionTextActive]}>
-                      {option}
-                    </Text>
-                    {selected && <Feather name="check" size={16} color={CLTheme.accent} />}
-                  </TouchableOpacity>
-                )
-              })}
-            </View>
+                    {step}
+                  </Text>
+                </View>
+              )
+            })}
           </View>
         </View>
-      </Modal>
+      </ModalContainer>
 
-      <Modal visible={showLocationModal} animationType='fade' transparent onRequestClose={() => setShowLocationModal(false)}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Update Location</Text>
-              <TouchableOpacity onPress={() => setShowLocationModal(false)}>
-                <MaterialIcons name="close" size={22} color={CLTheme.text.secondary} />
-              </TouchableOpacity>
-            </View>
+      <ModalContainer
+        visible={selectionType !== null}
+        onClose={() => setSelectionType(null)}
+        animationType='fade'
+        backdropTestID='selection-modal-backdrop'
+      >
+        <View style={styles.modalCard}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>{selectionType ? selectionTitleMap[selectionType] : ''}</Text>
+            <TouchableOpacity onPress={() => setSelectionType(null)}>
+              <MaterialIcons name="close" size={22} color={CLTheme.text.secondary} />
+            </TouchableOpacity>
+          </View>
+          <View style={styles.selectionList}>
+            {selectionOptions.map(option => {
+              const selected = option === getSelectedSelectionValue
+              return (
+                <TouchableOpacity
+                  key={option}
+                  style={[styles.selectionOption, selected && styles.selectionOptionActive]}
+                  onPress={() => handleSelectionPress(option)}
+                >
+                  <Text style={[styles.selectionOptionText, selected && styles.selectionOptionTextActive]}>
+                    {option}
+                  </Text>
+                  {selected && <Feather name="check" size={16} color={CLTheme.accent} />}
+                </TouchableOpacity>
+              )
+            })}
+          </View>
+        </View>
+      </ModalContainer>
+
+      <ModalContainer
+        visible={showLocationModal}
+        onClose={() => setShowLocationModal(false)}
+        animationType='fade'
+        backdropTestID='location-modal-backdrop'
+      >
+        <View style={[styles.modalCard, styles.locationModalCard]}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>Update Location</Text>
+            <TouchableOpacity onPress={() => setShowLocationModal(false)}>
+              <MaterialIcons name="close" size={22} color={CLTheme.text.secondary} />
+            </TouchableOpacity>
+          </View>
+          <ScrollView
+            style={styles.locationModalScroll}
+            contentContainerStyle={styles.locationModalScrollContent}
+            keyboardShouldPersistTaps='handled'
+          >
             <Text style={styles.modalSubtitle}>Set the location shown on your profile badge.</Text>
-            <TextInput
+            <Text style={styles.locationSectionLabel}>Quick Actions</Text>
+            <TouchableOpacity
+              style={styles.gpsLocationButton}
+              onPress={handleUseCurrentLocation}
+              disabled={isLocating}
+              accessibilityLabel='Use current location GPS'
+            >
+              {isLocating ? (
+                <ActivityIndicator size='small' color={CLTheme.accent} />
+              ) : (
+                <Feather name='crosshair' size={14} color={CLTheme.accent} />
+              )}
+              <Text style={styles.gpsLocationButtonText}>
+                {isLocating ? 'Detecting current location...' : 'Use Current Location (GPS)'}
+              </Text>
+            </TouchableOpacity>
+            <Text style={styles.locationSectionLabel}>Suggested Locations</Text>
+            <LocationAutocomplete
               value={locationInput}
               onChangeText={setLocationInput}
-              style={styles.textInput}
+              onSelect={setLocationInput}
+              currentLocation={currentLocation}
               placeholder='City, State or Remote'
-              placeholderTextColor={CLTheme.text.muted}
+              containerStyle={styles.locationAutocompleteContainer}
+              inputContainerStyle={styles.locationInputContainer}
+              inputStyle={styles.textInput}
+              suggestionsContainerStyle={styles.locationResultsContainer}
+              suggestionRowStyle={styles.locationSuggestionRow}
+              suggestionTextStyle={styles.locationSuggestionText}
             />
-            <View style={styles.modalActions}>
-              <TouchableOpacity style={styles.cancelButton} onPress={() => setShowLocationModal(false)}>
-                <Text style={styles.cancelButtonText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.primaryButton}
-                onPress={() => {
-                  const trimmedLocation = locationInput.trim()
-                  if (!trimmedLocation) {
-                    Alert.alert('Missing Location', 'Enter a location before saving.')
-                    return
-                  }
-                  setProfile({ currentLocation: trimmedLocation })
-                  setShowLocationModal(false)
-                }}
-              >
-                <Text style={styles.primaryButtonText}>Save</Text>
-              </TouchableOpacity>
-            </View>
+          </ScrollView>
+          <View style={styles.modalActions}>
+            <TouchableOpacity style={styles.cancelButton} onPress={() => setShowLocationModal(false)}>
+              <Text style={styles.cancelButtonText}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.primaryButton}
+              onPress={() => {
+                const trimmedLocation = locationInput.trim()
+                if (!trimmedLocation) {
+                  Alert.alert('Missing Location', 'Enter a location before saving.')
+                  return
+                }
+                setProfile({ currentLocation: trimmedLocation })
+                setShowLocationModal(false)
+              }}
+            >
+              <Text style={styles.primaryButtonText}>Save</Text>
+            </TouchableOpacity>
           </View>
         </View>
-      </Modal>
+      </ModalContainer>
 
       {/* Credit Packages Purchase Modal */}
-      <Modal visible={showCreditPackages} animationType='slide' transparent onRequestClose={() => setShowCreditPackages(false)}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Buy AI Credits</Text>
-              <TouchableOpacity onPress={() => setShowCreditPackages(false)}>
-                <MaterialIcons name="close" size={22} color={CLTheme.text.secondary} />
-              </TouchableOpacity>
-            </View>
+      <ModalContainer
+        visible={showCreditPackages}
+        onClose={() => setShowCreditPackages(false)}
+        animationType='slide'
+        backdropTestID='credit-packages-modal-backdrop'
+      >
+        <View style={styles.modalCard}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>Buy AI Credits</Text>
+            <TouchableOpacity onPress={() => setShowCreditPackages(false)}>
+              <MaterialIcons name="close" size={22} color={CLTheme.text.secondary} />
+            </TouchableOpacity>
+          </View>
 
-            <Text style={styles.modalSubtitle}>
-              One-time credit packs — use them for mock interviews, AI applications, and more.
-            </Text>
+          <Text style={styles.modalSubtitle}>
+            One-time credit packs — use them for mock interviews, AI applications, and more.
+          </Text>
 
-            <View style={styles.packagesContainer}>
-              {CREDIT_PACKAGES.map((pack) => (
-                <TouchableOpacity
-                  key={pack.id}
-                  style={[styles.packageCard, pack.popular && styles.packageCardPopular]}
-                  activeOpacity={0.8}
-                  onPress={() => {
-                    Alert.alert('Purchase Credits', `Add ${pack.credits} credits for ${pack.price}?`, [
-                      { text: 'Cancel', style: 'cancel' },
-                      {
-                        text: 'Buy Now',
-                        onPress: () => {
-                          useCreditsStore.getState().addCredits(pack.credits)
-                          setShowCreditPackages(false)
-                          Alert.alert('Credits Added!', `${pack.credits} credits have been added to your account.`)
-                        },
-                      },
-                    ])
-                  }}
-                >
-                  {pack.popular && (
-                    <View style={styles.packageBadge}>
-                      <Text style={styles.packageBadgeText}>BEST VALUE</Text>
-                    </View>
-                  )}
-                  <View style={styles.packageCreditsRow}>
-                    <Feather name="zap" size={18} color={pack.popular ? '#fbbf24' : CLTheme.accent} />
-                    <Text style={styles.packageCreditsText}>{pack.credits}</Text>
-                    <Text style={styles.packageCreditsLabel}>credits</Text>
-                  </View>
-                  <Text style={styles.packagePrice}>{pack.price}</Text>
-                  <Text style={styles.packagePerCredit}>{pack.perCredit}/credit</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            <View style={styles.modalActions}>
-              <TouchableOpacity style={styles.cancelButton} onPress={() => setShowCreditPackages(false)}>
-                <Text style={styles.cancelButtonText}>Close</Text>
-              </TouchableOpacity>
+          <View style={styles.packagesContainer}>
+            {CREDIT_PACKAGES.map((pack) => (
               <TouchableOpacity
-                style={[styles.primaryButton, { backgroundColor: '#a855f7' }]}
+                key={pack.id}
+                style={[styles.packageCard, pack.popular && styles.packageCardPopular]}
+                activeOpacity={0.8}
                 onPress={() => {
-                  setShowCreditPackages(false)
-                  setShowSubscription(true)
+                  Alert.alert('Purchase Credits', `Add ${pack.credits} credits for ${pack.price}?`, [
+                    { text: 'Cancel', style: 'cancel' },
+                    {
+                      text: 'Buy Now',
+                      onPress: () => {
+                        useCreditsStore.getState().addCredits(pack.credits)
+                        setShowCreditPackages(false)
+                        Alert.alert('Credits Added!', `${pack.credits} credits have been added to your account.`)
+                      },
+                    },
+                  ])
                 }}
               >
-                <Text style={styles.primaryButtonText}>See Plans Instead</Text>
+                {pack.popular && (
+                  <View style={styles.packageBadge}>
+                    <Text style={styles.packageBadgeText}>BEST VALUE</Text>
+                  </View>
+                )}
+                <View style={styles.packageCreditsRow}>
+                  <Feather name="zap" size={18} color={pack.popular ? '#fbbf24' : CLTheme.accent} />
+                  <Text style={styles.packageCreditsText}>{pack.credits}</Text>
+                  <Text style={styles.packageCreditsLabel}>credits</Text>
+                </View>
+                <Text style={styles.packagePrice}>{pack.price}</Text>
+                <Text style={styles.packagePerCredit}>{pack.perCredit}/credit</Text>
               </TouchableOpacity>
-            </View>
+            ))}
+          </View>
+
+          <View style={styles.modalActions}>
+            <TouchableOpacity style={styles.cancelButton} onPress={() => setShowCreditPackages(false)}>
+              <Text style={styles.cancelButtonText}>Close</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.primaryButton, { backgroundColor: '#a855f7' }]}
+              onPress={() => {
+                setShowCreditPackages(false)
+                setShowSubscription(true)
+              }}
+            >
+              <Text style={styles.primaryButtonText}>See Plans Instead</Text>
+            </TouchableOpacity>
           </View>
         </View>
-      </Modal>
+      </ModalContainer>
 
       {/* Subscription Upsell Modal */}
       <SubscriptionModal
@@ -1148,12 +1265,6 @@ const styles = StyleSheet.create({
     marginTop: 20,
     opacity: 0.5,
   },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    justifyContent: 'center',
-    paddingHorizontal: 20,
-  },
   modalCard: {
     backgroundColor: CLTheme.card,
     borderRadius: 16,
@@ -1225,6 +1336,68 @@ const styles = StyleSheet.create({
   },
   textArea: {
     minHeight: 120,
+  },
+  locationAutocompleteContainer: {
+    zIndex: 20,
+    marginBottom: 10,
+  },
+  locationModalCard: {
+    maxHeight: '86%',
+  },
+  locationModalScroll: {
+    maxHeight: 360,
+  },
+  locationModalScrollContent: {
+    paddingBottom: 6,
+  },
+  locationSectionLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: CLTheme.text.muted,
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+    marginBottom: 8,
+  },
+  gpsLocationButton: {
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: CLTheme.border,
+    backgroundColor: CLTheme.background,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  gpsLocationButtonText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: CLTheme.text.primary,
+  },
+  locationInputContainer: {
+    backgroundColor: CLTheme.background,
+    borderColor: CLTheme.border,
+  },
+  locationResultsContainer: {
+    marginTop: 2,
+    borderWidth: 1,
+    borderColor: CLTheme.border,
+    borderRadius: 10,
+    backgroundColor: CLTheme.background,
+    maxHeight: 200,
+    overflow: 'hidden',
+  },
+  locationSuggestionRow: {
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: CLTheme.border,
+  },
+  locationSuggestionText: {
+    color: CLTheme.text.primary,
+    fontSize: 14,
+    fontWeight: '500',
   },
   modalActions: {
     flexDirection: 'row',
@@ -1345,7 +1518,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: CLTheme.text.muted,
     fontWeight: '600',
-    textTransform: 'uppercase' as const,
+    textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   creditBalanceValue: {
@@ -1412,7 +1585,7 @@ const styles = StyleSheet.create({
   },
   packageCard: {
     flex: 1,
-    minWidth: '45%' as any,
+    minWidth: '45%',
     backgroundColor: CLTheme.background,
     borderWidth: 1,
     borderColor: CLTheme.border,

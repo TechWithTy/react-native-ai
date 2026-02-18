@@ -2,19 +2,37 @@ import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 import { CustomInterviewPrepPayload, CustomInterviewPrepRecord } from '../../types'
 
+export type ProfileNextAction = {
+  id: string
+  title: string
+  tag: string
+  isCompleted: boolean
+  isDueToday?: boolean
+  muted?: boolean
+}
+
 interface UserProfile {
   name: string
   email: string
   avatarUrl: string | null
   currentLocation: string
   isOpenToWork: boolean
+  linkedInConnected: boolean
   bio: string
+  nextActions: ProfileNextAction[]
   customInterviewPreps: CustomInterviewPrepRecord[]
+  linkedInKitWins: {
+    topSkills: boolean
+    openToWork: boolean
+    banner: boolean
+  }
 }
 
 interface UserProfileStore extends UserProfile {
   setProfile: (updates: Partial<UserProfile>) => void
+  toggleNextAction: (id: string) => void
   saveCustomInterviewPrep: (prep: CustomInterviewPrepPayload) => void
+  setLinkedInKitWins: (wins: UserProfile['linkedInKitWins']) => void
   resetProfile: () => void
 }
 
@@ -24,8 +42,19 @@ const defaultProfile: UserProfile = {
   avatarUrl: 'https://i.pravatar.cc/150?u=alex',
   currentLocation: 'San Francisco, CA',
   isOpenToWork: true,
+  linkedInConnected: false,
   bio: 'Senior Product Manager with a passion for user-centric design.',
+  nextActions: [
+    { id: '1', title: 'Follow up with Acme Corp', tag: 'Due Today', isCompleted: false, isDueToday: true },
+    { id: '2', title: 'Review Apply Pack for Google', tag: 'Tomorrow', isCompleted: false },
+    { id: '3', title: 'Update LinkedIn Headline', tag: 'General', isCompleted: false, muted: true },
+  ],
   customInterviewPreps: [],
+  linkedInKitWins: {
+    topSkills: true,
+    openToWork: false,
+    banner: false,
+  },
 }
 
 const memoryState: Record<string, string> = {}
@@ -50,6 +79,14 @@ export const useUserProfileStore = create<UserProfileStore>()(
     (set) => ({
       ...defaultProfile,
       setProfile: (updates) => set((state) => ({ ...state, ...updates })),
+      toggleNextAction: (id) =>
+        set((state) => ({
+          ...state,
+          nextActions: state.nextActions.map((item) =>
+            item.id === id ? { ...item, isCompleted: !item.isCompleted } : item
+          ),
+        })),
+      setLinkedInKitWins: (wins) => set((state) => ({ ...state, linkedInKitWins: wins })),
       saveCustomInterviewPrep: (prep) =>
         set((state) => {
           const key = `${prep.inferredRole}::${prep.companyName ?? ''}`

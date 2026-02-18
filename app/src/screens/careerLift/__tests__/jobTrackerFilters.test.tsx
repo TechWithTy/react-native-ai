@@ -160,10 +160,10 @@ describe('JobTrackerScreen — Role Filter Chips', () => {
     const { getByText, queryByText } = render(<JobTrackerScreen />)
 
     // All Roles should be present
-    expect(getByText('All Roles')).toBeTruthy()
+    expect(getByText(/^All Roles \(\d+\)$/)).toBeTruthy()
 
     // "Product Design" is a default filter chip
-    const productDesignChip = queryByText('Product Design')
+    const productDesignChip = queryByText(/^Product Design \(\d+\)$/)
     if (productDesignChip) {
       fireEvent.press(productDesignChip)
       // Now filtering is active
@@ -181,11 +181,11 @@ describe('JobTrackerScreen — Role Filter Chips', () => {
     })
 
     const { getByText } = render(<JobTrackerScreen />)
-    expect(getByText('All Roles')).toBeTruthy()
+    expect(getByText(/^All Roles \(\d+\)$/)).toBeTruthy()
     // Should include user-specific filters
-    expect(getByText('Engineering')).toBeTruthy()
-    expect(getByText('Frontend Engineer')).toBeTruthy()
-    expect(getByText('Remote')).toBeTruthy()
+    expect(getByText(/^Engineering \(\d+\)$/)).toBeTruthy()
+    expect(getByText(/^Frontend Engineer \(\d+\)$/)).toBeTruthy()
+    expect(getByText(/^Remote \(\d+\)$/)).toBeTruthy()
 
     // Cleanup
     act(() => {

@@ -10,6 +10,10 @@ import { useCareerSetupStore } from '../../../store/careerSetup'
 
 const mockNavigate = jest.fn()
 const mockGoBack = jest.fn()
+const mockGetDocumentAsync = jest.fn()
+const mockRequestForegroundPermissionsAsync = jest.fn()
+const mockGetCurrentPositionAsync = jest.fn()
+const mockReverseGeocodeAsync = jest.fn()
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
@@ -32,6 +36,37 @@ jest.mock('@expo/vector-icons', () => ({
   FontAwesome5: 'FontAwesome5',
   Ionicons: 'Ionicons',
   Feather: 'Feather',
+}))
+
+jest.mock('expo-document-picker', () => ({
+  getDocumentAsync: (...args: unknown[]) => mockGetDocumentAsync(...args),
+}))
+
+jest.mock('expo-location', () => ({
+  Accuracy: {
+    Balanced: 3,
+  },
+  requestForegroundPermissionsAsync: (...args: unknown[]) =>
+    mockRequestForegroundPermissionsAsync(...args),
+  getCurrentPositionAsync: (...args: unknown[]) => mockGetCurrentPositionAsync(...args),
+  reverseGeocodeAsync: (...args: unknown[]) => mockReverseGeocodeAsync(...args),
+}))
+
+jest.mock('country-state-city', () => ({
+  City: {
+    getCitiesOfCountry: () => [
+      { name: 'Austin', stateCode: 'TX' },
+      { name: 'San Francisco', stateCode: 'CA' },
+      { name: 'Seattle', stateCode: 'WA' },
+    ],
+  },
+  State: {
+    getStatesOfCountry: () => [
+      { isoCode: 'TX', name: 'Texas' },
+      { isoCode: 'CA', name: 'California' },
+      { isoCode: 'WA', name: 'Washington' },
+    ],
+  },
 }))
 
 // Stub the SubscriptionModal
@@ -229,6 +264,15 @@ describe('SettingsProfileScreen — Credit Packages Modal', () => {
     expect(queryByText('Buy AI Credits')).toBeNull()
   })
 
+  it('closes credit packages modal when tapping outside', () => {
+    const { getByText, queryByText, getByTestId } = render(<SettingsProfileScreen />)
+    fireEvent.press(getByText('Buy Credit Packages'))
+    expect(getByText('Buy AI Credits')).toBeTruthy()
+
+    fireEvent.press(getByTestId('credit-packages-modal-backdrop'))
+    expect(queryByText('Buy AI Credits')).toBeNull()
+  })
+
   it('transitions to subscription modal from See Plans Instead button', () => {
     const { getByText, queryByTestId } = render(<SettingsProfileScreen />)
     fireEvent.press(getByText('Buy Credit Packages'))
@@ -354,6 +398,15 @@ describe('SettingsProfileScreen — Custom Interview Prep Flow', () => {
     fireEvent.press(getAllByText('Cancel')[0])
     expect(queryByText('Add a job URL or paste the job description to build a custom prep flow.')).toBeNull()
   })
+
+  it('closes custom interview prep modal when tapping outside', () => {
+    const { getByText, queryByText, getByTestId } = render(<SettingsProfileScreen />)
+    fireEvent.press(getByText('Custom Interview Prep'))
+    expect(getByText('Add a job URL or paste the job description to build a custom prep flow.')).toBeTruthy()
+
+    fireEvent.press(getByTestId('custom-prep-modal-backdrop'))
+    expect(queryByText('Add a job URL or paste the job description to build a custom prep flow.')).toBeNull()
+  })
 })
 
 describe('SettingsProfileScreen — Custom Interview Prep Processing & Navigation', () => {
@@ -438,6 +491,12 @@ describe('SettingsProfileScreen — Custom Prep Placement', () => {
 describe('SettingsProfileScreen — Editable Target Role & Profile Badges', () => {
   beforeEach(() => {
     jest.clearAllMocks()
+    mockGetDocumentAsync.mockResolvedValue({ canceled: true, assets: [] })
+    mockRequestForegroundPermissionsAsync.mockResolvedValue({ status: 'granted' })
+    mockGetCurrentPositionAsync.mockResolvedValue({
+      coords: { latitude: 39.7392, longitude: -104.9903 },
+    })
+    mockReverseGeocodeAsync.mockResolvedValue([{ city: 'Denver', region: 'CO', district: 'Denver' }])
     resetStores()
     act(() => {
       useCareerSetupStore.getState().resetCareerSetup()
@@ -482,9 +541,60 @@ describe('SettingsProfileScreen — Editable Target Role & Profile Badges', () =
     // Location
     fireEvent.press(getByText('San Francisco, CA'))
     expect(getByText('Update Location')).toBeTruthy()
+    expect(getByText('Quick Actions')).toBeTruthy()
+    expect(getByText('Suggested Locations')).toBeTruthy()
+    expect(getByText('Use Current Location (GPS)')).toBeTruthy()
     fireEvent.changeText(getByPlaceholderText('City, State or Remote'), 'Austin, TX')
     fireEvent.press(getByText('Save'))
 
     expect(getByText('Austin, TX')).toBeTruthy()
+  })
+
+  it('shows location autocomplete suggestions and lets user pick one', () => {
+    const { getByText, getByPlaceholderText } = render(<SettingsProfileScreen />)
+
+    fireEvent.press(getByText('San Francisco, CA'))
+    const locationInput = getByPlaceholderText('City, State or Remote')
+    fireEvent.changeText(locationInput, 'Aus')
+
+    fireEvent.press(getByText('Austin, TX'))
+    fireEvent.press(getByText('Save'))
+
+    expect(getByText('Austin, TX')).toBeTruthy()
+  })
+
+  it('supports GPS location detection and saves the detected value', async () => {
+    const { getByText } = render(<SettingsProfileScreen />)
+
+    fireEvent.press(getByText('San Francisco, CA'))
+    fireEvent.press(getByText('Use Current Location (GPS)'))
+
+    await waitFor(() => {
+      expect(getByText('Denver, CO')).toBeTruthy()
+    })
+
+    expect(mockRequestForegroundPermissionsAsync).toHaveBeenCalled()
+    expect(mockGetCurrentPositionAsync).toHaveBeenCalled()
+  })
+
+  it('updates avatar from file picker when edit profile photo is pressed', async () => {
+    mockGetDocumentAsync.mockResolvedValue({
+      canceled: false,
+      assets: [{ uri: 'file:///tmp/new-profile-photo.jpg', name: 'new-profile-photo.jpg' }],
+    })
+
+    const { getByLabelText } = render(<SettingsProfileScreen />)
+    fireEvent.press(getByLabelText('Edit profile photo'))
+
+    await waitFor(() => {
+      expect(useUserProfileStore.getState().avatarUrl).toBe('file:///tmp/new-profile-photo.jpg')
+    })
+
+    expect(mockGetDocumentAsync).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: ['image/*'],
+        multiple: false,
+      })
+    )
   })
 })

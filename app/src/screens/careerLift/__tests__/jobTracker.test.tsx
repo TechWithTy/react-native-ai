@@ -105,7 +105,7 @@ describe('JobTrackerScreen — Core Rendering', () => {
 
   it('renders filter chips including "All Roles"', () => {
     const { getByText } = render(<JobTrackerScreen />)
-    expect(getByText('All Roles')).toBeTruthy()
+    expect(getByText(/^All Roles \(\d+\)$/)).toBeTruthy()
   })
 })
 
@@ -118,6 +118,86 @@ describe('JobTrackerScreen — Navigation', () => {
     const { getByText } = render(<JobTrackerScreen />)
     fireEvent.press(getByText('See All'))
     expect(mockNavigate).toHaveBeenCalledWith('RecommendedJobs')
+  })
+})
+
+describe('JobTrackerScreen — Add From Job Description', () => {
+  beforeEach(() => {
+    jest.clearAllMocks()
+    useJobTrackerStore.getState().resetJobTrackerStore()
+  })
+
+  it('opens import modal from FAB press', () => {
+    const { getByTestId, getByText } = render(<JobTrackerScreen />)
+
+    fireEvent.press(getByTestId('tracker-add-job-fab'))
+
+    expect(getByText('Import Job Description')).toBeTruthy()
+    expect(getByText('Public URL')).toBeTruthy()
+    expect(getByText('Paste JD')).toBeTruthy()
+  })
+
+  it('opens import modal when navigated with openAddJobModal route param', () => {
+    const { getByText } = render(<JobTrackerScreen route={{ params: { openAddJobModal: true } }} />)
+
+    expect(getByText('Import Job Description')).toBeTruthy()
+    expect(getByText('Extract & Add')).toBeTruthy()
+  })
+
+  it('imports a job from a public JD URL and adds it to pipeline', () => {
+    const { getByTestId, getByPlaceholderText, getByText } = render(<JobTrackerScreen />)
+
+    fireEvent.press(getByTestId('tracker-add-job-fab'))
+    fireEvent.changeText(
+      getByPlaceholderText('https://company.com/jobs/senior-pm'),
+      'https://acme.com/careers/senior-product-designer-remote'
+    )
+    fireEvent.press(getByText('Extract & Add'))
+
+    const added = useJobTrackerStore.getState().thisWeek[0]
+    expect(added.company).toBe('Acme')
+    expect(added.role).toBe('Senior Product Designer')
+    expect(added.location).toBe('Remote')
+    expect(added.status).toBe('Target')
+    expect(Alert.alert).toHaveBeenCalledWith('Added to pipeline', expect.stringContaining('Senior Product Designer'))
+  })
+
+  it('imports a job from pasted JD text and adds it to pipeline', () => {
+    const { getByTestId, getByText, getByPlaceholderText } = render(<JobTrackerScreen />)
+
+    fireEvent.press(getByTestId('tracker-add-job-fab'))
+    fireEvent.press(getByText('Paste JD'))
+    fireEvent.changeText(
+      getByPlaceholderText('Paste the full job description text here'),
+      [
+        'Title: Staff Frontend Engineer',
+        'Company: Northwind',
+        'Location: Austin, TX',
+        'Responsibilities include shipping React Native features.',
+      ].join('\n')
+    )
+    fireEvent.press(getByText('Extract & Add'))
+
+    const added = useJobTrackerStore.getState().thisWeek[0]
+    expect(added.role).toBe('Staff Frontend Engineer')
+    expect(added.company).toBe('Northwind')
+    expect(added.location).toBe('Austin, TX')
+    expect(added.status).toBe('Target')
+  })
+
+  it('shows validation for empty and invalid URL input', () => {
+    const { getByTestId, getByText, getByPlaceholderText } = render(<JobTrackerScreen />)
+
+    fireEvent.press(getByTestId('tracker-add-job-fab'))
+    fireEvent.press(getByText('Extract & Add'))
+    expect(Alert.alert).toHaveBeenCalledWith('Missing Input', 'Paste a public job URL or paste the job description text.')
+
+    fireEvent.changeText(getByPlaceholderText('https://company.com/jobs/senior-pm'), 'acme.com/jobs/frontend-engineer')
+    fireEvent.press(getByText('Extract & Add'))
+    expect(Alert.alert).toHaveBeenCalledWith(
+      'Invalid URL',
+      'Enter a valid public job URL that starts with http:// or https://.'
+    )
   })
 })
 
@@ -149,14 +229,14 @@ describe('JobTrackerScreen — Custom Interview Prep Surface', () => {
     expect(getByText('Staff Data Scientist')).toBeTruthy()
   })
 
-  it('navigates to profile custom-prep entry flow when start button is pressed', () => {
-    const { getByText } = render(<JobTrackerScreen />)
+  it('opens custom-prep modal in place when start button is pressed', () => {
+    const { getByText, queryByText } = render(<JobTrackerScreen />)
     fireEvent.press(getByText('Start Custom Interview Prep'))
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      'SettingsProfile',
-      expect.objectContaining({ openCustomPrepAt: expect.any(Number) })
-    )
+    expect(getByText('Add a job URL or paste the job description to build a custom prep flow.')).toBeTruthy()
+    expect(getByText('Paste JD')).toBeTruthy()
+    expect(queryByText('Settings and Profile')).toBeNull()
+    expect(mockNavigate).not.toHaveBeenCalledWith('SettingsProfile', expect.anything())
   })
 
   it('shows saved custom preps in tracker and opens one in InterviewPrep', () => {
@@ -191,6 +271,16 @@ describe('JobTrackerScreen — Custom Interview Prep Surface', () => {
 describe('JobTrackerScreen — Stats Card Interaction', () => {
   beforeEach(() => {
     jest.clearAllMocks()
+  })
+
+  it('applies Applied filter from route params on initial load', () => {
+    const { getByText, queryByText } = render(
+      <JobTrackerScreen route={{ params: { initialStatus: 'Applied' } }} />
+    )
+
+    expect(getByText('Applied Jobs')).toBeTruthy()
+    expect(queryByText('This Week')).toBeNull()
+    expect(queryByText('Next Up')).toBeNull()
   })
 
   it('toggles Applied filter and hides default sections', () => {

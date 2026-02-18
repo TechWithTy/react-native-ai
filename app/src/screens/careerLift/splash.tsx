@@ -4,8 +4,8 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons'
 import { ThemeContext } from '../../context'
 
 export function SplashScreen({ navigation }: any) {
-  const { theme } = useContext(ThemeContext)
-  const isDark = theme?.backgroundColor === '#000'
+  // Enforce dark theme for splash screen
+  const isDark = true
   const styles = getStyles(isDark)
 
   return (
@@ -32,6 +32,15 @@ export function SplashScreen({ navigation }: any) {
         >
           <Text style={styles.ctaText}>Get Started</Text>
           <MaterialIcons name='arrow-forward' size={16} color='#fff' />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.cta, styles.secondaryCta]}
+          onPress={() => navigation.navigate('AIOnboarding')}
+          activeOpacity={0.9}
+        >
+          <Text style={[styles.ctaText, styles.secondaryCtaText]}>Get Started with AI</Text>
+          <MaterialIcons name='auto-awesome' size={16} color='#fff' />
         </TouchableOpacity>
 
         <View style={styles.footer}>
@@ -139,6 +148,17 @@ const getStyles = (isDark: boolean) =>
       color: '#fff',
       fontSize: 16,
       fontWeight: '700',
+    },
+    secondaryCta: {
+      marginTop: 0,
+      backgroundColor: 'rgba(255,255,255,0.1)',
+      borderWidth: 1,
+      borderColor: 'rgba(255,255,255,0.15)',
+      shadowOpacity: 0,
+      elevation: 0,
+    },
+    secondaryCtaText: {
+      color: '#fff',
     },
     footer: {
       alignItems: 'center',

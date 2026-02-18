@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   View,
   Text,
@@ -22,6 +22,7 @@ import { useUserProfileStore } from '../../store/userProfileStore'
 import { useCareerSetupStore } from '../../store/careerSetup'
 import { useCreditsStore, CREDIT_COSTS } from '../../store/creditsStore'
 import { CLTheme } from './theme'
+import { CustomPrepEntryModal } from './components/customPrepEntryModal'
 
 const { width, height } = Dimensions.get('window')
 
@@ -35,9 +36,110 @@ const COVER_LETTERS = [
   { id: 'c2', title: 'Standard Cover Letter', subtitle: 'General Purpose', content: 'To whom it may concern,\n\nPlease accept this letter and the enclosed resume as an expression of my interest...' },
 ]
 
-export function JobTrackerScreen() {
+const ROLE_HINT_REGEX = /\b((?:senior|staff|lead|principal|junior|head|sr|jr)\s+)?([a-z][a-z/&+\- ]{1,50}?(?:engineer|designer|manager|researcher|developer|scientist|analyst|architect|consultant))\b/i
+
+const normalizeSpace = (value: string) => value.replace(/\s+/g, ' ').trim()
+
+const toTitleCase = (value: string) =>
+  normalizeSpace(value)
+    .replace(/\bsr\b/gi, 'Senior')
+    .replace(/\bjr\b/gi, 'Junior')
+    .split(' ')
+    .filter(Boolean)
+    .map(chunk => chunk.charAt(0).toUpperCase() + chunk.slice(1).toLowerCase())
+    .join(' ')
+
+const cleanRole = (value: string) =>
+  normalizeSpace(value)
+    .replace(/^(job title|title|role|position)\s*[:\-]\s*/i, '')
+    .replace(/\s*\|\s*.+$/, '')
+    .replace(/[^\w\s/&+\-.]/g, '')
+
+const inferRoleFromUrl = (source: string) => {
+  try {
+    const url = new URL(source)
+    const normalizedPath = decodeURIComponent(url.pathname)
+      .replace(/[\/_-]+/g, ' ')
+      .replace(/\b(job|jobs|career|careers|position|positions|openings|apply|team)\b/gi, ' ')
+
+    const roleMatch = normalizeSpace(normalizedPath).match(ROLE_HINT_REGEX)
+    if (roleMatch?.[0]) return toTitleCase(cleanRole(roleMatch[0]))
+  } catch {
+    return null
+  }
+
+  return null
+}
+
+const inferRoleFromText = (source: string) => {
+  const roleLine = source.match(/(?:job title|title|role|position)\s*[:\-]\s*([^\n\r]{2,120})/i)
+  if (roleLine?.[1]) return toTitleCase(cleanRole(roleLine[1]))
+
+  const roleMatch = normalizeSpace(source).match(ROLE_HINT_REGEX)
+  if (roleMatch?.[0]) return toTitleCase(cleanRole(roleMatch[0]))
+
+  return null
+}
+
+const inferCompanyName = (source: string, mode: 'url' | 'text') => {
+  if (mode === 'url') {
+    try {
+      const host = new URL(source).hostname.replace(/^www\./i, '')
+      const first = host.split('.')[0]
+      if (!first) return null
+      return toTitleCase(first.replace(/[^a-z0-9]/gi, ' '))
+    } catch {
+      return null
+    }
+  }
+
+  const companyLine = source.match(/(?:company|organization|employer)\s*[:\-]\s*([^\n\r]{2,80})/i)
+  if (companyLine?.[1]) return normalizeSpace(companyLine[1].replace(/[^\w\s&'.-]/g, ''))
+
+  const atCompany = source.match(/\bat\s+([A-Z][A-Za-z0-9&'. -]{2,50})\b/)
+  if (atCompany?.[1]) return normalizeSpace(atCompany[1])
+
+  return null
+}
+
+const inferLocation = (source: string, mode: 'url' | 'text', fallbackLocation?: string) => {
+  const normalizedSource = source.toLowerCase()
+  if (normalizedSource.includes('remote')) return 'Remote'
+
+  if (mode === 'text') {
+    const locationLine = source.match(/(?:location|based in)\s*[:\-]\s*([^\n\r]{2,80})/i)
+    if (locationLine?.[1]) return normalizeSpace(locationLine[1])
+  }
+
+  return fallbackLocation || 'Unspecified'
+}
+
+type PipelineStatusFilter = 'All' | 'Applied' | 'Interview' | 'Interviewing' | 'Offer' | 'Target' | 'Not Interested'
+
+type JobTrackerRouteParams = {
+  initialStatus?: PipelineStatusFilter
+  openAddJobModal?: boolean
+}
+
+type JobTrackerProps = {
+  route?: {
+    params?: JobTrackerRouteParams
+  }
+}
+
+const PIPELINE_STATUSES: PipelineStatusFilter[] = [
+  'All',
+  'Applied',
+  'Interview',
+  'Interviewing',
+  'Offer',
+  'Target',
+  'Not Interested',
+]
+
+export function JobTrackerScreen({ route }: JobTrackerProps = {}) {
   const navigation = useNavigation<any>()
-  const { thisWeek, nextUp, recommendedJobs, filters, activeFilter, setFilter, updateJobStatus, updateJobNotes } = useJobTrackerStore()
+  const { thisWeek, nextUp, recommendedJobs, filters, activeFilter, setFilter, updateJobStatus, updateJobNotes, addJob } = useJobTrackerStore()
   const { avatarUrl, customInterviewPreps = [] } = useUserProfileStore()
   const { roleTrack, targetRole, locationPreference } = useCareerSetupStore()
   const { balance: creditBalance, canAfford: canAffordCredit } = useCreditsStore()
@@ -51,7 +153,7 @@ export function JobTrackerScreen() {
   const displayFilters = Array.from(new Set(['All Roles', ...userFilters]))
 
   const [searchQuery, setSearchQuery] = useState('')
-  const [activeStatus, setActiveStatus] = useState<'All' | 'Applied' | 'Interview' | 'Interviewing' | 'Offer' | 'Target' | 'Not Interested'>('All')
+  const [activeStatus, setActiveStatus] = useState<PipelineStatusFilter>('All')
   
   // Job Detail Modal State
   const [selectedJob, setSelectedJob] = useState<JobEntry | null>(null)
@@ -67,6 +169,13 @@ export function JobTrackerScreen() {
   const [selectedCoverLetter, setSelectedCoverLetter] = useState(COVER_LETTERS[0])
   const [activeDropdown, setActiveDropdown] = useState<'resume' | 'coverLetter' | null>(null)
   const [previewDoc, setPreviewDoc] = useState<{title: string, content: string} | null>(null)
+  const [showAddJobModal, setShowAddJobModal] = useState(false)
+  const [jobInputMode, setJobInputMode] = useState<'url' | 'text'>('url')
+  const [jobDescriptionUrl, setJobDescriptionUrl] = useState('')
+  const [jobDescriptionText, setJobDescriptionText] = useState('')
+  const [showCustomPrepModal, setShowCustomPrepModal] = useState(false)
+  const initialStatus = route?.params?.initialStatus
+  const openAddJobModalFromRoute = route?.params?.openAddJobModal === true
 
   const fillAnim = React.useRef(new Animated.Value(0)).current
 
@@ -78,6 +187,21 @@ export function JobTrackerScreen() {
           }
       }, [selectedJob, modalVisible])
   )
+
+  useEffect(() => {
+    if (!initialStatus || !PIPELINE_STATUSES.includes(initialStatus)) return
+    setActiveStatus(initialStatus)
+    setSearchQuery('')
+    setFilter('All Roles')
+    navigation.setParams?.({ initialStatus: undefined })
+  }, [initialStatus, setFilter])
+
+  useEffect(() => {
+    if (!openAddJobModalFromRoute || showAddJobModal) return
+    setShowAddJobModal(true)
+    navigation.setParams?.({ openAddJobModal: undefined })
+  }, [openAddJobModalFromRoute, showAddJobModal, navigation])
+
   const openJobDetails = (job: JobEntry) => {
       setSelectedJob(job)
       setModalVisible(true)
@@ -141,43 +265,66 @@ export function JobTrackerScreen() {
   // Combine all active jobs
   const allActiveJobs = [...thisWeek, ...nextUp]
 
-  // Filter Logic
-  const getFilteredJobs = (jobs: JobEntry[]) => {
-      return jobs.filter(job => {
-        // 1. Search
-        const matchesSearch = 
-           job.role.toLowerCase().includes(searchQuery.toLowerCase()) || 
-           job.company.toLowerCase().includes(searchQuery.toLowerCase())
-        
-        // 2. Status Filter
-        const matchesStatus = activeStatus === 'All' ? true : 
-                              activeStatus === 'Offer' ? job.status.includes('Offer') : 
-                              activeStatus === 'Interview' ? (job.status === 'Interview' || job.status === 'Interviewing') :
-                              job.status === activeStatus
+  const normalizedQuery = searchQuery.trim().toLowerCase()
 
-        // 3. Role/Tag Filter (Chips)
-        let matchesRole = true
-        if (activeFilter !== 'All Roles') {
-            matchesRole = job.role.includes(activeFilter) || (job.tags?.includes(activeFilter) ?? false)
-            // Fuzzy match for tracks
-            if (activeFilter === 'Product Design') matchesRole = matchesRole || job.role.includes('Designer')
-            if (activeFilter === 'Engineering') matchesRole = matchesRole || job.role.includes('Engineer') || job.role.includes('Developer')
-        }
+  const doesJobMatchSearch = (job: JobEntry) =>
+    normalizedQuery.length === 0 ||
+    job.role.toLowerCase().includes(normalizedQuery) ||
+    job.company.toLowerCase().includes(normalizedQuery)
 
-        return matchesSearch && matchesStatus && matchesRole
-      })
+  const doesJobMatchStatus = (
+    job: JobEntry,
+    status: PipelineStatusFilter
+  ) => {
+    if (status === 'All') return true
+    if (status === 'Offer') return job.status.includes('Offer')
+    if (status === 'Interview' || status === 'Interviewing') {
+      return job.status === 'Interview' || job.status === 'Interviewing'
+    }
+    return job.status === status
   }
 
-  const displayedJobs = getFilteredJobs(allActiveJobs)
-  const isFiltering = activeStatus !== 'All' || searchQuery.length > 0 || activeFilter !== 'All Roles'
+  const doesJobMatchRoleFilter = (job: JobEntry, filter: string) => {
+    if (filter === 'All Roles') return true
 
-  // Counts
-  const appliedCount = allActiveJobs.filter(j => j.status === 'Applied').length
-  const interviewCount = allActiveJobs.filter(j => j.status === 'Interview' || j.status === 'Interviewing').length
-  const offerCount = allActiveJobs.filter(j => j.status.includes('Offer')).length
-  const savedCount = allActiveJobs.filter(j => j.status === 'Target').length
+    const lowerFilter = filter.toLowerCase()
+    const lowerRole = job.role.toLowerCase()
+    const matchesTag = job.tags?.some(tag => tag.toLowerCase() === lowerFilter) ?? false
 
-  const handleStatusPress = (status: 'All' | 'Applied' | 'Interview' | 'Interviewing' | 'Offer' | 'Target' | 'Not Interested') => {
+    let matchesRole = lowerRole.includes(lowerFilter) || matchesTag
+
+    if (lowerFilter === 'product design') {
+      matchesRole = matchesRole || lowerRole.includes('designer')
+    }
+    if (lowerFilter === 'engineering') {
+      matchesRole = matchesRole || lowerRole.includes('engineer') || lowerRole.includes('developer')
+    }
+
+    return matchesRole
+  }
+
+  const displayedJobs = allActiveJobs.filter(
+    job => doesJobMatchSearch(job) && doesJobMatchStatus(job, activeStatus) && doesJobMatchRoleFilter(job, activeFilter)
+  )
+  const isFiltering = activeStatus !== 'All' || normalizedQuery.length > 0 || activeFilter !== 'All Roles'
+
+  // Counts should reflect current search + role filter context, independent of active status selection.
+  const statusCountBase = allActiveJobs.filter(job => doesJobMatchSearch(job) && doesJobMatchRoleFilter(job, activeFilter))
+  const appliedCount = statusCountBase.filter(j => j.status === 'Applied').length
+  const interviewCount = statusCountBase.filter(j => j.status === 'Interview' || j.status === 'Interviewing').length
+  const offerCount = statusCountBase.filter(j => j.status.includes('Offer')).length
+  const savedCount = statusCountBase.filter(j => j.status === 'Target').length
+
+  const filterCounts = Object.fromEntries(
+    displayFilters.map(filter => [
+      filter,
+      allActiveJobs.filter(
+        job => doesJobMatchSearch(job) && doesJobMatchStatus(job, activeStatus) && doesJobMatchRoleFilter(job, filter)
+      ).length,
+    ])
+  ) as Record<string, number>
+
+  const handleStatusPress = (status: PipelineStatusFilter) => {
       if (activeStatus === status && status !== 'All') {
           setActiveStatus('All')
       } else {
@@ -186,7 +333,66 @@ export function JobTrackerScreen() {
   }
 
   const handleStartCustomInterviewPrep = () => {
-    navigation.navigate('SettingsProfile', { openCustomPrepAt: Date.now() })
+    setShowCustomPrepModal(true)
+  }
+
+  const resetAddJobModal = () => {
+    setJobInputMode('url')
+    setJobDescriptionUrl('')
+    setJobDescriptionText('')
+  }
+
+  const closeAddJobModal = () => {
+    setShowAddJobModal(false)
+    resetAddJobModal()
+  }
+
+  const handleOpenAddJobModal = () => {
+    setShowAddJobModal(true)
+  }
+
+  const handleAddJobFromDescription = () => {
+    const source = jobInputMode === 'url' ? jobDescriptionUrl.trim() : jobDescriptionText.trim()
+
+    if (!source) {
+      Alert.alert('Missing Input', 'Paste a public job URL or paste the job description text.')
+      return
+    }
+
+    if (jobInputMode === 'url' && !/^https?:\/\/\S+$/i.test(source)) {
+      Alert.alert('Invalid URL', 'Enter a valid public job URL that starts with http:// or https://.')
+      return
+    }
+
+    const inferredRole =
+      (jobInputMode === 'url' ? inferRoleFromUrl(source) : inferRoleFromText(source)) ||
+      targetRole ||
+      'Target Role'
+    const inferredCompany = inferCompanyName(source, jobInputMode) || 'Company TBD'
+    const inferredLocation = inferLocation(source, jobInputMode, locationPreference)
+
+    const importedJob: JobEntry = {
+      id: `manual-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
+      company: inferredCompany,
+      role: inferredRole,
+      location: inferredLocation,
+      status: 'Target',
+      nextAction: 'Submit Application',
+      nextActionDate: 'Today',
+      tags: ['Imported JD', jobInputMode === 'url' ? 'Public URL' : 'Pasted JD'],
+      notes:
+        jobInputMode === 'url'
+          ? `Imported from: ${source}`
+          : `Imported from pasted JD (${source.length} chars)`,
+      color: 'rgba(13, 108, 242, 0.12)',
+    }
+
+    addJob(importedJob)
+    setSearchQuery('')
+    setActiveStatus('All')
+    setFilter('All Roles')
+    closeAddJobModal()
+    Alert.alert('Added to pipeline', `${importedJob.role} at ${importedJob.company} was added.`)
   }
 
   const renderStatCard = (label: string, count: number, status: 'Applied' | 'Interview' | 'Interviewing' | 'Offer' | 'Target' | 'Not Interested', color: string) => {
@@ -338,7 +544,9 @@ export function JobTrackerScreen() {
                           style={[styles.filterChip, activeFilter === filter && styles.activeFilterChip]}
                           onPress={() => setFilter(filter)}
                       >
-                          <Text style={[styles.filterText, activeFilter === filter && styles.activeFilterText]}>{filter}</Text>
+                          <Text style={[styles.filterText, activeFilter === filter && styles.activeFilterText]}>
+                            {filter} ({filterCounts[filter]})
+                          </Text>
                       </TouchableOpacity>
                   ))}
               </ScrollView>
@@ -467,9 +675,88 @@ export function JobTrackerScreen() {
       </ScrollView>
 
       {/* FAB */}
-      <TouchableOpacity style={styles.fab}>
+      <TouchableOpacity style={styles.fab} onPress={handleOpenAddJobModal} testID='tracker-add-job-fab'>
           <Feather name="plus" size={24} color="#fff" />
       </TouchableOpacity>
+
+      <Modal visible={showAddJobModal} animationType='slide' transparent>
+          <View style={styles.modalOverlay}>
+              <View style={[styles.modalContent, { height: '62%' }]}>
+                  <View style={styles.modalHeader}>
+                      <Text style={styles.modalTitle}>Import Job Description</Text>
+                      <TouchableOpacity onPress={closeAddJobModal} style={styles.closeBtn}>
+                          <Feather name='x' size={24} color={CLTheme.text.primary} />
+                      </TouchableOpacity>
+                  </View>
+                  <ScrollView contentContainerStyle={styles.addJobModalBody} keyboardShouldPersistTaps='handled'>
+                      <Text style={styles.addJobSubtitle}>
+                          Add a public JD URL or paste the full job description. We will extract role/company and add it to your pipeline.
+                      </Text>
+
+                      <View style={styles.modeTabs}>
+                          <TouchableOpacity
+                              style={[styles.modeTab, jobInputMode === 'url' && styles.modeTabActive]}
+                              onPress={() => setJobInputMode('url')}
+                          >
+                              <Text style={[styles.modeTabText, jobInputMode === 'url' && styles.modeTabTextActive]}>Public URL</Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                              style={[styles.modeTab, jobInputMode === 'text' && styles.modeTabActive]}
+                              onPress={() => setJobInputMode('text')}
+                          >
+                              <Text style={[styles.modeTabText, jobInputMode === 'text' && styles.modeTabTextActive]}>Paste JD</Text>
+                          </TouchableOpacity>
+                      </View>
+
+                      {jobInputMode === 'url' ? (
+                          <View style={styles.addJobInputBlock}>
+                              <Text style={styles.addJobInputLabel}>Job URL</Text>
+                              <TextInput
+                                  style={styles.addJobInput}
+                                  value={jobDescriptionUrl}
+                                  onChangeText={setJobDescriptionUrl}
+                                  autoCapitalize='none'
+                                  autoCorrect={false}
+                                  placeholder='https://company.com/jobs/senior-pm'
+                                  placeholderTextColor={CLTheme.text.muted}
+                              />
+                          </View>
+                      ) : (
+                          <View style={styles.addJobInputBlock}>
+                              <Text style={styles.addJobInputLabel}>Job Description</Text>
+                              <TextInput
+                                  style={[styles.addJobInput, styles.addJobTextarea]}
+                                  value={jobDescriptionText}
+                                  onChangeText={setJobDescriptionText}
+                                  multiline
+                                  textAlignVertical='top'
+                                  placeholder='Paste the full job description text here'
+                                  placeholderTextColor={CLTheme.text.muted}
+                              />
+                          </View>
+                      )}
+
+                      <View style={styles.addJobActions}>
+                          <TouchableOpacity style={styles.secondaryActionBtn} onPress={closeAddJobModal}>
+                              <Text style={styles.secondaryActionBtnText}>Cancel</Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity style={styles.primaryActionBtn} onPress={handleAddJobFromDescription}>
+                              <Text style={styles.primaryActionBtnText}>Extract & Add</Text>
+                          </TouchableOpacity>
+                      </View>
+                  </ScrollView>
+              </View>
+          </View>
+      </Modal>
+
+      <CustomPrepEntryModal
+        visible={showCustomPrepModal}
+        onClose={() => setShowCustomPrepModal(false)}
+        onSubmit={(customPrep) => {
+          setShowCustomPrepModal(false)
+          navigation.navigate('InterviewPrep', { customPrep })
+        }}
+      />
       
       {/* Job Details Modal - Keeping it simple for now, can be expanded */}
       <Modal visible={modalVisible} animationType="slide" transparent>
@@ -1182,6 +1469,94 @@ const styles = StyleSheet.create({
       shadowOpacity: 0.3,
       shadowRadius: 8,
       elevation: 6,
+  },
+  addJobModalBody: {
+      padding: 20,
+      gap: 14,
+  },
+  addJobSubtitle: {
+      fontSize: 13,
+      lineHeight: 20,
+      color: CLTheme.text.secondary,
+  },
+  modeTabs: {
+      flexDirection: 'row',
+      backgroundColor: CLTheme.background,
+      borderRadius: 10,
+      padding: 4,
+      marginTop: 2,
+  },
+  modeTab: {
+      flex: 1,
+      alignItems: 'center',
+      borderRadius: 8,
+      paddingVertical: 8,
+  },
+  modeTabActive: {
+      backgroundColor: 'rgba(13, 108, 242, 0.15)',
+  },
+  modeTabText: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: CLTheme.text.secondary,
+  },
+  modeTabTextActive: {
+      color: CLTheme.accent,
+  },
+  addJobInputBlock: {
+      gap: 8,
+  },
+  addJobInputLabel: {
+      fontSize: 12,
+      fontWeight: '700',
+      color: CLTheme.text.muted,
+      textTransform: 'uppercase',
+      letterSpacing: 0.6,
+  },
+  addJobInput: {
+      backgroundColor: CLTheme.background,
+      borderRadius: 10,
+      borderWidth: 1,
+      borderColor: CLTheme.border,
+      color: CLTheme.text.primary,
+      fontSize: 14,
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+  },
+  addJobTextarea: {
+      minHeight: 140,
+  },
+  addJobActions: {
+      marginTop: 8,
+      flexDirection: 'row',
+      gap: 10,
+  },
+  secondaryActionBtn: {
+      flex: 1,
+      borderWidth: 1,
+      borderColor: CLTheme.border,
+      borderRadius: 10,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 12,
+  },
+  secondaryActionBtnText: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: CLTheme.text.secondary,
+  },
+  primaryActionBtn: {
+      flex: 1,
+      borderRadius: 10,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 12,
+      backgroundColor: CLTheme.accent,
+  },
+  primaryActionBtnText: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: '#fff',
   },
   // Modal Styles
   modalOverlay: {

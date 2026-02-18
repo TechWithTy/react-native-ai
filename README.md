@@ -31,13 +31,14 @@ Next, either configure your environment variables with the CLI, or do so later.
 ## Local Development
 
 See `RUNNING.md` for Windows + Android setup steps and troubleshooting.
+See `docs/android-metro-stability/README.md` for emulator/Metro crash prevention and recovery.
 
 ### Running the app
 
 Change into the app directory and run:
 
 ```sh
-npm start
+pnpm start
 ```
 
 ### Running the server

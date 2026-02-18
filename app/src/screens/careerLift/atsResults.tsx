@@ -15,9 +15,18 @@ import { CLTheme } from './theme'
 
 const { width } = Dimensions.get('window')
 
-export function ATSResultsScreen() {
+type ATSResultsProps = {
+  route?: {
+    params?: {
+      resumeName?: string
+    }
+  }
+}
+
+export function ATSResultsScreen({ route }: ATSResultsProps = {}) {
   const { score, keywordsFound, keywordsMissing, fixes } = useAtsScanStore()
   const navigation = useNavigation()
+  const scannedResumeName = route?.params?.resumeName
 
   const renderFixCard = (fix: AtsFix) => (
     <View
@@ -118,6 +127,13 @@ export function ATSResultsScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
+        {scannedResumeName ? (
+          <View style={styles.sourceResumeBadge}>
+            <MaterialIcons name='description' size={14} color={CLTheme.accent} />
+            <Text style={styles.sourceResumeText}>Scanned resume: {scannedResumeName}</Text>
+          </View>
+        ) : null}
+
         {/* Score Ring */}
         <View style={styles.scoreContainer}>
           <View style={styles.ringContainer}>
@@ -247,6 +263,25 @@ const styles = StyleSheet.create({
   scoreContainer: {
     alignItems: 'center',
     paddingVertical: 20,
+  },
+  sourceResumeBadge: {
+    marginTop: 8,
+    marginBottom: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    alignSelf: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(13, 108, 242, 0.3)',
+    backgroundColor: 'rgba(13, 108, 242, 0.12)',
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  sourceResumeText: {
+    fontSize: 12,
+    color: CLTheme.accent,
+    fontWeight: '600',
   },
   ringContainer: {
     width: 160,

@@ -5,8 +5,7 @@ import { ScreenLibrary } from '../screenLibrary'
 import { SplashScreen } from '../splash'
 import { OnboardingGoalsScreen } from '../onboardingGoals'
 import { OnboardingSetTargetsScreen } from '../onboardingSetTargets'
-import { ResumeIngestionScreen } from '../resumeIngestion'
-import { ResumeUploadScreen } from '../resumeUpload'
+import { ResumeIngestionScreen } from '../ResumeIngestionScreen'
 import { DashboardScreen } from '../dashboard'
 import { OutreachCenterScreen } from '../outreachCenter'
 import { JobTrackerScreen } from '../jobTracker'
@@ -18,11 +17,12 @@ import { WeeklyDigestScreen } from '../weeklyDigest'
 import { SettingsProfileScreen } from '../settingsProfile'
 import { ApplyPackScreen } from '../applyPack'
 import { InterviewPrepScreen } from '../interviewPrep'
+import { JobDetailsScreen } from '../jobDetails'
 import { useCareerSetupStore } from '../../../store/careerSetup'
 
 describe('careerLiftRoutes', () => {
   it('contains all required screen routes', () => {
-    expect(careerLiftRoutes).toHaveLength(16)
+    expect(careerLiftRoutes).toHaveLength(17)
     expect(careerLiftRoutes.map(route => route.key)).toEqual([
       'Splash',
       'OnboardingGoals',
@@ -30,6 +30,7 @@ describe('careerLiftRoutes', () => {
       'ResumeIngestion',
       'ResumeUpload',
       'Dashboard',
+      'JobDetails',
       'OutreachCenter',
       'JobTracker',
       'LinkedInKit',
@@ -70,20 +71,27 @@ describe('CareerLift screens', () => {
     expect(navigation.navigate).toHaveBeenCalledWith('OnboardingGoals')
   })
 
+  it('navigates to AI onboarding from splash', () => {
+    const { getByText } = render(<SplashScreen navigation={navigation} />)
+    fireEvent.press(getByText('Get Started with AI'))
+    expect(navigation.navigate).toHaveBeenCalledWith('AIOnboarding')
+  })
+
   it.each([
     { name: 'Splash', component: SplashScreen, heading: 'Career Lift' },
     { name: 'OnboardingGoals', component: OnboardingGoalsScreen, heading: 'Define Your Path' },
     { name: 'OnboardingSetTargets', component: OnboardingSetTargetsScreen, heading: 'Set Your Target' },
     { name: 'ResumeIngestion', component: ResumeIngestionScreen, heading: 'Source Resume' },
-    { name: 'ResumeUpload', component: ResumeUploadScreen, heading: 'Lets get your baseline' },
+    // { name: 'ResumeUpload', component: ResumeUploadScreen, heading: 'Lets get your baseline' },
     { name: 'Dashboard', component: DashboardScreen, heading: 'Your Pipeline' },
+    { name: 'JobDetails', component: JobDetailsScreen, heading: 'Job Details' },
     { name: 'OutreachCenter', component: OutreachCenterScreen, heading: 'Outreach Center' },
     { name: 'JobTracker', component: JobTrackerScreen, heading: 'My Pipeline' },
     { name: 'LinkedInKit', component: LinkedInKitScreen, heading: 'LinkedIn Kit' },
     { name: 'MockInterview', component: MockInterviewScreen, heading: 'Behavioral Interview' },
     { name: 'AIOnboarding', component: AIOnboardingScreen, heading: 'Career Goals' },
     { name: 'ATSResults', component: ATSResultsScreen, heading: 'Scan Results' },
-    { name: 'WeeklyDigest', component: WeeklyDigestScreen, heading: 'Weekly Digest' },
+    { name: 'WeeklyDigest', component: WeeklyDigestScreen, heading: 'WEEKLY DIGEST' },
     { name: 'SettingsProfile', component: SettingsProfileScreen, heading: 'Settings and Profile' },
     { name: 'ApplyPack', component: ApplyPackScreen, heading: 'Review Package' },
     { name: 'InterviewPrep', component: InterviewPrepScreen, heading: 'Interview Preparation Pack' },

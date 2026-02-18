@@ -20,6 +20,7 @@ describe('creditsStore', () => {
     expect(getCost('storyPractice')).toBe(5)
     expect(getCost('resumeTailor')).toBe(4)
     expect(getCost('coverLetterGen')).toBe(4)
+    expect(getCost('linkedInOptimize')).toBe(6)
   })
 
   it('canAfford returns true when balance is sufficient', () => {

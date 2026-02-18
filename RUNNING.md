@@ -1,4 +1,7 @@
 # Running Locally (Windows + Android
+
+For repeated emulator bundle failures (`JSBigFileString::fromPath`, invalid expression), see:
+`docs/android-metro-stability/README.md`
  
 ## Prereqs 
 - Android Studio with SDK, NDK 26.1.10909125, and CMake 3.22.1 

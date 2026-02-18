@@ -5,6 +5,7 @@ export const careerLiftRoutes = [
   { key: 'ResumeIngestion', label: 'Onboarding: Resume Ingestion' },
   { key: 'ResumeUpload', label: 'Onboarding: Resume Upload' },
   { key: 'Dashboard', label: 'Career Lift Dashboard' },
+  { key: 'JobDetails', label: 'Career Lift Job Details' },
   { key: 'OutreachCenter', label: 'Outreach Follow-up Center' },
   { key: 'JobTracker', label: 'Job Tracker Pipeline' },
   { key: 'LinkedInKit', label: 'LinkedIn Optimization Kit' },
@@ -16,4 +17,3 @@ export const careerLiftRoutes = [
   { key: 'ApplyPack', label: 'Apply Pack Review' },
   { key: 'InterviewPrep', label: 'Interview Preparation Pack' },
 ] as const
-

@@ -15,6 +15,7 @@ import { WeeklyDigestScreen } from './weeklyDigest'
 import { SettingsProfileScreen } from './settingsProfile'
 import { ApplyPackScreen } from './applyPack'
 import { InterviewPrepScreen } from './interviewPrep'
+import { JobDetailsScreen } from './jobDetails'
 import { careerLiftRoutes } from './routes'
 import { CareerLiftTabs } from './tabs'
 
@@ -37,6 +38,7 @@ export function CareerLift() {
       <Stack.Screen name='OnboardingSetTargets' component={OnboardingSetTargetsScreen} />
       <Stack.Screen name='ResumeIngestion' component={ResumeIngestionScreen} />
       <Stack.Screen name='Dashboard' component={DashboardScreen} />
+      <Stack.Screen name='JobDetails' component={JobDetailsScreen} />
       <Stack.Screen name='OutreachCenter' component={OutreachCenterScreen} />
       <Stack.Screen name='JobTracker' component={JobTrackerScreen} />
       <Stack.Screen name='LinkedInKit' component={LinkedInKitScreen} />
