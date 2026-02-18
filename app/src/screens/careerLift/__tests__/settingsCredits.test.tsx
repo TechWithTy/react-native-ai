@@ -5,6 +5,7 @@ import { SettingsProfileScreen } from '../settingsProfile'
 import { useCreditsStore } from '../../../store/creditsStore'
 import { useUserProfileStore } from '../../../store/userProfileStore'
 import { useCareerSetupStore } from '../../../store/careerSetup'
+import { useMonetizationExperimentsStore } from '../../../store/monetizationExperimentsStore'
 
 // --- Mocks ---
 
@@ -85,6 +86,7 @@ jest.spyOn(Alert, 'alert')
 function resetStores() {
   useCreditsStore.getState().resetCredits()
   useUserProfileStore.getState().resetProfile()
+  useMonetizationExperimentsStore.getState().resetExperiments()
 }
 
 // --- Tests ---
@@ -144,6 +146,45 @@ describe('SettingsProfileScreen — Purchase AI Credits Label', () => {
     expect(getByText('Current Plan')).toBeTruthy()
     expect(getByText('PRO')).toBeTruthy()
     expect(getByText('Manage Subscription')).toBeTruthy()
+  })
+})
+
+describe('SettingsProfileScreen — Scan Credits Section', () => {
+  beforeEach(() => {
+    jest.clearAllMocks()
+    resetStores()
+  })
+
+  it('renders SCAN CREDITS section and default scan balance', () => {
+    const { getByText } = render(<SettingsProfileScreen />)
+    expect(getByText('SCAN CREDITS')).toBeTruthy()
+    expect(getByText('Scans Available')).toBeTruthy()
+    expect(getByText(/50\s*scans/)).toBeTruthy()
+    expect(getByText('Buy Scan Packs')).toBeTruthy()
+  })
+
+  it('opens scan packages modal from Buy Scan Packs', () => {
+    const { getByText } = render(<SettingsProfileScreen />)
+    fireEvent.press(getByText('Buy Scan Packs'))
+    expect(getByText('Buy Scan Credits')).toBeTruthy()
+    expect(getByText(/One-time scan packs/)).toBeTruthy()
+  })
+
+  it('adds scan credits when scan pack purchase is confirmed', () => {
+    const { getByText } = render(<SettingsProfileScreen />)
+    fireEvent.press(getByText('Buy Scan Packs'))
+    fireEvent.press(getByText('$4.99'))
+
+    const alertCalls = (Alert.alert as jest.Mock).mock.calls
+    const buttons = alertCalls[0][2]
+    const buyNow = buttons.find((b: any) => b.text === 'Buy Now')
+
+    act(() => {
+      buyNow.onPress()
+    })
+
+    expect(useCreditsStore.getState().scanCreditsRemaining).toBe(60)
+    expect(Alert.alert).toHaveBeenCalledWith('Scan Credits Added!', '10 scans have been added to your account.')
   })
 })
 

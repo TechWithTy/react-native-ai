@@ -3,9 +3,32 @@ import { act, fireEvent, render } from '@testing-library/react-native'
 import { SplashScreen } from '../splash'
 import { OnboardingGoalsScreen } from '../onboardingGoals'
 import { OnboardingSetTargetsScreen } from '../onboardingSetTargets'
-import { ResumeIngestionScreen } from '../resumeIngestion'
-import { ResumeUploadScreen } from '../resumeUpload'
+import { ResumeIngestionScreen } from '../ResumeIngestionScreen'
 import { useCareerSetupStore } from '../../../store/careerSetup'
+import { useUserProfileStore } from '../../../store/userProfileStore'
+
+const mockRequestForegroundPermissionsAsync = jest.fn()
+const mockGetCurrentPositionAsync = jest.fn()
+const mockReverseGeocodeAsync = jest.fn()
+
+jest.mock('expo-location', () => ({
+  Accuracy: {
+    Balanced: 3,
+  },
+  requestForegroundPermissionsAsync: (...args: unknown[]) =>
+    mockRequestForegroundPermissionsAsync(...args),
+  getCurrentPositionAsync: (...args: unknown[]) => mockGetCurrentPositionAsync(...args),
+  reverseGeocodeAsync: (...args: unknown[]) => mockReverseGeocodeAsync(...args),
+}))
+
+jest.mock('country-state-city', () => ({
+  City: {
+    getCitiesOfCountry: () => [],
+  },
+  State: {
+    getStatesOfCountry: () => [],
+  },
+}))
 
 describe('CareerLift flows', () => {
   const navigation = {
@@ -17,6 +40,7 @@ describe('CareerLift flows', () => {
     jest.clearAllMocks()
     act(() => {
       useCareerSetupStore.getState().resetCareerSetup()
+      useUserProfileStore.getState().resetProfile()
     })
   })
 
@@ -43,23 +67,14 @@ describe('CareerLift flows', () => {
 
   it('resume ingestion actions work', () => {
     const { getByText } = render(<ResumeIngestionScreen navigation={navigation} />)
+    
+    // Test LinkedIn Modal Flow
     fireEvent.press(getByText('Import from LinkedIn'))
-    expect(navigation.navigate).toHaveBeenCalledWith('LinkedInKit')
-
-    fireEvent.press(getByText('Skip for now'))
-    expect(navigation.navigate).toHaveBeenCalledWith('Dashboard')
-
-    fireEvent.press(getByText('Continue'))
-    expect(navigation.navigate).toHaveBeenCalledWith('ResumeUpload')
-  })
-
-  it('resume upload actions work', () => {
-    const { getByText } = render(<ResumeUploadScreen navigation={navigation} />)
-    fireEvent.press(getByText('Back'))
-    expect(navigation.goBack).toHaveBeenCalled()
-
-    fireEvent.press(getByText('Finish Setup'))
-    expect(navigation.navigate).toHaveBeenCalledWith('Dashboard')
+    expect(getByText('LinkedIn Authorization')).toBeTruthy()
+    
+    fireEvent.press(getByText('Authorize LinkedIn'))
+    fireEvent.press(getByText('Use Imported Profile'))
+    expect(navigation.navigate).toHaveBeenCalledWith('MainTabs')
   })
 
   it('step 2 role options and highlighted skills follow selected track', () => {
@@ -95,6 +110,17 @@ describe('CareerLift flows', () => {
 
     fireEvent.press(getByText('On-site'))
     expect(useCareerSetupStore.getState().locationPreference).toBe('On-site')
+    expect(getByText('Set Your Preferred Location')).toBeTruthy()
+  })
+
+  it('saves onboarding location from modal for hybrid or on-site', () => {
+    const { getByText, getByPlaceholderText } = render(<OnboardingGoalsScreen navigation={navigation} />)
+
+    fireEvent.press(getByText('Hybrid'))
+    fireEvent.changeText(getByPlaceholderText('City, State or Remote'), 'Austin, TX')
+    fireEvent.press(getByText('Save'))
+
+    expect(useUserProfileStore.getState().currentLocation).toBe('Austin, TX')
   })
 
   it('step 2 supports searchable role and goals/skills content', () => {

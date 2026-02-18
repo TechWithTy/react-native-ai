@@ -20,6 +20,8 @@ export type JobEntry = {
 
 export type RecommendedScreenFilter = 'All Matches' | 'Remote' | 'Full-time' | 'Product Design'
 export type RecommendedSortOption = 'matchDesc' | 'matchAsc' | 'roleAZ' | 'companyAZ'
+export type RecommendedSalaryRange = 'Any' | '<$80k' | '$100k+' | '$150k+' | '$180k+'
+export type RecommendedExperienceLevel = 'Any' | 'Entry' | 'Mid' | 'Senior' | 'Lead+'
 
 type RecommendedScanPresetDraft = {
   screenFilter: RecommendedScreenFilter
@@ -28,10 +30,14 @@ type RecommendedScanPresetDraft = {
   fullTimeOnly: boolean
   hybridOnly: boolean
   locationQuery: string
+  salaryRange?: RecommendedSalaryRange
+  experienceLevel?: RecommendedExperienceLevel
   name?: string
 }
 
-export type RecommendedScanPreset = Omit<RecommendedScanPresetDraft, 'name'> & {
+export type RecommendedScanPreset = Omit<RecommendedScanPresetDraft, 'name' | 'salaryRange' | 'experienceLevel'> & {
+  salaryRange: RecommendedSalaryRange
+  experienceLevel: RecommendedExperienceLevel
   name: string
   label: string
   savedAt: string
@@ -44,6 +50,8 @@ const buildRecommendedPresetLabel = (preset: RecommendedScanPresetDraft) => {
   if (preset.remoteOnly) parts.add('Remote')
   if (preset.fullTimeOnly) parts.add('Full-time')
   if (preset.hybridOnly) parts.add('Hybrid')
+  if (preset.salaryRange && preset.salaryRange !== 'Any') parts.add(preset.salaryRange)
+  if (preset.experienceLevel && preset.experienceLevel !== 'Any') parts.add(`${preset.experienceLevel} level`)
   const trimmedLocation = preset.locationQuery.trim()
   if (trimmedLocation) parts.add(trimmedLocation)
 
@@ -207,13 +215,17 @@ export const useJobTrackerStore = create<JobTrackerState>((set) => ({
   saveRecommendedScanPreset: (preset) =>
     set(() => {
       const locationQuery = preset.locationQuery.trim()
-      const label = buildRecommendedPresetLabel({ ...preset, locationQuery })
+      const salaryRange = preset.salaryRange || 'Any'
+      const experienceLevel = preset.experienceLevel || 'Any'
+      const label = buildRecommendedPresetLabel({ ...preset, locationQuery, salaryRange, experienceLevel })
       const name = preset.name?.trim() || label
 
       return {
         recommendedScanPreset: {
           ...preset,
           locationQuery,
+          salaryRange,
+          experienceLevel,
           name,
           label,
           savedAt: new Date().toISOString(),

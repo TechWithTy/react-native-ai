@@ -104,6 +104,50 @@ describe('InterviewPrepScreen — Default Flow (no customPrep)', () => {
     expect(getByText(/credits available/)).toBeTruthy()
     expect(getByText(/~15 credits/)).toBeTruthy()
   })
+
+  it('opens the role-specific questions prep screen', () => {
+    const { getByText } = render(<InterviewPrepScreen />)
+
+    fireEvent.press(getByText('Role-Specific Questions'))
+
+    expect(getByText('Prep Completeness')).toBeTruthy()
+    expect(getByText('Role-Specific Questions')).toBeTruthy()
+    expect(getByText('Start Mock Interview')).toBeTruthy()
+    expect(getByText('Behavioral')).toBeTruthy()
+    expect(getByText('Product Strategy')).toBeTruthy()
+  })
+
+  it('starts question-specific practice from expanded role question card', () => {
+    const { getByText } = render(<InterviewPrepScreen />)
+
+    fireEvent.press(getByText('Role-Specific Questions'))
+    fireEvent.press(getByText('Practice this question'))
+
+    expect(mockNavigate).toHaveBeenCalledWith('MockInterview', {
+      question: 'Tell me about a time you failed to meet a deadline.',
+      category: 'Behavioral',
+    })
+  })
+
+  it('lands on main prep screen when route includes a job and opens questions only on card tap', () => {
+    mockRouteParams = {
+      job: {
+        id: 'job-1',
+        role: 'Staff Product Manager',
+        company: 'OpenAI',
+      },
+    }
+
+    const { getByText, queryByText } = render(<InterviewPrepScreen />)
+
+    expect(getByText('Interview Prep')).toBeTruthy()
+    expect(getByText('Staff Product Manager')).toBeTruthy()
+    expect(queryByText('Prep Completeness')).toBeNull()
+
+    fireEvent.press(getByText('Role-Specific Questions'))
+    expect(getByText('Prep Completeness')).toBeTruthy()
+    expect(getByText('OpenAI interview in 3 days')).toBeTruthy()
+  })
 })
 
 describe('InterviewPrepScreen — Custom Flow', () => {

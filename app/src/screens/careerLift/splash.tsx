@@ -36,7 +36,7 @@ export function SplashScreen({ navigation }: any) {
 
         <TouchableOpacity
           style={[styles.cta, styles.secondaryCta]}
-          onPress={() => navigation.navigate('AIOnboarding')}
+          onPress={() => navigation.navigate('MainTabs', { screen: 'AICoach' })}
           activeOpacity={0.9}
         >
           <Text style={[styles.ctaText, styles.secondaryCtaText]}>Get Started with AI</Text>
@@ -183,4 +183,3 @@ const getStyles = (isDark: boolean) =>
       color: isDark ? '#4b5563' : '#9ca3af',
     },
   })
-

@@ -4,6 +4,7 @@ import { DashboardScreen } from '../dashboard'
 import { useUserProfileStore } from '../../../store/userProfileStore'
 import { useCareerSetupStore } from '../../../store/careerSetup'
 import { useJobTrackerStore } from '../../../store/jobTrackerStore'
+import { useCreditsStore } from '../../../store/creditsStore'
 import * as DocumentPicker from 'expo-document-picker'
 
 jest.mock('@expo/vector-icons', () => ({
@@ -25,6 +26,7 @@ describe('DashboardScreen — Notifications and Scan UI', () => {
     useUserProfileStore.getState().resetProfile()
     useCareerSetupStore.getState().resetCareerSetup()
     useJobTrackerStore.getState().resetJobTrackerStore()
+    useCreditsStore.getState().resetCredits()
     mockGetDocumentAsync.mockResolvedValue({
       canceled: true,
       assets: [],
@@ -112,6 +114,13 @@ describe('DashboardScreen — Notifications and Scan UI', () => {
 
     fireEvent.press(getByLabelText('Close notifications'))
     expect(queryByText('Notifications')).toBeNull()
+  })
+
+  it('routes avatar press to profile screen', () => {
+    const { getByLabelText } = render(<DashboardScreen navigation={navigation} />)
+
+    fireEvent.press(getByLabelText('Open profile'))
+    expect(navigation.navigate).toHaveBeenCalledWith('SettingsProfile', undefined)
   })
 
   it('opens in-place import modal from dashboard plus FAB', () => {

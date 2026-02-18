@@ -18,6 +18,8 @@ import {
   JobEntry,
   RecommendedScreenFilter,
   RecommendedSortOption,
+  RecommendedSalaryRange,
+  RecommendedExperienceLevel,
 } from '../../store/jobTrackerStore'
 import { CLTheme } from './theme'
 import { useNavigation } from '@react-navigation/native'
@@ -34,6 +36,19 @@ const sortOptions = [
   { value: 'roleAZ', label: 'Role: A to Z' },
   { value: 'companyAZ', label: 'Company: A to Z' },
 ] as const
+const salaryRangeOptions: RecommendedSalaryRange[] = ['Any', '<$80k', '$100k+', '$150k+', '$180k+']
+const experienceLevelOptions: RecommendedExperienceLevel[] = ['Any', 'Entry', 'Mid', 'Senior', 'Lead+']
+const salaryThresholdByRange: Record<Exclude<RecommendedSalaryRange, 'Any'>, number> = {
+  '<$80k': 80,
+  '$100k+': 100,
+  '$150k+': 150,
+  '$180k+': 180,
+}
+const matchesSalaryRangeOption = (salaryInK: number, range: RecommendedSalaryRange) => {
+  if (range === 'Any') return true
+  if (range === '<$80k') return salaryInK > 0 && salaryInK < salaryThresholdByRange['<$80k']
+  return salaryInK >= salaryThresholdByRange[range]
+}
 
 export function RecommendedJobsScreen() {
   const navigation = useNavigation<any>()
@@ -57,6 +72,8 @@ export function RecommendedJobsScreen() {
   const [fullTimeOnly, setFullTimeOnly] = useState(false)
   const [hybridOnly, setHybridOnly] = useState(false)
   const [locationQuery, setLocationQuery] = useState('')
+  const [salaryRange, setSalaryRange] = useState<RecommendedSalaryRange>('Any')
+  const [experienceLevel, setExperienceLevel] = useState<RecommendedExperienceLevel>('Any')
   const [presetName, setPresetName] = useState('')
   const [selectedJob, setSelectedJob] = useState<JobEntry | null>(null)
 
@@ -70,6 +87,8 @@ export function RecommendedJobsScreen() {
     setFullTimeOnly(recommendedScanPreset.fullTimeOnly)
     setHybridOnly(recommendedScanPreset.hybridOnly)
     setLocationQuery(recommendedScanPreset.locationQuery)
+    setSalaryRange(recommendedScanPreset.salaryRange || 'Any')
+    setExperienceLevel(recommendedScanPreset.experienceLevel || 'Any')
     setPresetName(recommendedScanPreset.name)
     setRecommendedActiveFilter(recommendedScanPreset.screenFilter)
   }, [recommendedScanPreset, setRecommendedActiveFilter])
@@ -83,6 +102,38 @@ export function RecommendedJobsScreen() {
     }
     const numeric = Number.parseInt(job.match.replace(/[^\d]/g, ''), 10)
     return Number.isNaN(numeric) ? 0 : numeric
+  }
+
+  const parseSalaryInK = (job: JobEntry) => {
+    const source = [job.salary || '', ...(job.tags || [])].join(' ')
+    const annualMatches = Array.from(source.matchAll(/(\d{2,3})\s*k/gi)).map(match => Number.parseInt(match[1], 10))
+    if (annualMatches.length > 0) {
+      return Math.max(...annualMatches)
+    }
+
+    const hourlyMatch = source.match(/\$?\s*(\d{2,3})(?:\s*-\s*\$?\s*(\d{2,3}))?\s*\/\s*hr/i)
+    if (hourlyMatch) {
+      const low = Number.parseInt(hourlyMatch[1], 10)
+      const high = hourlyMatch[2] ? Number.parseInt(hourlyMatch[2], 10) : low
+      return Math.round(Math.max(low, high) * 2.08)
+    }
+
+    const annualDollarMatches = Array.from(source.matchAll(/\$?\s*(\d{5,6})(?!\s*\/\s*hr)/g)).map(match =>
+      Number.parseInt(match[1], 10)
+    )
+    if (annualDollarMatches.length > 0) {
+      return Math.round(Math.max(...annualDollarMatches) / 1000)
+    }
+
+    return 0
+  }
+
+  const inferExperienceLevel = (role: string): Exclude<RecommendedExperienceLevel, 'Any'> => {
+    const normalized = role.toLowerCase()
+    if (/\b(intern|entry|junior|jr|associate)\b/.test(normalized)) return 'Entry'
+    if (/\b(principal|staff|lead|director|head|vp|chief|manager)\b/.test(normalized)) return 'Lead+'
+    if (/\b(senior|sr)\b/.test(normalized)) return 'Senior'
+    return 'Mid'
   }
 
   const matchesScreenFilter = (job: JobEntry, filter: string) => {
@@ -116,12 +167,22 @@ export function RecommendedJobsScreen() {
     const matchesRemoteOnly = !remoteOnly || job.location.toLowerCase().includes('remote') || hasTag(job, 'Remote')
     const matchesFullTimeOnly = !fullTimeOnly || hasTag(job, 'Full-time')
     const matchesHybridOnly = !hybridOnly || hasTag(job, 'Hybrid')
+    const matchesSalaryRange = matchesSalaryRangeOption(parseSalaryInK(job), salaryRange)
+    const matchesExperienceLevel = experienceLevel === 'Any' || inferExperienceLevel(job.role) === experienceLevel
     const matchesLocation =
       normalizedLocationQuery.length === 0 ||
       job.location.toLowerCase().includes(normalizedLocationQuery) ||
       (normalizedLocationQuery.includes('remote') && hasTag(job, 'Remote'))
 
-    return matchesSearch && matchesRemoteOnly && matchesFullTimeOnly && matchesHybridOnly && matchesLocation
+    return (
+      matchesSearch &&
+      matchesRemoteOnly &&
+      matchesFullTimeOnly &&
+      matchesHybridOnly &&
+      matchesSalaryRange &&
+      matchesExperienceLevel &&
+      matchesLocation
+    )
   }
 
   const filterCounts = Object.fromEntries(
@@ -171,6 +232,8 @@ export function RecommendedJobsScreen() {
     setFullTimeOnly(false)
     setHybridOnly(false)
     setLocationQuery('')
+    setSalaryRange('Any')
+    setExperienceLevel('Any')
     setPresetName('')
     setRecommendedActiveFilter('All Matches')
     clearRecommendedScanPreset()
@@ -184,6 +247,8 @@ export function RecommendedJobsScreen() {
       fullTimeOnly,
       hybridOnly,
       locationQuery,
+      salaryRange,
+      experienceLevel,
       name: presetName,
     })
   }
@@ -367,127 +432,170 @@ export function RecommendedJobsScreen() {
         <Pressable style={styles.modalOverlay} onPress={() => setFiltersModalVisible(false)}>
           <Pressable style={styles.filtersModalContent} onPress={event => event.stopPropagation()}>
             <View style={styles.modalHandle} />
-            <Text style={styles.filtersTitle}>Filter & Sort Jobs</Text>
-            <Text style={styles.filtersSubtitle}>Showing {sortedJobs.length} jobs</Text>
+            <ScrollView
+              style={styles.filtersModalScroll}
+              contentContainerStyle={styles.filtersModalScrollContent}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps='handled'
+            >
+              <Text style={styles.filtersTitle}>Filter & Sort Jobs</Text>
+              <Text style={styles.filtersSubtitle}>Showing {sortedJobs.length} jobs</Text>
 
-            <View style={styles.filtersSection}>
-              <Text style={styles.filtersSectionTitle}>Sort</Text>
-              {sortOptions.map(option => {
-                const selected = sortBy === option.value
-                return (
+              <View style={styles.filtersSection}>
+                <Text style={styles.filtersSectionTitle}>Sort</Text>
+                {sortOptions.map(option => {
+                  const selected = sortBy === option.value
+                  return (
+                    <TouchableOpacity
+                      key={option.value}
+                      style={styles.optionRow}
+                      onPress={() => setSortBy(option.value)}
+                      activeOpacity={0.85}
+                    >
+                      <Text style={[styles.optionLabel, selected && styles.optionLabelSelected]}>{option.label}</Text>
+                      <MaterialIcons
+                        name={selected ? 'radio-button-checked' : 'radio-button-unchecked'}
+                        size={20}
+                        color={selected ? CLTheme.accent : '#64748b'}
+                      />
+                    </TouchableOpacity>
+                  )
+                })}
+              </View>
+
+              <View style={styles.filtersSection}>
+                <Text style={styles.filtersSectionTitle}>Filters</Text>
+                <View style={styles.quickFiltersRow}>
                   <TouchableOpacity
-                    key={option.value}
-                    style={styles.optionRow}
-                    onPress={() => setSortBy(option.value)}
+                    style={[styles.quickFilterChip, remoteOnly && styles.quickFilterChipActive]}
+                    onPress={() => setRemoteOnly(value => !value)}
                     activeOpacity={0.85}
                   >
-                    <Text style={[styles.optionLabel, selected && styles.optionLabelSelected]}>{option.label}</Text>
-                    <MaterialIcons
-                      name={selected ? 'radio-button-checked' : 'radio-button-unchecked'}
-                      size={20}
-                      color={selected ? CLTheme.accent : '#64748b'}
-                    />
+                    <Text style={[styles.quickFilterText, remoteOnly && styles.quickFilterTextActive]}>Remote only</Text>
                   </TouchableOpacity>
-                )
-              })}
-            </View>
+                  <TouchableOpacity
+                    style={[styles.quickFilterChip, fullTimeOnly && styles.quickFilterChipActive]}
+                    onPress={() => setFullTimeOnly(value => !value)}
+                    activeOpacity={0.85}
+                  >
+                    <Text style={[styles.quickFilterText, fullTimeOnly && styles.quickFilterTextActive]}>
+                      Full-time only
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.quickFilterChip, hybridOnly && styles.quickFilterChipActive]}
+                    onPress={() => setHybridOnly(value => !value)}
+                    activeOpacity={0.85}
+                  >
+                    <Text style={[styles.quickFilterText, hybridOnly && styles.quickFilterTextActive]}>Hybrid only</Text>
+                  </TouchableOpacity>
+                </View>
 
-            <View style={styles.filtersSection}>
-              <Text style={styles.filtersSectionTitle}>Filters</Text>
-              <View style={styles.quickFiltersRow}>
+                <Text style={styles.filterSubsectionTitle}>Salary Range</Text>
+                <View style={styles.filterOptionsRow}>
+                  {salaryRangeOptions.map(option => {
+                    const selected = salaryRange === option
+                    return (
+                      <TouchableOpacity
+                        key={option}
+                        style={[styles.filterOptionChip, selected && styles.filterOptionChipActive]}
+                        onPress={() => setSalaryRange(option)}
+                        activeOpacity={0.85}
+                      >
+                        <Text style={[styles.filterOptionText, selected && styles.filterOptionTextActive]}>{option}</Text>
+                      </TouchableOpacity>
+                    )
+                  })}
+                </View>
+
+                <Text style={styles.filterSubsectionTitle}>Experience Level</Text>
+                <View style={styles.filterOptionsRow}>
+                  {experienceLevelOptions.map(option => {
+                    const selected = experienceLevel === option
+                    return (
+                      <TouchableOpacity
+                        key={option}
+                        style={[styles.filterOptionChip, selected && styles.filterOptionChipActive]}
+                        onPress={() => setExperienceLevel(option)}
+                        activeOpacity={0.85}
+                      >
+                        <Text style={[styles.filterOptionText, selected && styles.filterOptionTextActive]}>
+                          {option}
+                        </Text>
+                      </TouchableOpacity>
+                    )
+                  })}
+                </View>
+              </View>
+
+              <View style={styles.filtersSection}>
+                <Text style={styles.filtersSectionTitle}>Location</Text>
+                <LocationAutocomplete
+                  value={locationQuery}
+                  onChangeText={setLocationQuery}
+                  onSelect={setLocationQuery}
+                  currentLocation={currentLocation}
+                  placeholder='City, State or Remote'
+                  showSearchIcon
+                  inputContainerStyle={styles.locationFilterInputContainer}
+                  suggestionsContainerStyle={styles.locationFilterSuggestions}
+                  suggestionRowStyle={styles.locationFilterSuggestionRow}
+                  suggestionTextStyle={styles.locationFilterSuggestionText}
+                />
+              </View>
+
+              <View style={styles.filtersSection}>
+                <Text style={styles.filtersSectionTitle}>Preset Name</Text>
+                <TextInput
+                  value={presetName}
+                  onChangeText={setPresetName}
+                  style={styles.presetNameInput}
+                  placeholder='e.g. Remote PM Roles'
+                  placeholderTextColor='#64748b'
+                />
+              </View>
+
+              <View style={styles.savedPresetCard}>
+                <Text style={styles.savedPresetTitle}>Saved Scan Preset</Text>
+                <Text style={styles.savedPresetText}>
+                  {recommendedScanPreset
+                    ? `${savedPresetDescriptor} • ${new Date(recommendedScanPreset.savedAt).toLocaleDateString()}`
+                    : 'No saved preset yet. Save your current filters to reuse in scan.'}
+                </Text>
+              </View>
+
+              <View style={styles.savedPresetActions}>
                 <TouchableOpacity
-                  style={[styles.quickFilterChip, remoteOnly && styles.quickFilterChipActive]}
-                  onPress={() => setRemoteOnly(value => !value)}
+                  style={styles.secondaryButton}
+                  onPress={saveCurrentFilters}
                   activeOpacity={0.85}
+                  accessibilityLabel='Save recommended filters'
                 >
-                  <Text style={[styles.quickFilterText, remoteOnly && styles.quickFilterTextActive]}>Remote only</Text>
+                  <Text style={styles.secondaryButtonText}>Save Filters</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={[styles.quickFilterChip, fullTimeOnly && styles.quickFilterChipActive]}
-                  onPress={() => setFullTimeOnly(value => !value)}
-                  activeOpacity={0.85}
+                  style={styles.primaryButton}
+                  onPress={handleUseFiltersInScan}
+                  activeOpacity={0.88}
+                  accessibilityLabel='Use filters in scan'
                 >
-                  <Text style={[styles.quickFilterText, fullTimeOnly && styles.quickFilterTextActive]}>
-                    Full-time only
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.quickFilterChip, hybridOnly && styles.quickFilterChipActive]}
-                  onPress={() => setHybridOnly(value => !value)}
-                  activeOpacity={0.85}
-                >
-                  <Text style={[styles.quickFilterText, hybridOnly && styles.quickFilterTextActive]}>Hybrid only</Text>
+                  <Text style={styles.primaryButtonText}>Use in Scan</Text>
                 </TouchableOpacity>
               </View>
-            </View>
 
-            <View style={styles.filtersSection}>
-              <Text style={styles.filtersSectionTitle}>Location</Text>
-              <LocationAutocomplete
-                value={locationQuery}
-                onChangeText={setLocationQuery}
-                onSelect={setLocationQuery}
-                currentLocation={currentLocation}
-                placeholder='City, State or Remote'
-                showSearchIcon
-                inputContainerStyle={styles.locationFilterInputContainer}
-                suggestionsContainerStyle={styles.locationFilterSuggestions}
-                suggestionRowStyle={styles.locationFilterSuggestionRow}
-                suggestionTextStyle={styles.locationFilterSuggestionText}
-              />
-            </View>
-
-            <View style={styles.filtersSection}>
-              <Text style={styles.filtersSectionTitle}>Preset Name</Text>
-              <TextInput
-                value={presetName}
-                onChangeText={setPresetName}
-                style={styles.presetNameInput}
-                placeholder='e.g. Remote PM Roles'
-                placeholderTextColor='#64748b'
-              />
-            </View>
-
-            <View style={styles.savedPresetCard}>
-              <Text style={styles.savedPresetTitle}>Saved Scan Preset</Text>
-              <Text style={styles.savedPresetText}>
-                {recommendedScanPreset
-                  ? `${savedPresetDescriptor} • ${new Date(recommendedScanPreset.savedAt).toLocaleDateString()}`
-                  : 'No saved preset yet. Save your current filters to reuse in scan.'}
-              </Text>
-            </View>
-
-            <View style={styles.savedPresetActions}>
-              <TouchableOpacity
-                style={styles.secondaryButton}
-                onPress={saveCurrentFilters}
-                activeOpacity={0.85}
-                accessibilityLabel='Save recommended filters'
-              >
-                <Text style={styles.secondaryButtonText}>Save Filters</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.primaryButton}
-                onPress={handleUseFiltersInScan}
-                activeOpacity={0.88}
-                accessibilityLabel='Use filters in scan'
-              >
-                <Text style={styles.primaryButtonText}>Use in Scan</Text>
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.filtersFooter}>
-              <TouchableOpacity style={styles.secondaryButton} onPress={resetFiltersAndSort} activeOpacity={0.85}>
-                <Text style={styles.secondaryButtonText}>Reset</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.primaryButton}
-                onPress={() => setFiltersModalVisible(false)}
-                activeOpacity={0.88}
-              >
-                <Text style={styles.primaryButtonText}>Apply</Text>
-              </TouchableOpacity>
-            </View>
+              <View style={styles.filtersFooter}>
+                <TouchableOpacity style={styles.secondaryButton} onPress={resetFiltersAndSort} activeOpacity={0.85}>
+                  <Text style={styles.secondaryButtonText}>Reset</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.primaryButton}
+                  onPress={() => setFiltersModalVisible(false)}
+                  activeOpacity={0.88}
+                >
+                  <Text style={styles.primaryButtonText}>Apply</Text>
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
           </Pressable>
         </Pressable>
       </Modal>
@@ -769,7 +877,7 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   filtersModalContent: {
-    minHeight: height * 0.5,
+    maxHeight: height * 0.86,
     backgroundColor: '#101722',
     borderTopLeftRadius: 22,
     borderTopRightRadius: 22,
@@ -777,7 +885,13 @@ const styles = StyleSheet.create({
     borderTopColor: '#223249',
     paddingHorizontal: 20,
     paddingTop: 12,
-    paddingBottom: 24,
+    paddingBottom: 10,
+  },
+  filtersModalScroll: {
+    flexGrow: 0,
+  },
+  filtersModalScrollContent: {
+    paddingBottom: 14,
   },
   filtersTitle: {
     color: '#f8fafc',
@@ -827,6 +941,41 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     columnGap: 8,
     rowGap: 8,
+  },
+  filterSubsectionTitle: {
+    color: '#94a3b8',
+    fontSize: 11,
+    textTransform: 'uppercase',
+    letterSpacing: 0.7,
+    fontWeight: '700',
+    marginTop: 12,
+    marginBottom: 8,
+  },
+  filterOptionsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    columnGap: 8,
+    rowGap: 8,
+  },
+  filterOptionChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: '#223249',
+    backgroundColor: '#1a222e',
+  },
+  filterOptionChipActive: {
+    borderColor: CLTheme.accent,
+    backgroundColor: 'rgba(13, 108, 242, 0.18)',
+  },
+  filterOptionText: {
+    color: '#cbd5e1',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  filterOptionTextActive: {
+    color: CLTheme.accent,
   },
   quickFilterChip: {
     paddingHorizontal: 12,

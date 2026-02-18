@@ -17,14 +17,21 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.app"
+      "bundleIdentifier": "com.anonymous.app",
+      "infoPlist": {
+        "NSFaceIDUsageDescription": "Use Face ID to protect your Career Lift account security settings."
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.anonymous.app"
+      "package": "com.anonymous.app",
+      "permissions": [
+        "USE_BIOMETRIC",
+        "USE_FINGERPRINT"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"

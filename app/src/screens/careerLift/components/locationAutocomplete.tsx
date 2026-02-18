@@ -10,7 +10,7 @@ import {
   ViewStyle,
 } from 'react-native'
 import { City, State as CountryState } from 'country-state-city'
-import Feather from '@expo/vector-icons/Feather'
+import { Feather } from '@expo/vector-icons'
 
 const MAX_LOCATION_SUGGESTIONS = 8
 const DEFAULT_LOCATION_OPTIONS = [

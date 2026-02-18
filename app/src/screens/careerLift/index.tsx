@@ -16,6 +16,11 @@ import { SettingsProfileScreen } from './settingsProfile'
 import { ApplyPackScreen } from './applyPack'
 import { InterviewPrepScreen } from './interviewPrep'
 import { JobDetailsScreen } from './jobDetails'
+import { AccountSecurityScreen } from './accountSecurity'
+import { UpdatePasswordScreen } from './updatePassword'
+import { UpdateEmailScreen } from './updateEmail'
+import { NotificationsPreferencesScreen } from './notificationPreferences'
+import { DocumentsInsightsScreen } from './documentsInsights'
 import { careerLiftRoutes } from './routes'
 import { CareerLiftTabs } from './tabs'
 
@@ -47,6 +52,11 @@ export function CareerLift() {
       <Stack.Screen name='ATSResults' component={ATSResultsScreen} />
       <Stack.Screen name='WeeklyDigest' component={WeeklyDigestScreen} />
       <Stack.Screen name='SettingsProfile' component={SettingsProfileScreen} />
+      <Stack.Screen name='AccountSecurity' component={AccountSecurityScreen} />
+      <Stack.Screen name='NotificationsPreferences' component={NotificationsPreferencesScreen} />
+      <Stack.Screen name='DocumentsInsights' component={DocumentsInsightsScreen} />
+      <Stack.Screen name='UpdateEmail' component={UpdateEmailScreen} />
+      <Stack.Screen name='UpdatePassword' component={UpdatePasswordScreen} />
       <Stack.Screen name='MainTabs' component={CareerLiftTabs} />
       <Stack.Screen name='ApplyPack' component={ApplyPackScreen} />
       <Stack.Screen name='InterviewPrep' component={InterviewPrepScreen} />

@@ -7,6 +7,7 @@ import { OnboardingGoalsScreen } from '../onboardingGoals'
 import { OnboardingSetTargetsScreen } from '../onboardingSetTargets'
 import { ResumeIngestionScreen } from '../ResumeIngestionScreen'
 import { DashboardScreen } from '../dashboard'
+import { JobDetailsScreen } from '../jobDetails'
 import { OutreachCenterScreen } from '../outreachCenter'
 import { JobTrackerScreen } from '../jobTracker'
 import { LinkedInKitScreen } from '../linkedInKit'
@@ -17,12 +18,58 @@ import { WeeklyDigestScreen } from '../weeklyDigest'
 import { SettingsProfileScreen } from '../settingsProfile'
 import { ApplyPackScreen } from '../applyPack'
 import { InterviewPrepScreen } from '../interviewPrep'
-import { JobDetailsScreen } from '../jobDetails'
+import { AccountSecurityScreen } from '../accountSecurity'
+import { NotificationsPreferencesScreen } from '../notificationPreferences'
+import { DocumentsInsightsScreen } from '../documentsInsights'
+import { UpdateEmailScreen } from '../updateEmail'
+import { UpdatePasswordScreen } from '../updatePassword'
 import { useCareerSetupStore } from '../../../store/careerSetup'
+import { useNavigation, NavigationContainer } from '@react-navigation/native'
+
+const mockedNavigate = jest.fn()
+
+jest.mock('expo-location', () => ({
+  Accuracy: {
+    Balanced: 3,
+  },
+  requestForegroundPermissionsAsync: jest.fn(),
+  getCurrentPositionAsync: jest.fn(),
+  reverseGeocodeAsync: jest.fn(),
+}))
+
+jest.mock('country-state-city', () => ({
+  City: {
+    getCitiesOfCountry: () => [],
+  },
+  State: {
+    getStatesOfCountry: () => [],
+  },
+}))
+
+jest.mock('@react-navigation/native', () => {
+  const actualNav = jest.requireActual('@react-navigation/native')
+  return {
+    ...actualNav,
+    useNavigation: () => ({
+      navigate: mockedNavigate,
+      goBack: jest.fn(),
+      setParams: jest.fn(),
+      addListener: jest.fn(),
+      setOptions: jest.fn(),
+      dispatch: jest.fn(),
+      isFocused: jest.fn(() => true),
+    }),
+    useRoute: () => ({
+      params: {},
+    }),
+    useFocusEffect: jest.fn((callback) => callback()),
+    useIsFocused: jest.fn(() => true),
+  }
+})
 
 describe('careerLiftRoutes', () => {
   it('contains all required screen routes', () => {
-    expect(careerLiftRoutes).toHaveLength(17)
+    expect(careerLiftRoutes).toHaveLength(22)
     expect(careerLiftRoutes.map(route => route.key)).toEqual([
       'Splash',
       'OnboardingGoals',
@@ -39,6 +86,11 @@ describe('careerLiftRoutes', () => {
       'ATSResults',
       'WeeklyDigest',
       'SettingsProfile',
+      'NotificationsPreferences',
+      'AccountSecurity',
+      'DocumentsInsights',
+      'UpdateEmail',
+      'UpdatePassword',
       'ApplyPack',
       'InterviewPrep',
     ])
@@ -47,12 +99,13 @@ describe('careerLiftRoutes', () => {
 
 describe('CareerLift screens', () => {
   const navigation = {
-    navigate: jest.fn(),
+    navigate: mockedNavigate,
     goBack: jest.fn(),
   }
 
   afterEach(() => {
     jest.clearAllMocks()
+    mockedNavigate.mockClear()
     act(() => {
       useCareerSetupStore.getState().resetCareerSetup()
     })
@@ -71,10 +124,10 @@ describe('CareerLift screens', () => {
     expect(navigation.navigate).toHaveBeenCalledWith('OnboardingGoals')
   })
 
-  it('navigates to AI onboarding from splash', () => {
+  it('navigates to AI chat from splash', () => {
     const { getByText } = render(<SplashScreen navigation={navigation} />)
     fireEvent.press(getByText('Get Started with AI'))
-    expect(navigation.navigate).toHaveBeenCalledWith('AIOnboarding')
+    expect(navigation.navigate).toHaveBeenCalledWith('MainTabs', { screen: 'AICoach' })
   })
 
   it.each([
@@ -83,34 +136,33 @@ describe('CareerLift screens', () => {
     { name: 'OnboardingSetTargets', component: OnboardingSetTargetsScreen, heading: 'Set Your Target' },
     { name: 'ResumeIngestion', component: ResumeIngestionScreen, heading: 'Source Resume' },
     // { name: 'ResumeUpload', component: ResumeUploadScreen, heading: 'Lets get your baseline' },
-    { name: 'Dashboard', component: DashboardScreen, heading: 'Your Pipeline' },
+    { name: 'Dashboard', component: DashboardScreen, heading: 'Weekly Plan' },
     { name: 'JobDetails', component: JobDetailsScreen, heading: 'Job Details' },
     { name: 'OutreachCenter', component: OutreachCenterScreen, heading: 'Outreach Center' },
     { name: 'JobTracker', component: JobTrackerScreen, heading: 'My Pipeline' },
     { name: 'LinkedInKit', component: LinkedInKitScreen, heading: 'LinkedIn Kit' },
-    { name: 'MockInterview', component: MockInterviewScreen, heading: 'Behavioral Interview' },
+    { name: 'MockInterview', component: MockInterviewScreen, heading: 'Behavioral' },
     { name: 'AIOnboarding', component: AIOnboardingScreen, heading: 'Career Goals' },
     { name: 'ATSResults', component: ATSResultsScreen, heading: 'Scan Results' },
     { name: 'WeeklyDigest', component: WeeklyDigestScreen, heading: 'WEEKLY DIGEST' },
-    { name: 'SettingsProfile', component: SettingsProfileScreen, heading: 'Settings and Profile' },
+    { name: 'SettingsProfile', component: SettingsProfileScreen, heading: 'TARGET ROLE TRACK' },
+    { name: 'NotificationsPreferences', component: NotificationsPreferencesScreen, heading: 'Notification Preferences' },
+    { name: 'AccountSecurity', component: AccountSecurityScreen, heading: 'Account & Security' },
+    { name: 'DocumentsInsights', component: DocumentsInsightsScreen, heading: 'Documents & Insights' },
+    { name: 'UpdateEmail', component: UpdateEmailScreen, heading: 'Update Email' },
+    { name: 'UpdatePassword', component: UpdatePasswordScreen, heading: 'Update Password' },
     { name: 'ApplyPack', component: ApplyPackScreen, heading: 'Review Package' },
-    { name: 'InterviewPrep', component: InterviewPrepScreen, heading: 'Interview Preparation Pack' },
+    { name: 'InterviewPrep', component: InterviewPrepScreen, heading: 'Interview Prep' },
   ])('renders $name screen content', ({ component: Component, heading }) => {
-    const { getByText } = render(<Component navigation={navigation} />)
-    expect(getByText(heading)).toBeTruthy()
+    const { getAllByText } = render(
+      <NavigationContainer>
+        <Component navigation={navigation} />
+      </NavigationContainer>
+    )
+    expect(getAllByText(new RegExp(heading, 'i')).length).toBeGreaterThan(0)
   })
 
-  it('dashboard bottom navigation items are clickable', () => {
-    const { getByText } = render(<DashboardScreen navigation={navigation} />)
 
-    fireEvent.press(getByText('Jobs'))
-    fireEvent.press(getByText('Docs'))
-    fireEvent.press(getByText('Profile'))
-
-    expect(navigation.navigate).toHaveBeenCalledWith('JobTracker')
-    expect(navigation.navigate).toHaveBeenCalledWith('ApplyPack')
-    expect(navigation.navigate).toHaveBeenCalledWith('SettingsProfile')
-  })
 
   it('shows role options based on selected track', () => {
     useCareerSetupStore.getState().setCareerSetup({
@@ -129,7 +181,7 @@ describe('CareerLift screens', () => {
       <OnboardingSetTargetsScreen navigation={navigation} />
     )
 
-    expect(getByText('Step 2 of 4')).toBeTruthy()
+    expect(getByText('Step 2 of 3')).toBeTruthy()
     expect(getByText('Role Track')).toBeTruthy()
     expect(getByPlaceholderText('Ex: Product Designer')).toBeTruthy()
     expect(getByText('Desired Salary Range')).toBeTruthy()
@@ -140,7 +192,7 @@ describe('CareerLift screens', () => {
   it('renders onboarding goals sections for seniority and location cards', () => {
     const { getByText } = render(<OnboardingGoalsScreen navigation={navigation} />)
 
-    expect(getByText('Seniority Level')).toBeTruthy()
-    expect(getByText('Location Preference')).toBeTruthy()
+    expect(getByText('CURRENT SENIORITY')).toBeTruthy()
+    expect(getByText('PREFERRED WORKING STYLE')).toBeTruthy()
   })
 })

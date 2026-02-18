@@ -8,7 +8,9 @@ import {
   Image,
   Dimensions,
   Platform,
+  Modal,
 } from 'react-native'
+import { Calendar } from 'react-native-calendars'
 import { LinearGradient } from 'expo-linear-gradient'
 import { MaterialIcons } from '@expo/vector-icons'
 import { useNavigation } from '@react-navigation/native'
@@ -22,6 +24,22 @@ export function WeeklyDigestScreen() {
   const navigation = useNavigation<any>()
   const user = useUserProfileStore(state => state)
   const { thisWeek, nextUp } = useJobTrackerStore(state => state)
+
+  // Calendar State
+  const [showCalendar, setShowCalendar] = React.useState(false)
+  const [selectedDate, setSelectedDate] = React.useState(new Date().toISOString().split('T')[0])
+
+  // Calculate week range
+  const weekRange = useMemo(() => {
+    const date = new Date(selectedDate)
+    const day = date.getDay()
+    const diff = date.getDate() - day + (day === 0 ? -6 : 1) // adjust when day is sunday
+    const monday = new Date(date.setDate(diff))
+    const sunday = new Date(date.setDate(monday.getDate() + 6))
+
+    const format = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+    return `${format(monday)} - ${format(sunday)}`
+  }, [selectedDate])
 
   // Derived Metrics
   const metrics = useMemo(() => {
@@ -71,8 +89,8 @@ export function WeeklyDigestScreen() {
           
           <View style={styles.headerCenter}>
             <Text style={styles.headerTitle}>WEEKLY DIGEST</Text>
-            <TouchableOpacity style={styles.dateSelector}>
-              <Text style={styles.dateText}>Oct 23 - Oct 30</Text>
+            <TouchableOpacity style={styles.dateSelector} onPress={() => setShowCalendar(true)}>
+              <Text style={styles.dateText}>{weekRange}</Text>
               <MaterialIcons name="expand-more" size={16} color={CLTheme.accent} />
             </TouchableOpacity>
           </View>
@@ -245,21 +263,44 @@ export function WeeklyDigestScreen() {
       </ScrollView>
 
       {/* Floating Bottom Nav */}
-      <View style={styles.floatingNavContainer}>
-        <View style={styles.floatingNav}>
-          <NavIcon name="home" />
-          <NavIcon name="analytics" />
-          
-          <View style={styles.fabContainer}>
-             <TouchableOpacity style={styles.fab} activeOpacity={0.9} onPress={() => navigation.navigate('JobTracker')}>
-               <MaterialIcons name="add" size={28} color="#fff" />
-             </TouchableOpacity>
+      {/* Calendar Modal */}
+      <Modal
+        visible={showCalendar}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowCalendar(false)}
+      >
+        <TouchableOpacity 
+          style={styles.modalOverlay} 
+          activeOpacity={1} 
+          onPress={() => setShowCalendar(false)}
+        >
+          <View style={styles.calendarContainer}>
+            <Calendar
+              current={selectedDate}
+              onDayPress={(day: { dateString: string }) => {
+                setSelectedDate(day.dateString)
+                setShowCalendar(false)
+              }}
+              theme={{
+                backgroundColor: CLTheme.card,
+                calendarBackground: CLTheme.card,
+                textSectionTitleColor: '#b6c1cd',
+                selectedDayBackgroundColor: CLTheme.accent,
+                selectedDayTextColor: '#ffffff',
+                todayTextColor: CLTheme.accent,
+                dayTextColor: '#fff',
+                textDisabledColor: '#475569',
+                dotColor: CLTheme.accent,
+                selectedDotColor: '#ffffff',
+                arrowColor: CLTheme.accent,
+                monthTextColor: '#fff',
+                indicatorColor: CLTheme.accent,
+              }}
+            />
           </View>
-          
-          <NavIcon name="assignment" active />
-          <NavIcon name="person" onPress={() => navigation.navigate('SettingsProfile')} />
-        </View>
-      </View>
+        </TouchableOpacity>
+      </Modal>
     </View>
   )
 }
@@ -289,14 +330,7 @@ function FunnelStage({ label, count, percent, color, fillColor, fillPercent, isA
   )
 }
 
-function NavIcon({ name, active, onPress }: any) {
-  return (
-    <TouchableOpacity onPress={onPress} style={styles.navIconBtn}>
-      <MaterialIcons name={name} size={24} color={active ? '#fff' : CLTheme.text.muted} />
-      {active && <View style={styles.activeDot} />}
-    </TouchableOpacity>
-  )
-}
+
 
 const styles = StyleSheet.create({
   container: {
@@ -654,56 +688,21 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: 2,
   },
-  // Floating Nav
-  floatingNavContainer: {
-    position: 'absolute',
-    bottom: 20,
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-    pointerEvents: 'box-none',
-  },
-  floatingNav: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 32,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    backgroundColor: 'rgba(15, 23, 42, 0.9)', // slate-900/90
-    borderRadius: 99,
-    borderWidth: 1,
-    borderColor: 'rgba(51, 65, 85, 0.5)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.5,
-    shadowRadius: 20,
-    elevation: 10,
-  },
-  navIconBtn: {
-    alignItems: 'center',
-    gap: 4,
-  },
-  fabContainer: {
-    marginTop: -40,
-  },
-  fab: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: CLTheme.accent, // primary
-    alignItems: 'center',
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'center',
-    shadowColor: CLTheme.accent,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
-    elevation: 8,
+    alignItems: 'center',
+    padding: 20,
   },
-  activeDot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: CLTheme.accent,
+  calendarContainer: {
+    backgroundColor: CLTheme.card,
+    borderRadius: 12,
+    padding: 10,
+    width: '100%',
+    maxWidth: 340,
+    borderWidth: 1,
+    borderColor: CLTheme.border,
   },
 })
 

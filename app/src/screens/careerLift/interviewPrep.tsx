@@ -16,7 +16,9 @@ import { Feather, MaterialIcons } from '@expo/vector-icons'
 import { CLTheme } from './theme'
 import Animated, { FadeInDown } from 'react-native-reanimated'
 import { useCreditsStore, CREDIT_COSTS } from '../../store/creditsStore'
+import { CreditPacksDrawer } from './components/creditPacksDrawer'
 import { SubscriptionModal } from './subscriptionModal'
+import { MonetizationCopyVariant, useMonetizationExperimentsStore } from '../../store/monetizationExperimentsStore'
 import { useUserProfileStore } from '../../store/userProfileStore'
 import { CustomInterviewPrepPayload } from '../../../types'
 
@@ -28,6 +30,62 @@ const CUSTOM_FLOW_STEPS = [
   'Question Drill',
 ] as const
 
+type QuestionPriority = 'high' | 'medium' | 'default'
+
+type RoleSpecificQuestion = {
+  id: string
+  text: string
+  priority: QuestionPriority
+  tip: string
+  storySuggestions?: string[]
+}
+
+type RoleSpecificQuestionGroup = {
+  id: string
+  title: string
+  questions: RoleSpecificQuestion[]
+}
+
+const ROLE_SPECIFIC_QUESTION_GROUPS: RoleSpecificQuestionGroup[] = [
+  {
+    id: 'behavioral',
+    title: 'Behavioral',
+    questions: [
+      {
+        id: 'deadline',
+        text: 'Tell me about a time you failed to meet a deadline.',
+        priority: 'high',
+        tip: 'Focus on what you learned, what changed afterward, and how you communicated early.',
+        storySuggestions: ['Use "The API Migration"', 'Use "Q4 Budget"'],
+      },
+      {
+        id: 'influence',
+        text: 'Describe a situation where you had to influence without authority.',
+        priority: 'default',
+        tip: 'Use concrete stakeholders and explain the tradeoff that won alignment.',
+      },
+    ],
+  },
+  {
+    id: 'product-strategy',
+    title: 'Product Strategy',
+    questions: [
+      {
+        id: 'maps-accessibility',
+        text: 'How would you improve Google Maps for visually impaired users?',
+        priority: 'medium',
+        tip: 'Frame the user journey first, then prioritize measurable accessibility outcomes.',
+      },
+      {
+        id: 'mvp',
+        text: 'Prioritize features for an MVP of a new social app.',
+        priority: 'default',
+        tip: 'State your goals and constraints before listing the MVP cut line.',
+      },
+    ],
+  },
+]
+
 export function InterviewPrepScreen() {
   const navigation = useNavigation()
   const route = useRoute()
@@ -38,15 +96,42 @@ export function InterviewPrepScreen() {
   const [showResearch, setShowResearch] = useState(false)
   const [showMenu, setShowMenu] = useState(false)
   const [showSubscription, setShowSubscription] = useState(false)
+  const [showCreditPackages, setShowCreditPackages] = useState(false)
+  const [subscriptionCopyVariant, setSubscriptionCopyVariant] = useState<MonetizationCopyVariant>('classic')
+  const [creditsCopyVariant, setCreditsCopyVariant] = useState<MonetizationCopyVariant>('classic')
   const [customFlowStep, setCustomFlowStep] = useState(0)
   const [customPrepSaved, setCustomPrepSaved] = useState(false)
 
-  const { balance, canAfford } = useCreditsStore()
-  const { saveCustomInterviewPrep } = useUserProfileStore()
+  const { balance, canAfford, subscriptionTier, setSubscriptionTier } = useCreditsStore()
+  const { saveCustomInterviewPrep, email } = useUserProfileStore()
+  const evaluatePlacement = useMonetizationExperimentsStore(state => state.evaluatePlacement)
   const interviewCost = CREDIT_COSTS.mockInterview
   const hasEnoughCredits = canAfford('mockInterview')
-  const customPrep = (route as any)?.params?.customPrep as CustomInterviewPrepPayload | undefined
+  const routeParams = (route as any)?.params ?? {}
+  const customPrep = routeParams?.customPrep as CustomInterviewPrepPayload | undefined
+  const routeJob = routeParams?.job as { id?: string; role?: string; company?: string } | undefined
   const isCustomFlow = Boolean(customPrep)
+
+  const handleOpenGetMore = () => {
+    const decision = evaluatePlacement({
+      placement: 'interview_get_more_credits',
+      seedKey: email || 'anonymous',
+    })
+
+    if (decision.surface === 'holdout' || decision.isHoldout) {
+      Alert.alert('No offer right now', 'You are currently in a holdout experience for this placement.')
+      return
+    }
+
+    if (decision.surface === 'ai_credits') {
+      setCreditsCopyVariant(decision.copyVariant)
+      setShowCreditPackages(true)
+      return
+    }
+
+    setSubscriptionCopyVariant(decision.copyVariant)
+    setShowSubscription(true)
+  }
 
   const generatedQuestions = customPrep?.focusAreas.map(
     area => `Tell me about a time you showed strong ${area.toLowerCase()}.`
@@ -60,6 +145,13 @@ export function InterviewPrepScreen() {
   const readinessScore = isCustomFlow
     ? Math.min(90, 58 + (customPrep?.focusAreas.length || 0) * 8)
     : 65
+  const roleLabel = isCustomFlow
+    ? customPrep?.inferredRole || 'Custom Role'
+    : routeJob?.role || 'Senior Product Manager'
+  const companyLabel = isCustomFlow
+    ? customPrep?.companyName || 'Target Company'
+    : routeJob?.company || 'Google'
+  const prepCompleteness = Math.min(95, Math.max(35, Math.round(readinessScore * 0.62)))
 
   // Navigation Logic
   const handleStartMock = () => {
@@ -94,6 +186,110 @@ export function InterviewPrepScreen() {
     )
   }
 
+  const handleCloseSubScreen = () => {
+    setShowStoryBank(false)
+    setShowQuestions(false)
+    setShowRubric(false)
+    setShowResearch(false)
+  }
+
+  if (showQuestions) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.questionsScreenHeader}>
+          <View style={styles.questionsTopRow}>
+            <TouchableOpacity style={styles.backButton} onPress={handleCloseSubScreen}>
+              <Feather name="arrow-left" size={20} color={CLTheme.text.secondary} />
+            </TouchableOpacity>
+            <View style={styles.questionsTopActions}>
+              <TouchableOpacity style={styles.questionsIconButton}>
+                <Feather name="bell" size={20} color={CLTheme.text.secondary} />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.questionsIconButton} onPress={() => setShowMenu(true)}>
+                <Feather name="more-horizontal" size={20} color={CLTheme.text.secondary} />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <View style={styles.questionsJobContext}>
+            <View style={styles.questionsLogoBox}>
+              <Text style={styles.questionsLogoText}>{companyLabel.charAt(0).toUpperCase()}</Text>
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.questionsRoleTitle}>{roleLabel}</Text>
+              <Text style={styles.questionsRoleSubtitle}>{companyLabel} interview in 3 days</Text>
+            </View>
+          </View>
+
+          <View style={styles.questionsProgressWrap}>
+            <View style={styles.questionsProgressHeader}>
+              <Text style={styles.questionsProgressLabel}>Prep Completeness</Text>
+              <Text style={styles.questionsProgressValue}>{prepCompleteness}%</Text>
+            </View>
+            <View style={styles.questionsProgressTrack}>
+              <View style={[styles.questionsProgressFill, { width: `${prepCompleteness}%` }]} />
+            </View>
+          </View>
+        </View>
+
+        <ScrollView
+          style={styles.questionsScroll}
+          contentContainerStyle={styles.questionsScrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          <QuestionsSection />
+        </ScrollView>
+
+        <View style={styles.questionsBottomWrap}>
+          <TouchableOpacity
+            style={[styles.questionsBottomButton, !hasEnoughCredits && styles.primaryActionBtnDisabled]}
+            onPress={handleStartMock}
+            disabled={!hasEnoughCredits}
+          >
+            <MaterialIcons name="mic" size={20} color="#fff" />
+            <Text style={styles.questionsBottomButtonText}>Start Mock Interview</Text>
+            <Text style={styles.questionsBottomButtonDuration}>30 min</Text>
+          </TouchableOpacity>
+          {!hasEnoughCredits && (
+            <Text style={styles.questionsInsufficientText}>Insufficient credits for this action</Text>
+          )}
+        </View>
+
+        <Modal visible={showMenu} animationType="slide" transparent>
+          <TouchableOpacity
+            style={styles.menuOverlay}
+            activeOpacity={1}
+            onPress={() => setShowMenu(false)}
+          >
+            <View style={styles.menuContainer}>
+              <View style={styles.menuHeader}>
+                <Text style={styles.menuTitle}>Question Options</Text>
+                <TouchableOpacity onPress={() => setShowMenu(false)}>
+                  <Feather name="x" size={24} color={CLTheme.text.secondary} />
+                </TouchableOpacity>
+              </View>
+
+              <TouchableOpacity style={styles.menuOption} onPress={() => { setShowMenu(false); alert('Edit Role') }}>
+                <Feather name="edit" size={20} color={CLTheme.text.secondary} />
+                <Text style={styles.menuOptionText}>Edit Target Role</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.menuOption} onPress={() => { setShowMenu(false); alert('Notification Settings') }}>
+                <Feather name="settings" size={20} color={CLTheme.text.secondary} />
+                <Text style={styles.menuOptionText}>Notification Settings</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={[styles.menuOption, { borderBottomWidth: 0, marginTop: 12 }]} onPress={() => { setShowMenu(false); handleCloseSubScreen() }}>
+                <Feather name="grid" size={20} color={CLTheme.text.secondary} />
+                <Text style={styles.menuOptionText}>Back To Prep Dashboard</Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        </Modal>
+      </SafeAreaView>
+    )
+  }
+
   // Render Main Dashboard
   if (!showStoryBank && !showQuestions && !showRubric && !showResearch) {
     return (
@@ -111,7 +307,7 @@ export function InterviewPrepScreen() {
                   {isCustomFlow ? 'Custom Interview Prep' : 'Interview Prep'}
                 </Text>
                 <Text style={styles.headerSubtitle}>
-                  {isCustomFlow ? customPrep?.inferredRole || 'Custom Role' : 'Senior Product Manager'}
+                  {roleLabel}
                 </Text>
             </View>
             <TouchableOpacity 
@@ -155,7 +351,7 @@ export function InterviewPrepScreen() {
                             {' '}credits available
                         </Text>
                     </View>
-                    <TouchableOpacity style={styles.buyCreditsBtn} onPress={() => setShowSubscription(true)}>
+                    <TouchableOpacity style={styles.buyCreditsBtn} onPress={handleOpenGetMore}>
                         <Text style={styles.buyCreditsText}>Get More</Text>
                     </TouchableOpacity>
                 </View>
@@ -281,8 +477,8 @@ export function InterviewPrepScreen() {
                     <View style={[styles.gridIcon, { backgroundColor: 'rgba(245, 158, 11, 0.1)' }]}>
                         <Feather name="help-circle" size={24} color="#f59e0b" />
                     </View>
-                    <Text style={styles.gridTitle}>Questions</Text>
-                    <Text style={styles.gridSubtitle}>Top 50 behavioral Qs</Text>
+                    <Text style={styles.gridTitle}>Role-Specific Questions</Text>
+                    <Text style={styles.gridSubtitle}>Practice high-impact interview prompts</Text>
                 </TouchableOpacity>
 
                 {/* Rubric Review */}
@@ -344,11 +540,25 @@ export function InterviewPrepScreen() {
             </TouchableOpacity>
         </Modal>
 
+        <CreditPacksDrawer
+          visible={showCreditPackages}
+          onClose={() => setShowCreditPackages(false)}
+          mode='ai_credits'
+          copyVariant={creditsCopyVariant}
+          onSeePlansInstead={() => {
+            setShowCreditPackages(false)
+            setShowSubscription(true)
+          }}
+        />
+
         {/* Subscription / Get More Credits Modal */}
         <SubscriptionModal
           visible={showSubscription}
           onClose={() => setShowSubscription(false)}
           currentBalance={balance}
+          selectedTierId={subscriptionTier}
+          onSubscribeTier={setSubscriptionTier}
+          copyVariant={subscriptionCopyVariant}
         />
       </SafeAreaView>
     )
@@ -360,18 +570,13 @@ export function InterviewPrepScreen() {
         <View style={styles.header}>
             <TouchableOpacity 
                 style={styles.backButton} 
-                onPress={() => {
-                    setShowStoryBank(false)
-                    setShowQuestions(false)
-                    setShowRubric(false)
-                    setShowResearch(false)
-                }}
+                onPress={handleCloseSubScreen}
             >
                 <Feather name="arrow-left" size={20} color={CLTheme.text.secondary} />
             </TouchableOpacity>
             <View style={styles.headerContent}>
                 <Text style={styles.headerTitle}>
-                    {showStoryBank ? 'Story Bank' : showQuestions ? 'Practice Questions' : showRubric ? 'Evaluation Rubric' : 'Company Research'}
+                    {showStoryBank ? 'Story Bank' : showRubric ? 'Evaluation Rubric' : 'Company Research'}
                 </Text>
             </View>
             <TouchableOpacity 
@@ -385,7 +590,6 @@ export function InterviewPrepScreen() {
 
         <ScrollView contentContainerStyle={styles.scrollContent}>
             {showStoryBank && <StoriesSection onStoryPress={setSelectedStory} />}
-            {showQuestions && <QuestionsSection />}
             {showRubric && <RubricSection />}
             {showResearch && <ResearchSection />}
         </ScrollView>
@@ -518,36 +722,114 @@ function StoriesSection({ onStoryPress }: { onStoryPress: (story: any) => void }
 
 function QuestionsSection() {
     const navigation = useNavigation()
-    const questions = [
-        { id: 1, text: 'Tell me about a time you failed to meet a deadline.', category: 'Reliability' },
-        { id: 2, text: 'How do you handle influence without authority?', category: 'Leadership' },
-        { id: 3, text: 'Improve Google Maps for visually impaired users.', category: 'Product Sense' },
-        { id: 4, text: 'Describe a conflict with an engineer.', category: 'Cross-functional' },
-    ]
+    const [expandedQuestionId, setExpandedQuestionId] = useState('deadline')
+    const [questionGroups, setQuestionGroups] = useState(ROLE_SPECIFIC_QUESTION_GROUPS)
+
+    const handlePracticeQuestion = (question: RoleSpecificQuestion, category: string) => {
+      ;(navigation as any).navigate('MockInterview', {
+        question: question.text,
+        category,
+      })
+    }
+
+    const handleShuffle = () => {
+      setQuestionGroups(current =>
+        current.map(group => ({
+          ...group,
+          questions: [...group.questions].sort(() => Math.random() - 0.5),
+        }))
+      )
+    }
+
+    const getPriorityLabel = (priority: QuestionPriority) => {
+      if (priority === 'high') return { label: 'High Priority', color: '#ef4444' }
+      if (priority === 'medium') return { label: 'Medium Priority', color: '#f59e0b' }
+      return null
+    }
 
     return (
-        <Animated.View entering={FadeInDown.delay(100).duration(400)} style={styles.sectionContainer}>
-            {questions.map((q, i) => (
-                <TouchableOpacity 
-                    key={q.id} 
-                    style={styles.questionCard}
-                    onPress={() => (navigation as any).navigate('MockInterview', { question: q.text, category: q.category })}
-                >
-                    <View style={styles.questionMain}>
-                        <View style={styles.qIcon}>
-                            <Text style={styles.qIndex}>{i + 1}</Text>
+      <Animated.View entering={FadeInDown.delay(100).duration(400)} style={styles.roleQuestionsContainer}>
+        <View style={styles.roleQuestionsHeaderRow}>
+          <Text style={styles.roleQuestionsTitle}>Role-Specific Questions</Text>
+          <TouchableOpacity style={styles.roleQuestionsShuffleBtn} onPress={handleShuffle}>
+            <Feather name="shuffle" size={16} color={CLTheme.text.secondary} />
+          </TouchableOpacity>
+        </View>
+
+        {questionGroups.map(group => (
+          <View key={group.id} style={styles.roleQuestionGroup}>
+            <Text style={styles.roleQuestionGroupTitle}>{group.title}</Text>
+            <View style={styles.roleQuestionGroupList}>
+              {group.questions.map(question => {
+                const expanded = expandedQuestionId === question.id
+                const priority = getPriorityLabel(question.priority)
+
+                return (
+                  <View
+                    key={question.id}
+                    style={[styles.roleQuestionCard, expanded && styles.roleQuestionCardExpanded]}
+                  >
+                    <TouchableOpacity
+                      style={styles.roleQuestionCardHeader}
+                      onPress={() => setExpandedQuestionId(expanded ? '' : question.id)}
+                    >
+                      <View style={{ flex: 1 }}>
+                        {priority && (
+                          <View style={styles.roleQuestionPriorityRow}>
+                            <View style={[styles.roleQuestionPriorityDot, { backgroundColor: priority.color }]} />
+                            <Text style={[styles.roleQuestionPriorityText, { color: priority.color }]}>
+                              {priority.label}
+                            </Text>
+                          </View>
+                        )}
+                        <Text style={styles.roleQuestionText}>{question.text}</Text>
+                      </View>
+                      <Feather
+                        name={expanded ? 'chevron-up' : 'chevron-down'}
+                        size={18}
+                        color={expanded ? CLTheme.accent : CLTheme.text.muted}
+                      />
+                    </TouchableOpacity>
+
+                    {expanded && (
+                      <View style={styles.roleQuestionExpandedBody}>
+                        {!!question.storySuggestions?.length && (
+                          <ScrollView
+                            horizontal
+                            showsHorizontalScrollIndicator={false}
+                            contentContainerStyle={styles.roleQuestionSuggestionScroll}
+                          >
+                            {question.storySuggestions.map(suggestion => (
+                              <View key={suggestion} style={styles.roleQuestionSuggestionChip}>
+                                <Text style={styles.roleQuestionSuggestionText}>{suggestion}</Text>
+                              </View>
+                            ))}
+                          </ScrollView>
+                        )}
+
+                        <View style={styles.roleQuestionTipCard}>
+                          <Text style={styles.roleQuestionTipText}>
+                            <Text style={styles.roleQuestionTipLabel}>Tip: </Text>
+                            {question.tip}
+                          </Text>
                         </View>
-                        <View style={styles.qContent}>
-                            <Text style={styles.qText}>{q.text}</Text>
-                            <Text style={styles.qCategory}>{q.category}</Text>
-                        </View>
-                    </View>
-                    <View style={styles.practiceBtnSmall}>
-                        <Text style={styles.practiceBtnText}>Practice</Text>
-                    </View>
-                </TouchableOpacity>
-            ))}
-        </Animated.View>
+
+                        <TouchableOpacity
+                          style={styles.roleQuestionPracticeBtn}
+                          onPress={() => handlePracticeQuestion(question, group.title)}
+                        >
+                          <Text style={styles.roleQuestionPracticeBtnText}>Practice this question</Text>
+                          <Feather name="arrow-right" size={14} color={CLTheme.accent} />
+                        </TouchableOpacity>
+                      </View>
+                    )}
+                  </View>
+                )
+              })}
+            </View>
+          </View>
+        ))}
+      </Animated.View>
     )
 }
 
@@ -897,6 +1179,281 @@ const styles = StyleSheet.create({
   sectionContainer: {
     gap: 16,
   },
+  questionsScreenHeader: {
+    paddingHorizontal: 20,
+    paddingTop: Platform.OS === 'android' ? 40 : 10,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: CLTheme.border,
+    backgroundColor: CLTheme.background,
+    gap: 16,
+  },
+  questionsTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  questionsTopActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  questionsIconButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: CLTheme.card,
+    borderWidth: 1,
+    borderColor: CLTheme.border,
+  },
+  questionsJobContext: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+  },
+  questionsLogoBox: {
+    width: 54,
+    height: 54,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: CLTheme.card,
+    borderWidth: 1,
+    borderColor: CLTheme.border,
+  },
+  questionsLogoText: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: CLTheme.accent,
+  },
+  questionsRoleTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: CLTheme.text.primary,
+  },
+  questionsRoleSubtitle: {
+    fontSize: 13,
+    color: CLTheme.text.secondary,
+    marginTop: 2,
+  },
+  questionsProgressWrap: {
+    gap: 8,
+  },
+  questionsProgressHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  questionsProgressLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    color: CLTheme.accent,
+  },
+  questionsProgressValue: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: CLTheme.text.secondary,
+  },
+  questionsProgressTrack: {
+    height: 8,
+    borderRadius: 999,
+    backgroundColor: CLTheme.card,
+    borderWidth: 1,
+    borderColor: CLTheme.border,
+    overflow: 'hidden',
+  },
+  questionsProgressFill: {
+    height: '100%',
+    backgroundColor: CLTheme.accent,
+    borderRadius: 999,
+  },
+  questionsScroll: {
+    flex: 1,
+  },
+  questionsScrollContent: {
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 180,
+  },
+  questionsBottomWrap: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    paddingHorizontal: 20,
+    paddingTop: 14,
+    paddingBottom: Platform.OS === 'ios' ? 30 : 16,
+    backgroundColor: 'rgba(8, 13, 24, 0.94)',
+    borderTopWidth: 1,
+    borderTopColor: CLTheme.border,
+  },
+  questionsBottomButton: {
+    backgroundColor: CLTheme.accent,
+    borderRadius: 14,
+    minHeight: 54,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  questionsBottomButtonText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#fff',
+  },
+  questionsBottomButtonDuration: {
+    marginLeft: 'auto',
+    fontSize: 11,
+    fontWeight: '700',
+    color: 'rgba(255,255,255,0.9)',
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 10,
+  },
+  questionsInsufficientText: {
+    marginTop: 8,
+    fontSize: 12,
+    color: '#ef4444',
+    textAlign: 'center',
+  },
+  roleQuestionsContainer: {
+    gap: 16,
+  },
+  roleQuestionsHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  roleQuestionsTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: CLTheme.text.primary,
+  },
+  roleQuestionsShuffleBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: CLTheme.card,
+    borderWidth: 1,
+    borderColor: CLTheme.border,
+  },
+  roleQuestionGroup: {
+    gap: 10,
+  },
+  roleQuestionGroupTitle: {
+    marginLeft: 2,
+    fontSize: 11,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+    color: CLTheme.text.muted,
+  },
+  roleQuestionGroupList: {
+    gap: 10,
+  },
+  roleQuestionCard: {
+    backgroundColor: CLTheme.card,
+    borderWidth: 1,
+    borderColor: CLTheme.border,
+    borderRadius: 14,
+    overflow: 'hidden',
+  },
+  roleQuestionCardExpanded: {
+    borderColor: `${CLTheme.accent}66`,
+  },
+  roleQuestionCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    padding: 14,
+  },
+  roleQuestionPriorityRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 6,
+  },
+  roleQuestionPriorityDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  roleQuestionPriorityText: {
+    fontSize: 10,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  roleQuestionText: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: CLTheme.text.primary,
+    fontWeight: '600',
+  },
+  roleQuestionExpandedBody: {
+    borderTopWidth: 1,
+    borderTopColor: CLTheme.border,
+    padding: 14,
+    gap: 10,
+  },
+  roleQuestionSuggestionScroll: {
+    gap: 8,
+    paddingRight: 10,
+  },
+  roleQuestionSuggestionChip: {
+    borderRadius: 9,
+    borderWidth: 1,
+    borderColor: `${CLTheme.accent}44`,
+    backgroundColor: `${CLTheme.accent}20`,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+  },
+  roleQuestionSuggestionText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: CLTheme.accent,
+  },
+  roleQuestionTipCard: {
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: CLTheme.border,
+    backgroundColor: CLTheme.background,
+    padding: 10,
+  },
+  roleQuestionTipText: {
+    fontSize: 12,
+    color: CLTheme.text.secondary,
+    lineHeight: 18,
+  },
+  roleQuestionTipLabel: {
+    fontWeight: '700',
+    color: CLTheme.text.primary,
+  },
+  roleQuestionPracticeBtn: {
+    marginTop: 2,
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    borderWidth: 1,
+    borderColor: `${CLTheme.accent}66`,
+    borderRadius: 9,
+    backgroundColor: `${CLTheme.accent}1A`,
+    paddingHorizontal: 11,
+    paddingVertical: 8,
+  },
+  roleQuestionPracticeBtnText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: CLTheme.accent,
+  },
   storyCard: {
       backgroundColor: CLTheme.card,
       borderRadius: 16,
@@ -954,62 +1511,6 @@ const styles = StyleSheet.create({
   tagText: {
       fontSize: 11,
       color: CLTheme.text.secondary,
-  },
-  questionCard: {
-      backgroundColor: CLTheme.card,
-      borderRadius: 16,
-      padding: 16,
-      borderWidth: 1,
-      borderColor: CLTheme.border,
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-  },
-  questionMain: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 12,
-      flex: 1,
-      paddingRight: 12,
-  },
-  qIcon: {
-      width: 28,
-      height: 28,
-      borderRadius: 14,
-      backgroundColor: CLTheme.background,
-      alignItems: 'center',
-      justifyContent: 'center',
-      borderWidth: 1,
-      borderColor: CLTheme.border,
-  },
-  qIndex: {
-      fontSize: 12,
-      fontWeight: '700',
-      color: CLTheme.text.muted,
-  },
-  qContent: {
-      flex: 1,
-  },
-  qText: {
-      fontSize: 14,
-      color: CLTheme.text.primary,
-      fontWeight: '500',
-      marginBottom: 2,
-  },
-  qCategory: {
-      fontSize: 11,
-      color: CLTheme.text.secondary,
-  },
-  practiceBtnSmall: {
-      paddingHorizontal: 12,
-      paddingVertical: 8,
-      backgroundColor: 'rgba(13, 108, 242, 0.1)',
-      borderRadius: 8,
-  },
-  practiceBtnText: {
-      fontSize: 12,
-      fontWeight: '600',
-      color: CLTheme.accent,
   },
   modalOverlay: {
     flex: 1,

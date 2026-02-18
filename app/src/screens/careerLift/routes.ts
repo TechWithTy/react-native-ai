@@ -14,6 +14,11 @@ export const careerLiftRoutes = [
   { key: 'ATSResults', label: 'ATS Fit Scan Results' },
   { key: 'WeeklyDigest', label: 'Weekly Progress Digest' },
   { key: 'SettingsProfile', label: 'Settings and Profile' },
+  { key: 'NotificationsPreferences', label: 'Notification Preferences' },
+  { key: 'AccountSecurity', label: 'Account and Security Settings' },
+  { key: 'DocumentsInsights', label: 'Documents and Insights' },
+  { key: 'UpdateEmail', label: 'Update Account Email' },
+  { key: 'UpdatePassword', label: 'Update Secure Password' },
   { key: 'ApplyPack', label: 'Apply Pack Review' },
   { key: 'InterviewPrep', label: 'Interview Preparation Pack' },
 ] as const

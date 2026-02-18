@@ -23,6 +23,7 @@ import { useCareerSetupStore } from '../../store/careerSetup'
 import { useCreditsStore, CREDIT_COSTS } from '../../store/creditsStore'
 import { CLTheme } from './theme'
 import { CustomPrepEntryModal } from './components/customPrepEntryModal'
+import * as Clipboard from 'expo-clipboard'
 
 const { width, height } = Dimensions.get('window')
 
@@ -114,6 +115,32 @@ const inferLocation = (source: string, mode: 'url' | 'text', fallbackLocation?: 
   return fallbackLocation || 'Unspecified'
 }
 
+const isOutreachAction = (nextAction: string) => {
+  const normalized = nextAction.toLowerCase()
+  return (
+    normalized.includes('follow up email') ||
+    normalized.includes('follow-up email') ||
+    normalized.includes('follow up / test') ||
+    normalized.includes('follow-up / test') ||
+    (normalized.includes('follow') && normalized.includes('email')) ||
+    normalized.includes('test')
+  )
+}
+
+const buildOutreachDraft = (job: JobEntry) => {
+  return [
+    `Hi ${job.company} team,`,
+    '',
+    `Quick follow-up on my application for the ${job.role} role.`,
+    'I remain very interested and would love to continue the process.',
+    '',
+    'If helpful, I can also share a short work sample aligned to this role.',
+    '',
+    'Thank you for your time,',
+    '[Your Name]',
+  ].join('\n')
+}
+
 type PipelineStatusFilter = 'All' | 'Applied' | 'Interview' | 'Interviewing' | 'Offer' | 'Target' | 'Not Interested'
 
 type JobTrackerRouteParams = {
@@ -142,9 +169,11 @@ export function JobTrackerScreen({ route }: JobTrackerProps = {}) {
   const { thisWeek, nextUp, recommendedJobs, filters, activeFilter, setFilter, updateJobStatus, updateJobNotes, addJob } = useJobTrackerStore()
   const { avatarUrl, customInterviewPreps = [] } = useUserProfileStore()
   const { roleTrack, targetRole, locationPreference } = useCareerSetupStore()
-  const { balance: creditBalance, canAfford: canAffordCredit } = useCreditsStore()
+  const { balance: creditBalance, canAfford: canAffordCredit, spendCredits } = useCreditsStore()
   const applyCost = CREDIT_COSTS.aiApplicationSubmit
+  const outreachCost = CREDIT_COSTS.outreachMessageGen
   const canAffordApply = canAffordCredit('aiApplicationSubmit')
+  const canAffordOutreach = canAffordCredit('outreachMessageGen')
   const creditColor = creditBalance > 30 ? '#10b981' : creditBalance > 10 ? '#f59e0b' : '#ef4444'
 
   // Dynamic Filters based on user profile
@@ -163,6 +192,7 @@ export function JobTrackerScreen({ route }: JobTrackerProps = {}) {
   const [newStatus, setNewStatus] = useState<JobEntry['status']>('Applied')
   const [disqualifyReason, setDisqualifyReason] = useState('')
   const [notes, setNotes] = useState('')
+  const [statusUpdateNote, setStatusUpdateNote] = useState('')
   
   // Application Prep State
   const [selectedResume, setSelectedResume] = useState(RESUMES[0])
@@ -174,6 +204,9 @@ export function JobTrackerScreen({ route }: JobTrackerProps = {}) {
   const [jobDescriptionUrl, setJobDescriptionUrl] = useState('')
   const [jobDescriptionText, setJobDescriptionText] = useState('')
   const [showCustomPrepModal, setShowCustomPrepModal] = useState(false)
+  const [showOutreachDrawer, setShowOutreachDrawer] = useState(false)
+  const [selectedOutreachJob, setSelectedOutreachJob] = useState<JobEntry | null>(null)
+  const [outreachDraft, setOutreachDraft] = useState('')
   const initialStatus = route?.params?.initialStatus
   const openAddJobModalFromRoute = route?.params?.openAddJobModal === true
 
@@ -203,6 +236,8 @@ export function JobTrackerScreen({ route }: JobTrackerProps = {}) {
   }, [openAddJobModalFromRoute, showAddJobModal, navigation])
 
   const openJobDetails = (job: JobEntry) => {
+      setShowOutreachDrawer(false)
+      setSelectedOutreachJob(null)
       setSelectedJob(job)
       setModalVisible(true)
       setIsApplying(false)
@@ -210,6 +245,7 @@ export function JobTrackerScreen({ route }: JobTrackerProps = {}) {
       setNewStatus(job.status)
       setDisqualifyReason('')
       setNotes(job.notes || '')
+      setStatusUpdateNote('')
       setActiveDropdown(null)
       // Reset selections to defaults or last used? Defaults for now.
       setSelectedResume(RESUMES[0])
@@ -217,18 +253,112 @@ export function JobTrackerScreen({ route }: JobTrackerProps = {}) {
       fillAnim.setValue(0)
   }
 
+  const openOutreachDrawer = (job: JobEntry) => {
+      setModalVisible(false)
+      setSelectedJob(null)
+      setIsApplying(false)
+      setIsUpdatingStatus(false)
+      setSelectedOutreachJob(job)
+      setOutreachDraft('')
+      setShowOutreachDrawer(true)
+  }
+
+  const closeOutreachDrawer = () => {
+      setShowOutreachDrawer(false)
+      setSelectedOutreachJob(null)
+      setOutreachDraft('')
+  }
+
+  const handleJobPress = (job: JobEntry) => {
+      if (isOutreachAction(job.nextAction)) {
+          openOutreachDrawer(job)
+          return
+      }
+      openJobDetails(job)
+  }
+
   const closeJobDetails = () => {
       setModalVisible(false)
       setSelectedJob(null)
       setIsApplying(false)
       setIsUpdatingStatus(false)
+      setStatusUpdateNote('')
       setActiveDropdown(null)
       setPreviewDoc(null)
       fillAnim.setValue(0)
   }
 
+  const handleGenerateOutreachDraft = () => {
+      if (!selectedOutreachJob) return
+      if (!canAffordOutreach) {
+          Alert.alert(
+            'Not enough credits',
+            `Generating outreach drafts requires ${outreachCost} credits.`
+          )
+          return
+      }
+
+      const spent = spendCredits(
+        'outreachMessageGen',
+        `Outreach draft for ${selectedOutreachJob.company}`
+      )
+      if (!spent) {
+          Alert.alert(
+            'Not enough credits',
+            `Generating outreach drafts requires ${outreachCost} credits.`
+          )
+          return
+      }
+
+      setOutreachDraft(buildOutreachDraft(selectedOutreachJob))
+  }
+
+  const handleCopyOutreachDraft = async () => {
+      if (!outreachDraft.trim()) {
+          Alert.alert('No draft yet', 'Generate a draft first before copying.')
+          return
+      }
+
+      await Clipboard.setStringAsync(outreachDraft)
+      Alert.alert('Copied', 'Outreach draft copied to clipboard.')
+  }
+
+  const handleMarkOutreachSent = () => {
+      if (!selectedOutreachJob) return
+
+      if (outreachDraft.trim()) {
+        const previousNotes = selectedOutreachJob.notes?.trim() || ''
+        const updatedNotes = [
+          previousNotes,
+          `[Outreach sent • ${new Date().toLocaleDateString()}]`,
+          outreachDraft.trim(),
+        ]
+          .filter(Boolean)
+          .join('\n\n')
+
+        updateJobNotes(selectedOutreachJob.id, updatedNotes)
+      }
+
+      Alert.alert('Marked as sent', 'Outreach was logged for this role.')
+      closeOutreachDrawer()
+  }
+
   const handleUpdateStatus = () => {
       if (selectedJob) {
+          const existingNotes = selectedJob.notes?.trim() || notes.trim()
+          const trimmedReason = disqualifyReason.trim()
+          const trimmedUpdateNote = statusUpdateNote.trim()
+          const statusUpdateEntry = [
+            `[${new Date().toLocaleString()}] Status: ${selectedJob.status} -> ${newStatus}`,
+            trimmedReason ? `Reason: ${trimmedReason}` : '',
+            trimmedUpdateNote ? `Note: ${trimmedUpdateNote}` : '',
+          ]
+            .filter(Boolean)
+            .join('\n')
+
+          const mergedNotes = [existingNotes, statusUpdateEntry].filter(Boolean).join('\n\n')
+          updateJobNotes(selectedJob.id, mergedNotes)
+          setNotes(mergedNotes)
           updateJobStatus(selectedJob.id, newStatus)
           closeJobDetails()
       }
@@ -606,7 +736,7 @@ export function JobTrackerScreen({ route }: JobTrackerProps = {}) {
           </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.recScroll} contentContainerStyle={{paddingRight: 20}}>
               {recommendedJobs.slice(0, 3).map(job => (
-                  <TouchableOpacity key={job.id} style={styles.recCard} activeOpacity={0.8} onPress={() => openJobDetails(job)}>
+                  <TouchableOpacity key={job.id} style={styles.recCard} activeOpacity={0.8} onPress={() => handleJobPress(job)}>
                       <View style={styles.recHeader}>
                          <View style={[styles.logoBoxSmall, { backgroundColor: job.color || '#f0f0f0' }]}>
                              {job.logo ? (
@@ -633,7 +763,7 @@ export function JobTrackerScreen({ route }: JobTrackerProps = {}) {
                 </View>
                 <View style={styles.list}>
                     {thisWeek.map(job => (
-                        <TouchableOpacity key={job.id} activeOpacity={0.9} onPress={() => openJobDetails(job)}>
+                        <TouchableOpacity key={job.id} activeOpacity={0.9} onPress={() => handleJobPress(job)}>
                             {renderJobCard(job)}
                         </TouchableOpacity>
                     ))}
@@ -644,7 +774,7 @@ export function JobTrackerScreen({ route }: JobTrackerProps = {}) {
                 </View>
                 <View style={styles.list}>
                     {nextUp.map(job => (
-                        <TouchableOpacity key={job.id} activeOpacity={0.9} onPress={() => openJobDetails(job)}>
+                        <TouchableOpacity key={job.id} activeOpacity={0.9} onPress={() => handleJobPress(job)}>
                             {renderJobCard(job)}
                         </TouchableOpacity>
                     ))}
@@ -658,7 +788,7 @@ export function JobTrackerScreen({ route }: JobTrackerProps = {}) {
                </View>
                <View style={styles.list}>
                    {displayedJobs.map(job => (
-                       <TouchableOpacity key={job.id} activeOpacity={0.9} onPress={() => openJobDetails(job)}>
+                       <TouchableOpacity key={job.id} activeOpacity={0.9} onPress={() => handleJobPress(job)}>
                            {renderJobCard(job)}
                        </TouchableOpacity>
                    ))}
@@ -757,6 +887,79 @@ export function JobTrackerScreen({ route }: JobTrackerProps = {}) {
           navigation.navigate('InterviewPrep', { customPrep })
         }}
       />
+
+      <Modal visible={showOutreachDrawer} animationType='slide' transparent>
+          <View style={styles.outreachOverlay}>
+              <TouchableOpacity style={styles.outreachBackdrop} activeOpacity={1} onPress={closeOutreachDrawer} />
+              <View style={styles.outreachSheet}>
+                  <View style={styles.outreachHandle} />
+                  <View style={styles.outreachHeaderRow}>
+                      <View style={{ flex: 1, paddingRight: 12 }}>
+                          <Text style={styles.outreachTitle}>Draft Outreach Message</Text>
+                          <Text style={styles.outreachSubtitle}>
+                              {selectedOutreachJob?.role} • {selectedOutreachJob?.company}
+                          </Text>
+                          <Text style={styles.outreachMeta}>
+                              {selectedOutreachJob?.nextAction || 'Follow-up email / test'}
+                          </Text>
+                      </View>
+                      <TouchableOpacity onPress={closeOutreachDrawer} style={styles.closeBtn}>
+                          <Feather name='x' size={22} color={CLTheme.text.secondary} />
+                      </TouchableOpacity>
+                  </View>
+
+                  <View style={styles.creditCostRow}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                          <Feather name='zap' size={14} color={creditColor} />
+                          <Text style={styles.creditBalanceSmall}>{creditBalance} credits</Text>
+                      </View>
+                      <Text style={styles.creditEstimate}>Generate: ~{outreachCost} credits</Text>
+                  </View>
+
+                  <View style={styles.outreachEditorCard}>
+                      <Text style={styles.outreachEditorLabel}>Message Preview</Text>
+                      <TextInput
+                        style={styles.outreachTextarea}
+                        value={outreachDraft}
+                        onChangeText={setOutreachDraft}
+                        multiline
+                        textAlignVertical='top'
+                        placeholder='Generate an AI follow-up message, then edit before copying.'
+                        placeholderTextColor={CLTheme.text.muted}
+                      />
+                  </View>
+
+                  <View style={styles.outreachActionRow}>
+                      <TouchableOpacity
+                        style={[styles.outreachGenerateBtn, !canAffordOutreach && { opacity: 0.45 }]}
+                        onPress={handleGenerateOutreachDraft}
+                        disabled={!canAffordOutreach}
+                        testID='tracker-outreach-generate'
+                      >
+                        <Feather name='zap' size={16} color='#fff' />
+                        <Text style={styles.outreachGenerateBtnText}>Generate</Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        style={styles.outreachCopyBtn}
+                        onPress={handleCopyOutreachDraft}
+                        testID='tracker-outreach-copy'
+                      >
+                        <Feather name='copy' size={16} color={CLTheme.accent} />
+                        <Text style={styles.outreachCopyBtnText}>Copy</Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        style={styles.outreachMarkSentBtn}
+                        onPress={handleMarkOutreachSent}
+                        testID='tracker-outreach-mark-sent'
+                      >
+                        <Feather name='check-circle' size={18} color='#fff' />
+                      </TouchableOpacity>
+                  </View>
+              </View>
+          </View>
+      </Modal>
       
       {/* Job Details Modal - Keeping it simple for now, can be expanded */}
       <Modal visible={modalVisible} animationType="slide" transparent>
@@ -936,6 +1139,19 @@ export function JobTrackerScreen({ route }: JobTrackerProps = {}) {
                                       </View>
                                   )}
 
+                                  <View style={{marginTop: 16}}>
+                                      <Text style={styles.detailLabel}>Update Note (Optional)</Text>
+                                      <TextInput
+                                          style={styles.updateNoteInput}
+                                          placeholder='Add a quick update note for this status change...'
+                                          placeholderTextColor={CLTheme.text.muted}
+                                          value={statusUpdateNote}
+                                          onChangeText={setStatusUpdateNote}
+                                          multiline
+                                          textAlignVertical='top'
+                                      />
+                                  </View>
+
                                   <TouchableOpacity 
                                       style={[styles.primaryBtn, {marginBottom: 16}]} 
                                       onPress={handleUpdateStatus}
@@ -943,7 +1159,13 @@ export function JobTrackerScreen({ route }: JobTrackerProps = {}) {
                                       <Text style={styles.primaryBtnText}>Save Update</Text>
                                   </TouchableOpacity>
 
-                                  <TouchableOpacity style={{alignItems: 'center'}} onPress={() => setIsUpdatingStatus(false)}>
+                                  <TouchableOpacity
+                                      style={{alignItems: 'center'}}
+                                      onPress={() => {
+                                          setIsUpdatingStatus(false)
+                                          setStatusUpdateNote('')
+                                      }}
+                                  >
                                       <Text style={{color: CLTheme.text.muted}}>Cancel</Text>
                                   </TouchableOpacity>
                               </View>
@@ -1768,6 +1990,18 @@ const styles = StyleSheet.create({
       minHeight: 80,
       textAlignVertical: 'top',
   },
+  updateNoteInput: {
+      backgroundColor: CLTheme.background,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: CLTheme.border,
+      padding: 12,
+      color: CLTheme.text.primary,
+      fontSize: 14,
+      lineHeight: 20,
+      minHeight: 88,
+      textAlignVertical: 'top',
+  },
   dropdownContainer: {
       backgroundColor: CLTheme.background,
       borderRadius: 12,
@@ -1804,5 +2038,122 @@ const styles = StyleSheet.create({
       color: '#ef4444',
       textAlign: 'center',
       marginTop: 10,
+  },
+  outreachOverlay: {
+      flex: 1,
+      justifyContent: 'flex-end',
+      backgroundColor: 'rgba(0,0,0,0.55)',
+  },
+  outreachBackdrop: {
+      ...StyleSheet.absoluteFillObject,
+  },
+  outreachSheet: {
+      backgroundColor: CLTheme.card,
+      borderTopLeftRadius: 24,
+      borderTopRightRadius: 24,
+      borderTopWidth: 1,
+      borderColor: CLTheme.border,
+      paddingHorizontal: 20,
+      paddingTop: 10,
+      paddingBottom: 24,
+      gap: 14,
+  },
+  outreachHandle: {
+      width: 44,
+      height: 5,
+      borderRadius: 3,
+      backgroundColor: CLTheme.border,
+      alignSelf: 'center',
+      marginBottom: 2,
+  },
+  outreachHeaderRow: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      justifyContent: 'space-between',
+  },
+  outreachTitle: {
+      fontSize: 20,
+      fontWeight: '700',
+      color: CLTheme.text.primary,
+  },
+  outreachSubtitle: {
+      marginTop: 4,
+      fontSize: 13,
+      color: CLTheme.accent,
+      fontWeight: '600',
+  },
+  outreachMeta: {
+      marginTop: 2,
+      fontSize: 11,
+      color: CLTheme.text.muted,
+      textTransform: 'uppercase',
+      letterSpacing: 0.4,
+  },
+  outreachEditorCard: {
+      backgroundColor: CLTheme.background,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: CLTheme.border,
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+  },
+  outreachEditorLabel: {
+      fontSize: 11,
+      fontWeight: '700',
+      color: CLTheme.text.muted,
+      textTransform: 'uppercase',
+      letterSpacing: 0.6,
+      marginBottom: 8,
+  },
+  outreachTextarea: {
+      color: CLTheme.text.primary,
+      minHeight: 140,
+      fontSize: 14,
+      lineHeight: 21,
+  },
+  outreachActionRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+  },
+  outreachGenerateBtn: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 6,
+      backgroundColor: CLTheme.accent,
+      borderRadius: 12,
+      paddingVertical: 13,
+  },
+  outreachGenerateBtnText: {
+      color: '#fff',
+      fontSize: 14,
+      fontWeight: '700',
+  },
+  outreachCopyBtn: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 6,
+      backgroundColor: 'rgba(13, 108, 242, 0.12)',
+      borderWidth: 1,
+      borderColor: 'rgba(13, 108, 242, 0.35)',
+      borderRadius: 12,
+      paddingVertical: 13,
+  },
+  outreachCopyBtnText: {
+      color: CLTheme.accent,
+      fontSize: 14,
+      fontWeight: '700',
+  },
+  outreachMarkSentBtn: {
+      width: 48,
+      height: 48,
+      borderRadius: 12,
+      backgroundColor: '#10b981',
+      alignItems: 'center',
+      justifyContent: 'center',
   },
 })

@@ -8,6 +8,7 @@ import { useJobTrackerStore } from '../../../store/jobTrackerStore'
 
 const mockNavigate = jest.fn()
 const mockGoBack = jest.fn()
+const mockClipboardSetStringAsync = jest.fn()
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
@@ -28,11 +29,16 @@ jest.mock('@expo/vector-icons', () => {
   }
 })
 
+jest.mock('expo-clipboard', () => ({
+  setStringAsync: (...args: any[]) => mockClipboardSetStringAsync(...args),
+}))
+
 jest.spyOn(Alert, 'alert')
 
 describe('JobTrackerScreen — Job Detail Modal', () => {
   beforeEach(() => {
     jest.clearAllMocks()
+    mockClipboardSetStringAsync.mockClear()
   })
 
   it('opens modal with job header on card press', () => {
@@ -45,21 +51,21 @@ describe('JobTrackerScreen — Job Detail Modal', () => {
     expect(getByText('Job Details')).toBeTruthy()
   })
 
-  it('shows next action info inside modal', () => {
+  it('opens outreach drawer for follow-up action jobs', () => {
     const { getByText, getAllByText } = render(<JobTrackerScreen />)
 
     fireEvent.press(getByText('Staff Product Designer'))
 
-    expect(getByText('Next Action')).toBeTruthy()
-    // "Follow up email" may appear in card + modal
+    expect(getByText('Draft Outreach Message')).toBeTruthy()
     expect(getAllByText('Follow up email').length).toBeGreaterThanOrEqual(1)
   })
 
-  it('shows notes section with editable input', () => {
+  it('shows next action info and notes inside job details modal', () => {
     const { getByText, getByPlaceholderText } = render(<JobTrackerScreen />)
 
-    fireEvent.press(getByText('Staff Product Designer'))
+    fireEvent.press(getByText('Senior UX Engineer'))
 
+    expect(getByText('Next Action')).toBeTruthy()
     expect(getByText('Notes')).toBeTruthy()
     expect(getByPlaceholderText('Add notes...')).toBeTruthy()
   })
@@ -69,7 +75,7 @@ describe('JobTrackerScreen — Job Detail Modal', () => {
       <JobTrackerScreen />
     )
 
-    fireEvent.press(getByText('Staff Product Designer'))
+    fireEvent.press(getByText('Senior UX Engineer'))
     expect(getByText('Job Details')).toBeTruthy()
 
     // Close button uses Feather icon "x" — find by testID
@@ -78,6 +84,18 @@ describe('JobTrackerScreen — Job Detail Modal', () => {
     fireEvent.press(closeIcons[0])
 
     expect(queryByText('Job Details')).toBeNull()
+  })
+
+  it('generates and copies outreach draft from drawer', () => {
+    const { getByText, getByTestId, getByDisplayValue } = render(<JobTrackerScreen />)
+
+    fireEvent.press(getByText('Staff Product Designer'))
+    fireEvent.press(getByTestId('tracker-outreach-generate'))
+
+    expect(getByDisplayValue(/Quick follow-up on my application/i)).toBeTruthy()
+
+    fireEvent.press(getByTestId('tracker-outreach-copy'))
+    expect(mockClipboardSetStringAsync).toHaveBeenCalledWith(expect.stringContaining('Quick follow-up'))
   })
 
   it('shows Submit Application for Target status jobs', () => {
@@ -193,7 +211,7 @@ describe('JobTrackerScreen — Update Status Flow', () => {
   })
 
   it('saves status update and closes modal', () => {
-    const { getByText, getAllByText, queryByText } = render(
+    const { getByText, getAllByText, getByPlaceholderText, queryByText } = render(
       <JobTrackerScreen />
     )
 
@@ -203,6 +221,10 @@ describe('JobTrackerScreen — Update Status Flow', () => {
 
     const offerItems = getAllByText('Offer Received')
     fireEvent.press(offerItems[offerItems.length - 1])
+    fireEvent.changeText(
+      getByPlaceholderText('Add a quick update note for this status change...'),
+      'Completed recruiter follow-up call and shared portfolio.'
+    )
     fireEvent.press(getByText('Save Update'))
 
     expect(queryByText('Job Details')).toBeNull()
@@ -211,6 +233,8 @@ describe('JobTrackerScreen — Update Status Flow', () => {
     const state = useJobTrackerStore.getState()
     const google = state.thisWeek.find((j) => j.id === '1')
     expect(google?.status).toBe('Offer Received')
+    expect(google?.notes).toContain('Status: Interview -> Offer Received')
+    expect(google?.notes).toContain('Completed recruiter follow-up call and shared portfolio.')
   })
 
   it('cancel returns to detail view', () => {

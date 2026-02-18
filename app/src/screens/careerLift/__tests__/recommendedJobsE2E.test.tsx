@@ -61,6 +61,8 @@ describe('RecommendedJobsScreen — E2E behavior', () => {
     fireEvent.press(getByLabelText('Open job filters'))
     fireEvent.press(getByText('Remote only'))
     fireEvent.press(getByText('Full-time only'))
+    fireEvent.press(getByText('$150k+'))
+    fireEvent.press(getByText('Senior'))
     fireEvent.changeText(getByPlaceholderText('City, State or Remote'), 'Austin')
     fireEvent.press(getByText('Austin, TX'))
     fireEvent.changeText(getByPlaceholderText('e.g. Remote PM Roles'), 'Austin Remote Focus')
@@ -71,9 +73,11 @@ describe('RecommendedJobsScreen — E2E behavior', () => {
       expect.objectContaining({
         remoteOnly: true,
         fullTimeOnly: true,
+        salaryRange: '$150k+',
+        experienceLevel: 'Senior',
         locationQuery: 'Austin, TX',
         name: 'Austin Remote Focus',
-        label: 'Remote • Full-time • Austin, TX',
+        label: 'Remote • Full-time • $150k+ • Senior level • Austin, TX',
       })
     )
 

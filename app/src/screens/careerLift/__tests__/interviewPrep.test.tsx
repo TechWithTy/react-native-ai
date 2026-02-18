@@ -159,34 +159,25 @@ describe('MockInterviewScreen', () => {
     })
   })
 
-  it('shows alerts on menu press and handles restart', async () => {
+  it('shows menu and handles restart', async () => {
     const { getByTestId, getByText } = render(<MockInterviewScreen />)
     
     // Open Menu
     fireEvent.press(getByTestId('header-menu'))
     
-    // Check Alert
-    expect(Alert.alert).toHaveBeenCalledWith(
-        'Session Options', 
-        'What would you like to do?', 
-        expect.any(Array)
-    )
-    
-    // Simulate Restart Selection
-    // We need to extract the onPress from the alert arguments
-    const alertCalls = (Alert.alert as jest.Mock).mock.calls
-    const options = alertCalls[0][2] // 3rd argument is buttons array
-    const restartOption = options.find((opt: any) => opt.text === 'Restart Session')
+    // Check Menu Option visibility (Modal content)
+    expect(getByText('Session Options')).toBeTruthy()
+    const restartButton = getByText('Restart Session')
+    expect(restartButton).toBeTruthy()
     
     // Trigger Restart
     await act(async () => {
-        await restartOption.onPress()
+        fireEvent.press(restartButton)
     })
     
     // Verify Restart Logic
     expect(mockStop).toHaveBeenCalled() // Speech stop
     // If recording was active, should stop it. We didn't start it here, but logic is called.
-    // Timer should be reset (we can't easily check state directly without render update check, but logic ran)
   })
 
   it('resets session and handles done', async () => {

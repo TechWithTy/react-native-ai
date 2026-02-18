@@ -21,6 +21,7 @@ import { useUserProfileStore } from '../../store/userProfileStore'
 import { NotificationsPanel } from './components/notificationsPanel'
 import { ModalContainer } from './components/modalContainer'
 import { useCareerSetupStore } from '../../store/careerSetup'
+import { useCreditsStore } from '../../store/creditsStore'
 import { careerLiftNotifications } from './notificationsData'
 import { CustomPrepEntryModal } from './components/customPrepEntryModal'
 
@@ -137,11 +138,20 @@ const inferLocation = (source: string, mode: 'url' | 'text', fallbackLocation?: 
   return fallbackLocation || 'Unspecified'
 }
 
+const getDashboardGreeting = (date: Date) => {
+  const hour = date.getHours()
+  if (hour < 12) return 'Good Morning'
+  if (hour < 18) return 'Good Afternoon'
+  return "It's Getting Late"
+}
+
 export function DashboardScreen({ navigation, route }: DashboardProps = {}) {
   const { pipeline, weeklyPlan } = useDashboardStore()
   const { recommendedScanPreset, addJob } = useJobTrackerStore()
   const { name, avatarUrl, nextActions, toggleNextAction } = useUserProfileStore()
   const { sourceResumeName, baselineResumeName, targetRole, locationPreference, setCareerSetup } = useCareerSetupStore()
+  const spendScanCredit = useCreditsStore(state => state.spendScanCredit)
+  const scanCreditsRemaining = useCreditsStore(state => state.scanCreditsRemaining)
   const [showNotifications, setShowNotifications] = useState(false)
   const [showQuickActionsModal, setShowQuickActionsModal] = useState(false)
   const [showResumeScanModal, setShowResumeScanModal] = useState(false)
@@ -162,6 +172,7 @@ export function DashboardScreen({ navigation, route }: DashboardProps = {}) {
     topMatch: 0,
     remoteRoles: 0,
   })
+  const [currentTime, setCurrentTime] = useState(() => new Date())
   const ringAnimPrimary = useRef(new Animated.Value(0)).current
   const ringAnimSecondary = useRef(new Animated.Value(0)).current
 
@@ -173,6 +184,16 @@ export function DashboardScreen({ navigation, route }: DashboardProps = {}) {
     () => Array.from(new Set([sourceResumeName, baselineResumeName].filter((item): item is string => Boolean(item)))),
     [sourceResumeName, baselineResumeName]
   )
+  const greeting = `${getDashboardGreeting(currentTime)},`
+
+  useEffect(() => {
+    if (isTestEnv) return
+    const timer = setInterval(() => {
+      setCurrentTime(new Date())
+    }, 60_000)
+
+    return () => clearInterval(timer)
+  }, [isTestEnv])
 
   useEffect(() => {
     if (isTestEnv) return
@@ -326,10 +347,20 @@ export function DashboardScreen({ navigation, route }: DashboardProps = {}) {
   }
 
   const startJobScanFlow = () => {
+    const charged = spendScanCredit('Job market scan')
+    if (!charged) {
+      Alert.alert(
+        'No scan credits left',
+        'You have reached your scan limit. Purchase scan credits or upgrade to Unlimited in Settings.'
+      )
+      return false
+    }
+
     setJobScanResult(buildJobScanResult())
     setShowJobScanProgress(true)
     setJobScanStep(0)
     setJobScanComplete(false)
+    return true
   }
 
   const resetResumeScanFlow = () => {
@@ -341,11 +372,21 @@ export function DashboardScreen({ navigation, route }: DashboardProps = {}) {
   }
 
   const startResumeScanFlow = (resumeName: string) => {
+    const charged = spendScanCredit('ATS resume scan')
+    if (!charged) {
+      Alert.alert(
+        'No scan credits left',
+        'You have reached your scan limit. Purchase scan credits or upgrade to Unlimited in Settings.'
+      )
+      return false
+    }
+
     setShowResumeScanModal(false)
     setShowResumeScanProgress(true)
     setResumeScanStep(0)
     setResumeScanComplete(false)
     setActiveResumeScanName(resumeName)
+    return true
   }
 
   const handleUploadResumeScan = async () => {
@@ -429,6 +470,8 @@ export function DashboardScreen({ navigation, route }: DashboardProps = {}) {
     : hasFreshJobScan
       ? `Top match ${jobScanResult.topMatch}%`
       : currentJobScanStepText
+  const scanBalanceText =
+    scanCreditsRemaining === null ? 'Unlimited scans' : `${scanCreditsRemaining} scans left`
 
   const quickActions = useMemo<QuickAction[]>(
     () => [
@@ -477,7 +520,11 @@ export function DashboardScreen({ navigation, route }: DashboardProps = {}) {
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <View style={styles.avatarContainer}>
+          <TouchableOpacity
+            style={styles.avatarContainer}
+            onPress={() => handleNavigate('SettingsProfile')}
+            accessibilityLabel='Open profile'
+          >
             <Image
               source={{
                 uri: avatarUrl || 'https://i.pravatar.cc/150',
@@ -485,9 +532,9 @@ export function DashboardScreen({ navigation, route }: DashboardProps = {}) {
               style={styles.avatar}
             />
             <View style={styles.statusDot} />
-          </View>
+          </TouchableOpacity>
           <View>
-            <Text style={styles.greetingText}>Good Morning,</Text>
+            <Text style={styles.greetingText}>{greeting}</Text>
             <Text style={styles.nameText}>{firstName}</Text>
           </View>
         </View>
@@ -520,6 +567,7 @@ export function DashboardScreen({ navigation, route }: DashboardProps = {}) {
             <View>
               <Text style={[styles.newScanText, hasFreshJobScan && styles.newScanTextSuccess]}>{newScanButtonLabel}</Text>
               <Text style={[styles.newScanSubText, hasFreshJobScan && styles.newScanSubTextSuccess]}>{newScanButtonSubtitle}</Text>
+              <Text style={styles.scanBalanceText}>{scanBalanceText}</Text>
             </View>
           </TouchableOpacity>
           <TouchableOpacity
@@ -572,7 +620,11 @@ export function DashboardScreen({ navigation, route }: DashboardProps = {}) {
         </ScrollView>
 
         {/* Weekly Plan */}
-        <View style={styles.weeklyPlanCard}>
+        <TouchableOpacity
+          style={styles.weeklyPlanCard}
+          onPress={() => handleNavigate('WeeklyDigest')}
+          activeOpacity={0.85}
+        >
           <View style={styles.weeklyHeader}>
             <Text style={styles.weeklyTitle}>Weekly Plan</Text>
             <Text style={styles.weeklyDate}>Oct 24 - 30</Text>
@@ -590,7 +642,7 @@ export function DashboardScreen({ navigation, route }: DashboardProps = {}) {
             />
           </View>
           <Text style={styles.weeklyMotivation}>{`"${weeklyPlan.label}"`}</Text>
-        </View>
+        </TouchableOpacity>
 
         {/* Next Actions */}
         <View style={styles.sectionHeader}>
@@ -788,6 +840,9 @@ export function DashboardScreen({ navigation, route }: DashboardProps = {}) {
           <View style={styles.resumeScanContent}>
             <Text style={styles.resumeScanBodyText}>
               Upload a resume or choose one already saved to your profile.
+            </Text>
+            <Text style={styles.resumeScanHintText}>
+              {scanCreditsRemaining === null ? 'Unlimited scans available on your plan.' : `${scanCreditsRemaining} scans remaining`}
             </Text>
 
             <TouchableOpacity
@@ -1057,6 +1112,11 @@ const styles = StyleSheet.create({
     color: CLTheme.text.muted,
     marginTop: 1,
   },
+  scanBalanceText: {
+    fontSize: 9,
+    color: CLTheme.text.muted,
+    marginTop: 1,
+  },
   newScanTextSuccess: {
     color: CLTheme.status.success,
   },
@@ -1288,7 +1348,12 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 20,
     color: CLTheme.text.secondary,
-    marginBottom: 14,
+    marginBottom: 8,
+  },
+  resumeScanHintText: {
+    fontSize: 12,
+    color: CLTheme.text.muted,
+    marginBottom: 12,
   },
   resumeUploadButton: {
     flexDirection: 'row',

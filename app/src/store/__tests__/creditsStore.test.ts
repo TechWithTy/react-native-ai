@@ -6,11 +6,13 @@ describe('creditsStore', () => {
   })
 
   it('initialises with the default balance of 150', () => {
-    const { balance, totalCredits, totalSpent, history } = useCreditsStore.getState()
+    const { balance, totalCredits, totalSpent, history, subscriptionTier, scanCreditsRemaining } = useCreditsStore.getState()
     expect(balance).toBe(150)
     expect(totalCredits).toBe(150)
     expect(totalSpent).toBe(0)
     expect(history).toEqual([])
+    expect(subscriptionTier).toBe('pro')
+    expect(scanCreditsRemaining).toBe(50)
   })
 
   it('getCost returns the correct cost for each action', () => {
@@ -21,6 +23,7 @@ describe('creditsStore', () => {
     expect(getCost('resumeTailor')).toBe(4)
     expect(getCost('coverLetterGen')).toBe(4)
     expect(getCost('linkedInOptimize')).toBe(6)
+    expect(getCost('outreachMessageGen')).toBe(4)
   })
 
   it('canAfford returns true when balance is sufficient', () => {
@@ -90,6 +93,7 @@ describe('creditsStore', () => {
     const store = useCreditsStore.getState()
     store.spendCredits('mockInterview')
     store.addCredits(100)
+    store.spendScanCredit('Job market scan')
     store.resetCredits()
 
     const state = useCreditsStore.getState()
@@ -97,5 +101,31 @@ describe('creditsStore', () => {
     expect(state.totalCredits).toBe(150)
     expect(state.totalSpent).toBe(0)
     expect(state.history).toEqual([])
+    expect(state.subscriptionTier).toBe('pro')
+    expect(state.scanCreditsRemaining).toBe(50)
+  })
+
+  it('spendScanCredit decrements remaining scans', () => {
+    const store = useCreditsStore.getState()
+    const spent = store.spendScanCredit('Job market scan')
+    expect(spent).toBe(true)
+    expect(useCreditsStore.getState().scanCreditsRemaining).toBe(49)
+    expect(useCreditsStore.getState().totalScansUsed).toBe(1)
+  })
+
+  it('addScanCredits increases remaining scans', () => {
+    const store = useCreditsStore.getState()
+    store.addScanCredits(20, 'Pack purchase')
+    expect(useCreditsStore.getState().scanCreditsRemaining).toBe(70)
+    expect(useCreditsStore.getState().totalScanCreditsPurchased).toBe(20)
+  })
+
+  it('unlimited tier allows scans without decrementing', () => {
+    const store = useCreditsStore.getState()
+    store.setSubscriptionTier('unlimited')
+    expect(useCreditsStore.getState().scanCreditsRemaining).toBeNull()
+    expect(useCreditsStore.getState().canUseScan()).toBe(true)
+    expect(useCreditsStore.getState().spendScanCredit('Resume scan')).toBe(true)
+    expect(useCreditsStore.getState().scanCreditsRemaining).toBeNull()
   })
 })

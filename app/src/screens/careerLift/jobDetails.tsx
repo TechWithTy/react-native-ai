@@ -13,6 +13,7 @@ import {
   Easing,
   Alert,
 } from 'react-native'
+import * as Clipboard from 'expo-clipboard'
 import { MaterialIcons, Feather } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useNavigation, useRoute } from '@react-navigation/native'
@@ -250,6 +251,7 @@ export function JobDetailsScreen() {
   const creditColor = creditBalance > 30 ? '#10b981' : creditBalance > 10 ? '#f59e0b' : '#ef4444'
   const research = getCompanyResearch(job.company)
   const [applyDrawerVisible, setApplyDrawerVisible] = useState(false)
+  const [applyTab, setApplyTab] = useState<'simple' | 'advanced'>('simple')
   const [activeDropdown, setActiveDropdown] = useState<'resume' | 'coverLetter' | null>(null)
   const [selectedResume, setSelectedResume] = useState(RESUMES[0])
   const [selectedCoverLetter, setSelectedCoverLetter] = useState(COVER_LETTERS[0])
@@ -259,7 +261,13 @@ export function JobDetailsScreen() {
   const closeApplyDrawer = () => {
     setApplyDrawerVisible(false)
     setActiveDropdown(null)
+    setApplyTab('simple')
     fillAnim.setValue(0)
+  }
+
+  const handleCopyAnswer = async (text: string) => {
+    await Clipboard.setStringAsync(text)
+    Alert.alert('Copied', 'Answer copied to clipboard')
   }
 
   const handleHoldStart = () => {
@@ -483,46 +491,213 @@ export function JobDetailsScreen() {
         <Pressable style={styles.drawerOverlay} onPress={closeApplyDrawer}>
           <Pressable style={styles.drawerContent} onPress={event => event.stopPropagation()}>
             <View style={styles.drawerHandle} />
+
+            {/* Tab Switcher */}
+            <View style={styles.drawerTabBar}>
+              <TouchableOpacity
+                style={[styles.drawerTab, applyTab === 'simple' && styles.drawerTabActive]}
+                onPress={() => setApplyTab('simple')}
+              >
+                <Text style={[styles.drawerTabText, applyTab === 'simple' && styles.drawerTabTextActive]}>Simple</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.drawerTab, applyTab === 'advanced' && styles.drawerTabActive]}
+                onPress={() => setApplyTab('advanced')}
+              >
+                <Text style={[styles.drawerTabText, applyTab === 'advanced' && styles.drawerTabTextActive]}>Advanced</Text>
+              </TouchableOpacity>
+            </View>
+
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.drawerScrollContent}>
-              <Text style={styles.applyHeader}>Prepare Application</Text>
-              <Text style={styles.applySubheader}>
-                Select your resume and cover letter, then hold to apply with AI.
-              </Text>
+              {applyTab === 'simple' ? (
+                <>
+                  <Text style={styles.applyHeader}>Prepare Application</Text>
+                  <Text style={styles.applySubheader}>
+                    Select your resume and cover letter, then hold to apply with AI.
+                  </Text>
 
-              {renderDocumentSelector('resume', selectedResume, RESUMES, setSelectedResume)}
-              {renderDocumentSelector('coverLetter', selectedCoverLetter, COVER_LETTERS, setSelectedCoverLetter)}
+                  {renderDocumentSelector('resume', selectedResume, RESUMES, setSelectedResume)}
+                  {renderDocumentSelector('coverLetter', selectedCoverLetter, COVER_LETTERS, setSelectedCoverLetter)}
 
-              <View style={styles.applyActionSection}>
-                <View style={styles.creditCostRow}>
-                  <View style={styles.creditLeftRow}>
-                    <Feather name='zap' size={14} color={creditColor} />
-                    <Text style={styles.creditBalanceSmall}>{creditBalance} credits</Text>
+                  <View style={styles.applyActionSection}>
+                    <View style={styles.creditCostRow}>
+                      <View style={styles.creditLeftRow}>
+                        <Feather name='zap' size={14} color={creditColor} />
+                        <Text style={styles.creditBalanceSmall}>{creditBalance} credits</Text>
+                      </View>
+                      <Text style={styles.creditEstimate}>Est. cost: ~{applyCost} credits</Text>
+                    </View>
+
+                    <Text style={styles.applyHoldLabel}>Hold to Apply with AI</Text>
+                    <Pressable
+                      onPressIn={canAffordApply ? handleHoldStart : undefined}
+                      onPressOut={handleHoldEnd}
+                      style={[styles.holdBtnContainer, !canAffordApply && { opacity: 0.4 }]}
+                    >
+                      <Animated.View style={[styles.holdFill, { width: fillWidth }]} />
+                      <View style={styles.holdContent}>
+                        <Feather name='send' size={18} color='#fff' style={{ marginRight: 8 }} />
+                        <Text style={styles.holdText}>Applying...</Text>
+                      </View>
+                      <View style={styles.holdLabelOverlay}>
+                        <Text style={styles.holdText}>Hold to Apply</Text>
+                      </View>
+                    </Pressable>
+                    {!canAffordApply ? <Text style={styles.creditWarning}>Not enough credits</Text> : null}
                   </View>
-                  <Text style={styles.creditEstimate}>Est. cost: ~{applyCost} credits</Text>
+                </>
+              ) : (
+                /* Advanced Tab: Apply Pack Review */
+                <View style={styles.advancedTabContainer}>
+                  {/* Job Context Card */}
+                  <View style={styles.advJobCard}>
+                    <View style={styles.advLogoBox}>
+                      {job.logo ? (
+                        <Image source={{ uri: job.logo }} style={styles.advLogoImage} resizeMode='contain' />
+                      ) : (
+                        <Text style={styles.advLogoFallback}>{job.company.charAt(0)}</Text>
+                      )}
+                    </View>
+                    <View style={styles.advJobInfo}>
+                      <View style={styles.advJobHeaderRow}>
+                        <Text style={styles.advJobTitle} numberOfLines={1}>{job.role}</Text>
+                        <View style={styles.advMatchBadge}>
+                          <Text style={styles.advMatchText}>{job.match ?? '--'} Match</Text>
+                        </View>
+                      </View>
+                      <Text style={styles.advCompanyLoc}>{job.company} • {job.location}</Text>
+                      <View style={styles.advTagsRow}>
+                        {job.tags?.slice(0, 2).map(tag => (
+                          <View key={tag} style={styles.advTag}>
+                            <Text style={styles.advTagText}>{tag.toUpperCase()}</Text>
+                          </View>
+                        ))}
+                      </View>
+                    </View>
+                  </View>
+
+                  {/* Resume Preview */}
+                  <View style={styles.advSectionHeader}>
+                    <Text style={styles.advSectionTitle}>TAILORED RESUME</Text>
+                    <View style={styles.advVariantBadge}>
+                      <Text style={styles.advVariantText}>Variant 1</Text>
+                    </View>
+                  </View>
+                  <View style={styles.advCard}>
+                    <View style={styles.advResumeContent}>
+                      <View style={styles.advPdfThumb}>
+                        <View style={styles.advPdfLine1} />
+                        <View style={styles.advPdfLine2} />
+                        <View style={styles.advPdfLines}>
+                          {[0,1,2,3,4].map(i => (
+                            <View key={i} style={[styles.advPdfLine, i === 2 && { width: '75%' }]} />
+                          ))}
+                        </View>
+                        <LinearGradient colors={['transparent', 'rgba(0,0,0,0.15)']} style={StyleSheet.absoluteFill} />
+                      </View>
+                      <View style={styles.advResumeInfo}>
+                        <View>
+                          <Text style={styles.advResumeFilename}>{selectedResume.title}</Text>
+                          <Text style={styles.advResumeMeta}>1 Page • PDF</Text>
+                          <Text style={styles.advResumeDate}>{selectedResume.subtitle}</Text>
+                        </View>
+                        <View style={styles.advResumeActions}>
+                          <TouchableOpacity style={styles.advPreviewBtn} onPress={() => setPreviewDoc(selectedResume)}>
+                            <MaterialIcons name='visibility' size={15} color='#e2e8f0' />
+                            <Text style={styles.advPreviewBtnText}>Preview</Text>
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    </View>
+                  </View>
+
+                  {/* Cover Note */}
+                  <View style={styles.advSectionHeader}>
+                    <Text style={styles.advSectionTitle}>COVER NOTE</Text>
+                    <TouchableOpacity style={styles.advEditLink}>
+                      <MaterialIcons name='edit' size={13} color='#0d6cf2' />
+                      <Text style={styles.advEditLinkText}>Edit</Text>
+                    </TouchableOpacity>
+                  </View>
+                  <View style={styles.advCoverCard}>
+                    <Text style={styles.advCoverSalutation}>Dear Hiring Team,</Text>
+                    <Text style={styles.advCoverBody}>{selectedCoverLetter.content}</Text>
+                    <LinearGradient
+                      colors={['transparent', '#101722']}
+                      style={styles.advCoverOverlay}
+                    >
+                      <TouchableOpacity style={styles.advReadFullBtn} onPress={() => setPreviewDoc(selectedCoverLetter)}>
+                        <Text style={styles.advReadFullText}>Read Full Note</Text>
+                        <MaterialIcons name='expand-more' size={15} color='#fff' />
+                      </TouchableOpacity>
+                    </LinearGradient>
+                  </View>
+
+                  {/* Suggested Answers */}
+                  <View style={styles.advSectionHeader}>
+                    <Text style={styles.advSectionTitle}>SUGGESTED ANSWERS</Text>
+                  </View>
+                  {[
+                    { q: 'Why do you want to work here?', a: `I've always admired ${job.company}'s work. My background aligns strongly with this role's requirements and I'm excited to contribute.` },
+                    { q: 'Salary Expectations?', a: job.tags?.find(t => t.includes('$')) ?? 'Negotiable based on total compensation package', isMono: true },
+                    { q: 'Notice Period?', a: 'I am available to start within 2 weeks of receiving an offer.' },
+                  ].map((item, idx) => (
+                    <View key={idx} style={styles.advAnswerCard}>
+                      <View style={styles.advAnswerHeader}>
+                        <Text style={styles.advQuestionText}>{item.q}</Text>
+                        <TouchableOpacity onPress={() => handleCopyAnswer(item.a)}>
+                          <MaterialIcons name='content-copy' size={17} color='#64748b' />
+                        </TouchableOpacity>
+                      </View>
+                      {item.isMono ? (
+                        <View style={styles.advMonoWrap}>
+                          <Text style={styles.advMonoText}>{item.a}</Text>
+                        </View>
+                      ) : (
+                        <Text style={styles.advAnswerText}>{item.a}</Text>
+                      )}
+                    </View>
+                  ))}
+
+                  {/* Credits row */}
+                  <View style={styles.creditCostRow}>
+                    <View style={styles.creditLeftRow}>
+                      <Feather name='zap' size={14} color={creditColor} />
+                      <Text style={styles.creditBalanceSmall}>{creditBalance} credits</Text>
+                    </View>
+                    <Text style={styles.creditEstimate}>Est. cost: ~{applyCost} credits</Text>
+                  </View>
+
+                  <View style={styles.advFooterHint}>
+                    <MaterialIcons name='info-outline' size={13} color='#f59e0b' />
+                    <Text style={styles.advFooterHintText}>Remember to attach the PDF manually!</Text>
+                  </View>
                 </View>
-
-                <Text style={styles.applyHoldLabel}>Hold to Apply with AI</Text>
-                <Pressable
-                  onPressIn={canAffordApply ? handleHoldStart : undefined}
-                  onPressOut={handleHoldEnd}
-                  style={[styles.holdBtnContainer, !canAffordApply && { opacity: 0.4 }]}
-                >
-                  <Animated.View style={[styles.holdFill, { width: fillWidth }]} />
-                  <View style={styles.holdContent}>
-                    <Feather name='send' size={18} color='#fff' style={{ marginRight: 8 }} />
-                    <Text style={styles.holdText}>Applying...</Text>
-                  </View>
-                  <View style={styles.holdLabelOverlay}>
-                    <Text style={styles.holdText}>Hold to Apply</Text>
-                  </View>
-                </Pressable>
-                {!canAffordApply ? <Text style={styles.creditWarning}>Not enough credits</Text> : null}
-              </View>
+              )}
 
               <TouchableOpacity style={styles.cancelApplyButton} onPress={closeApplyDrawer} activeOpacity={0.85}>
                 <Text style={styles.cancelApplyText}>Cancel</Text>
               </TouchableOpacity>
             </ScrollView>
+
+            {/* Sticky CTA always visible */}
+            <View style={styles.drawerFooter}>
+              <Pressable
+                onPressIn={canAffordApply ? handleHoldStart : undefined}
+                onPressOut={handleHoldEnd}
+                style={[styles.holdBtnContainer, !canAffordApply && { opacity: 0.4 }]}
+              >
+                <Animated.View style={[styles.holdFill, { width: fillWidth }]} />
+                <View style={styles.holdContent}>
+                  <Feather name='send' size={18} color='#fff' style={{ marginRight: 8 }} />
+                  <Text style={styles.holdText}>Applying...</Text>
+                </View>
+                <View style={styles.holdLabelOverlay}>
+                  <Text style={styles.holdText}>{applyTab === 'advanced' ? 'Approve & Log Submission' : 'Hold to Apply'}</Text>
+                </View>
+              </Pressable>
+              {!canAffordApply ? <Text style={styles.creditWarning}>Not enough credits</Text> : null}
+            </View>
           </Pressable>
         </Pressable>
       </Modal>
@@ -779,7 +954,335 @@ const styles = StyleSheet.create({
   },
   drawerScrollContent: {
     paddingHorizontal: 16,
-    paddingBottom: 26,
+    paddingBottom: 16,
+  },
+  drawerTabBar: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: '#223249',
+    marginHorizontal: 16,
+    marginBottom: 4,
+  },
+  drawerTab: {
+    flex: 1,
+    paddingVertical: 10,
+    alignItems: 'center',
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
+  },
+  drawerTabActive: {
+    borderBottomColor: '#0d6cf2',
+  },
+  drawerTabText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#64748b',
+  },
+  drawerTabTextActive: {
+    color: '#0d6cf2',
+  },
+  drawerFooter: {
+    paddingHorizontal: 16,
+    paddingBottom: 20,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#223249',
+  },
+  // Advanced tab styles
+  advancedTabContainer: {
+    gap: 16,
+  },
+  advJobCard: {
+    backgroundColor: '#18212f',
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#223249',
+    flexDirection: 'row',
+    gap: 14,
+  },
+  advLogoBox: {
+    width: 52,
+    height: 52,
+    borderRadius: 8,
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 4,
+  },
+  advLogoImage: {
+    width: '100%',
+    height: '100%',
+  },
+  advLogoFallback: {
+    color: '#0d6cf2',
+    fontWeight: '800',
+    fontSize: 20,
+  },
+  advJobInfo: {
+    flex: 1,
+  },
+  advJobHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  advJobTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#fff',
+    flex: 1,
+    marginRight: 8,
+  },
+  advMatchBadge: {
+    backgroundColor: 'rgba(16,185,129,0.1)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  advMatchText: {
+    color: '#10b981',
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  advCompanyLoc: {
+    fontSize: 12,
+    color: '#94a3b8',
+    fontWeight: '500',
+  },
+  advTagsRow: {
+    flexDirection: 'row',
+    gap: 6,
+    marginTop: 8,
+  },
+  advTag: {
+    backgroundColor: '#232d3d',
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: 4,
+  },
+  advTagText: {
+    fontSize: 9,
+    fontWeight: '600',
+    color: '#94a3b8',
+  },
+  advSectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  advSectionTitle: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#94a3b8',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  advVariantBadge: {
+    backgroundColor: 'rgba(13,108,242,0.1)',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+  },
+  advVariantText: {
+    color: '#0d6cf2',
+    fontSize: 11,
+    fontWeight: '500',
+  },
+  advCard: {
+    backgroundColor: '#18212f',
+    borderRadius: 12,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: '#223249',
+  },
+  advResumeContent: {
+    flexDirection: 'row',
+    gap: 14,
+  },
+  advPdfThumb: {
+    width: 72,
+    height: 100,
+    backgroundColor: '#232d3d',
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: '#334155',
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  advPdfLine1: {
+    position: 'absolute',
+    top: 8,
+    left: 6,
+    right: 6,
+    height: 7,
+    backgroundColor: '#475569',
+    borderRadius: 2,
+  },
+  advPdfLine2: {
+    position: 'absolute',
+    top: 22,
+    left: 6,
+    width: '50%',
+    height: 3,
+    backgroundColor: '#475569',
+    borderRadius: 2,
+  },
+  advPdfLines: {
+    position: 'absolute',
+    top: 34,
+    left: 6,
+    right: 6,
+    gap: 5,
+  },
+  advPdfLine: {
+    height: 2,
+    backgroundColor: '#64748b',
+    width: '100%',
+  },
+  advResumeInfo: {
+    flex: 1,
+    justifyContent: 'space-between',
+  },
+  advResumeFilename: {
+    fontWeight: '600',
+    color: '#fff',
+    fontSize: 13,
+  },
+  advResumeMeta: {
+    fontSize: 11,
+    color: '#94a3b8',
+    marginTop: 3,
+  },
+  advResumeDate: {
+    fontSize: 11,
+    color: '#64748b',
+    marginTop: 2,
+  },
+  advResumeActions: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 10,
+  },
+  advPreviewBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: '#232d3d',
+    paddingVertical: 7,
+    borderRadius: 8,
+  },
+  advPreviewBtnText: {
+    color: '#e2e8f0',
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  advEditLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  advEditLinkText: {
+    color: '#0d6cf2',
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  advCoverCard: {
+    backgroundColor: '#18212f',
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#223249',
+    overflow: 'hidden',
+  },
+  advCoverSalutation: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#fff',
+    marginBottom: 8,
+  },
+  advCoverBody: {
+    fontSize: 13,
+    lineHeight: 20,
+    color: '#cbd5e1',
+    marginBottom: 40,
+  },
+  advCoverOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 80,
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    paddingBottom: 12,
+  },
+  advReadFullBtn: {
+    backgroundColor: '#101722',
+    borderWidth: 1,
+    borderColor: '#334155',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: 8,
+    elevation: 3,
+  },
+  advReadFullText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#fff',
+  },
+  advAnswerCard: {
+    backgroundColor: '#18212f',
+    borderRadius: 12,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: '#223249',
+  },
+  advAnswerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  advQuestionText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#60a5fa',
+    flex: 1,
+    marginRight: 8,
+  },
+  advAnswerText: {
+    fontSize: 13,
+    lineHeight: 19,
+    color: '#cbd5e1',
+  },
+  advMonoWrap: {
+    backgroundColor: 'rgba(0,0,0,0.2)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+    alignSelf: 'flex-start',
+  },
+  advMonoText: {
+    fontSize: 12,
+    color: '#cbd5e1',
+    fontFamily: 'monospace',
+  },
+  advFooterHint: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  advFooterHintText: {
+    fontSize: 12,
+    color: '#94a3b8',
   },
   applyHeader: {
     color: CLTheme.text.primary,

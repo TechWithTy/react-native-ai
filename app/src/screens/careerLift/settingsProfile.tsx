@@ -18,20 +18,25 @@ import * as Location from 'expo-location'
 import { CLTheme } from './theme'
 import { getRoleOptionsForTrack, getSalaryRangesForRole, useCareerSetupStore } from '../../store/careerSetup'
 import { useUserProfileStore } from '../../store/userProfileStore'
-import { useCreditsStore } from '../../store/creditsStore'
+import { SubscriptionTierId, useCreditsStore } from '../../store/creditsStore'
+import {
+  MonetizationCopyVariant,
+  MonetizationPlacement,
+  useMonetizationExperimentsStore,
+} from '../../store/monetizationExperimentsStore'
 import { SubscriptionModal } from './subscriptionModal'
 import { ModalContainer } from './components/modalContainer'
 import { LocationAutocomplete } from './components/locationAutocomplete'
+import { CreditPacksDrawer } from './components/creditPacksDrawer'
 import { CustomInterviewPrepPayload } from '../../../types'
 import { ROLE_TRACKS_META } from '../../data/roles'
 import { TARGET_SENIORITY_OPTIONS } from '../../data/seniority'
 
-const CREDIT_PACKAGES = [
-  { id: 'pack_50', credits: 50, price: '$4.99', perCredit: '$0.10', popular: false },
-  { id: 'pack_150', credits: 150, price: '$9.99', perCredit: '$0.07', popular: true },
-  { id: 'pack_500', credits: 500, price: '$24.99', perCredit: '$0.05', popular: false },
-  { id: 'pack_1000', credits: 1000, price: '$39.99', perCredit: '$0.04', popular: false },
-] as const
+const PLAN_LABELS: Record<SubscriptionTierId, string> = {
+  starter: 'STARTER',
+  pro: 'PRO',
+  unlimited: 'UNLIMITED',
+}
 
 const ROLE_UPDATE_STEPS = [
   'Validating job description source',
@@ -57,10 +62,19 @@ export function SettingsProfileScreen() {
   const [generatedCustomPrep, setGeneratedCustomPrep] = useState<CustomInterviewPrepPayload | null>(null)
   const [showSubscription, setShowSubscription] = useState(false)
   const [showCreditPackages, setShowCreditPackages] = useState(false)
+  const [showScanPackages, setShowScanPackages] = useState(false)
+  const [subscriptionCopyVariant, setSubscriptionCopyVariant] = useState<MonetizationCopyVariant>('classic')
+  const [creditsCopyVariant, setCreditsCopyVariant] = useState<MonetizationCopyVariant>('classic')
+  const [scanCopyVariant, setScanCopyVariant] = useState<MonetizationCopyVariant>('classic')
   const [selectionType, setSelectionType] = useState<ProfileSelectionType>(null)
   const [showLocationModal, setShowLocationModal] = useState(false)
   const [locationInput, setLocationInput] = useState('')
   const [isLocating, setIsLocating] = useState(false)
+  const creditBalance = useCreditsStore(state => state.balance)
+  const subscriptionTier = useCreditsStore(state => state.subscriptionTier)
+  const scanCreditsRemaining = useCreditsStore(state => state.scanCreditsRemaining)
+  const setSubscriptionTier = useCreditsStore(state => state.setSubscriptionTier)
+  const evaluatePlacement = useMonetizationExperimentsStore(state => state.evaluatePlacement)
 
   const { 
     targetRole, 
@@ -72,6 +86,7 @@ export function SettingsProfileScreen() {
   
   const { 
     name, 
+    email,
     avatarUrl, 
     currentLocation, 
     isOpenToWork,
@@ -101,15 +116,43 @@ export function SettingsProfileScreen() {
     Alert.alert('Manage Subscription', 'Navigate to subscription settings')
   }
 
-  const handleDeleteAccount = () => {
-    Alert.alert(
-      'Delete Account',
-      'Are you sure you want to delete your account? This action cannot be undone.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Delete', style: 'destructive', onPress: () => console.log('Deleted') },
-      ]
-    )
+  const handleOpenAccountSecurity = () => {
+    ;(navigation as any).navigate('AccountSecurity')
+  }
+
+  const handleOpenNotificationsPreferences = () => {
+    ;(navigation as any).navigate('NotificationsPreferences')
+  }
+
+  const handleOpenDocumentsInsights = () => {
+    ;(navigation as any).navigate('DocumentsInsights')
+  }
+
+  const openMonetizationPlacement = (placement: MonetizationPlacement) => {
+    const decision = evaluatePlacement({
+      placement,
+      seedKey: email || 'anonymous',
+    })
+
+    if (decision.surface === 'holdout' || decision.isHoldout) {
+      Alert.alert('No offer right now', 'You are currently in a holdout experience for this placement.')
+      return
+    }
+
+    if (decision.surface === 'subscription') {
+      setSubscriptionCopyVariant(decision.copyVariant)
+      setShowSubscription(true)
+      return
+    }
+
+    if (decision.surface === 'ai_credits') {
+      setCreditsCopyVariant(decision.copyVariant)
+      setShowCreditPackages(true)
+      return
+    }
+
+    setScanCopyVariant(decision.copyVariant)
+    setShowScanPackages(true)
   }
 
   const inferTargetRole = (source: string) => {
@@ -617,14 +660,14 @@ export function SettingsProfileScreen() {
                 <View>
                   <Text style={styles.creditBalanceLabel}>Available Credits</Text>
                   <Text style={styles.creditBalanceValue}>
-                    {useCreditsStore.getState().balance}
+                    {creditBalance}
                     <Text style={styles.creditBalanceSuffix}> credits</Text>
                   </Text>
                 </View>
               </View>
               <TouchableOpacity
                 style={styles.addCreditsChip}
-                onPress={() => setShowCreditPackages(true)}
+                onPress={() => openMonetizationPlacement('settings_buy_ai_credits')}
               >
                 <Feather name="plus" size={14} color="#fff" />
                 <Text style={styles.addCreditsChipText}>Add</Text>
@@ -634,7 +677,7 @@ export function SettingsProfileScreen() {
             <View style={styles.separator} />
 
             {/* Buy Credit Packages */}
-            <TouchableOpacity style={styles.row} onPress={() => setShowCreditPackages(true)}>
+            <TouchableOpacity style={styles.row} onPress={() => openMonetizationPlacement('settings_buy_ai_credits')}>
               <View style={styles.rowLeft}>
                 <View style={[styles.iconBox, { backgroundColor: 'rgba(99, 102, 241, 0.15)' }]}>
                   <MaterialIcons name="shopping-cart" size={20} color="#6366f1" />
@@ -650,19 +693,73 @@ export function SettingsProfileScreen() {
             <View style={styles.separator} />
 
             {/* Subscription Upsell */}
-            <TouchableOpacity style={styles.row} onPress={() => setShowSubscription(true)}>
+            <TouchableOpacity style={styles.row} onPress={() => openMonetizationPlacement('settings_upgrade_plan')}>
               <View style={styles.rowLeft}>
                 <View style={[styles.iconBox, { backgroundColor: 'rgba(168, 85, 247, 0.15)' }]}>
                   <MaterialIcons name="diamond" size={20} color="#a855f7" />
                 </View>
                 <View>
                   <Text style={styles.rowLabel}>Upgrade Plan</Text>
-                  <Text style={styles.rowHint}>Unlock auto-apply & unlimited credits</Text>
+                  <Text style={styles.rowHint}>Unlock auto-apply, unlimited credits, and unlimited scans</Text>
                 </View>
               </View>
               <View style={styles.upgradePill}>
                 <Text style={styles.upgradePillText}>UPGRADE</Text>
               </View>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Section: Scan Credits */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>SCAN CREDITS</Text>
+          <View style={styles.card}>
+            <View style={styles.creditBalanceRow}>
+              <View style={styles.creditBalanceLeft}>
+                <View style={[styles.iconBoxLarge, { backgroundColor: 'rgba(245, 158, 11, 0.15)' }]}>
+                  <MaterialIcons name='radar' size={22} color='#f59e0b' />
+                </View>
+                <View>
+                  <Text style={styles.creditBalanceLabel}>Scans Available</Text>
+                  <Text style={styles.creditBalanceValue}>
+                    {scanCreditsRemaining === null ? 'Unlimited' : scanCreditsRemaining}
+                    <Text style={styles.creditBalanceSuffix}>
+                      {scanCreditsRemaining === null ? '' : ' scans'}
+                    </Text>
+                  </Text>
+                </View>
+              </View>
+              {scanCreditsRemaining !== null ? (
+                <TouchableOpacity
+                  style={styles.addCreditsChip}
+                  onPress={() => openMonetizationPlacement('settings_buy_scan_credits')}
+                >
+                  <Feather name='plus' size={14} color='#fff' />
+                  <Text style={styles.addCreditsChipText}>Add Scans</Text>
+                </TouchableOpacity>
+              ) : (
+                <View style={styles.upgradePill}>
+                  <Text style={styles.upgradePillText}>UNLIMITED</Text>
+                </View>
+              )}
+            </View>
+
+            <View style={styles.separator} />
+
+            <TouchableOpacity
+              style={styles.row}
+              onPress={() => openMonetizationPlacement('settings_buy_scan_credits')}
+            >
+              <View style={styles.rowLeft}>
+                <View style={[styles.iconBox, { backgroundColor: 'rgba(245, 158, 11, 0.15)' }]}>
+                  <MaterialIcons name='shopping-cart' size={20} color='#f59e0b' />
+                </View>
+                <View>
+                  <Text style={styles.rowLabel}>Buy Scan Packs</Text>
+                  <Text style={styles.rowHint}>One-time packs for extra market and resume scans</Text>
+                </View>
+              </View>
+              <MaterialIcons name='chevron-right' size={20} color={CLTheme.text.secondary} />
             </TouchableOpacity>
           </View>
         </View>
@@ -682,15 +779,25 @@ export function SettingsProfileScreen() {
                 </View>
               </View>
               <View style={styles.proBadge}>
-                <Text style={styles.proText}>PRO</Text>
+                <Text style={styles.proText}>{PLAN_LABELS[subscriptionTier]}</Text>
               </View>
             </View>
             <TouchableOpacity style={styles.manageButton} onPress={handleManageSubscription}>
               <Text style={styles.manageButtonText}>Manage Subscription</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.purchaseCreditsLink} onPress={() => setShowCreditPackages(true)}>
+            <TouchableOpacity
+              style={styles.purchaseCreditsLink}
+              onPress={() => openMonetizationPlacement('settings_buy_ai_credits')}
+            >
               <Feather name="zap" size={14} color={CLTheme.accent} />
               <Text style={styles.purchaseCreditsText}>Purchase AI Credits</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.purchaseCreditsLink}
+              onPress={() => openMonetizationPlacement('settings_buy_scan_credits')}
+            >
+              <MaterialIcons name='radar' size={14} color={CLTheme.accent} />
+              <Text style={styles.purchaseCreditsText}>Purchase Scan Credits</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -711,13 +818,38 @@ export function SettingsProfileScreen() {
 
             <View style={styles.separator} />
 
-            <TouchableOpacity style={styles.row} onPress={handleDeleteAccount}>
+            <TouchableOpacity style={styles.row} onPress={handleOpenNotificationsPreferences}>
               <View style={styles.rowLeft}>
-                <View style={[styles.iconBox, { backgroundColor: 'rgba(239, 68, 68, 0.15)' }]}>
-                  <MaterialIcons name="delete-outline" size={20} color={CLTheme.status.danger} />
+                <View style={[styles.iconBox, { backgroundColor: 'rgba(13, 108, 242, 0.15)' }]}>
+                  <MaterialIcons name="notifications-none" size={20} color={CLTheme.accent} />
                 </View>
-                <Text style={[styles.rowLabel, { color: CLTheme.status.danger }]}>Delete Account</Text>
+                <Text style={styles.rowLabel}>Notifications</Text>
               </View>
+              <MaterialIcons name="chevron-right" size={20} color={CLTheme.text.secondary} />
+            </TouchableOpacity>
+
+            <View style={styles.separator} />
+
+            <TouchableOpacity style={styles.row} onPress={handleOpenAccountSecurity}>
+              <View style={styles.rowLeft}>
+                <View style={[styles.iconBox, { backgroundColor: 'rgba(13, 108, 242, 0.15)' }]}>
+                  <MaterialIcons name="shield" size={20} color={CLTheme.accent} />
+                </View>
+                <Text style={styles.rowLabel}>Account & Security</Text>
+              </View>
+              <MaterialIcons name="chevron-right" size={20} color={CLTheme.text.secondary} />
+            </TouchableOpacity>
+
+            <View style={styles.separator} />
+
+            <TouchableOpacity style={styles.row} onPress={handleOpenDocumentsInsights}>
+              <View style={styles.rowLeft}>
+                <View style={[styles.iconBox, { backgroundColor: 'rgba(13, 108, 242, 0.15)' }]}>
+                  <MaterialIcons name='folder-open' size={20} color={CLTheme.accent} />
+                </View>
+                <Text style={styles.rowLabel}>Documents & Insights</Text>
+              </View>
+              <MaterialIcons name='chevron-right' size={20} color={CLTheme.text.secondary} />
             </TouchableOpacity>
           </View>
         </View>
@@ -958,83 +1090,30 @@ export function SettingsProfileScreen() {
         </View>
       </ModalContainer>
 
-      {/* Credit Packages Purchase Modal */}
-      <ModalContainer
+      <CreditPacksDrawer
         visible={showCreditPackages}
         onClose={() => setShowCreditPackages(false)}
-        animationType='slide'
-        backdropTestID='credit-packages-modal-backdrop'
-      >
-        <View style={styles.modalCard}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Buy AI Credits</Text>
-            <TouchableOpacity onPress={() => setShowCreditPackages(false)}>
-              <MaterialIcons name="close" size={22} color={CLTheme.text.secondary} />
-            </TouchableOpacity>
-          </View>
+        mode='ai_credits'
+        copyVariant={creditsCopyVariant}
+        onSeePlansInstead={() => openMonetizationPlacement('settings_upgrade_plan')}
+      />
 
-          <Text style={styles.modalSubtitle}>
-            One-time credit packs — use them for mock interviews, AI applications, and more.
-          </Text>
-
-          <View style={styles.packagesContainer}>
-            {CREDIT_PACKAGES.map((pack) => (
-              <TouchableOpacity
-                key={pack.id}
-                style={[styles.packageCard, pack.popular && styles.packageCardPopular]}
-                activeOpacity={0.8}
-                onPress={() => {
-                  Alert.alert('Purchase Credits', `Add ${pack.credits} credits for ${pack.price}?`, [
-                    { text: 'Cancel', style: 'cancel' },
-                    {
-                      text: 'Buy Now',
-                      onPress: () => {
-                        useCreditsStore.getState().addCredits(pack.credits)
-                        setShowCreditPackages(false)
-                        Alert.alert('Credits Added!', `${pack.credits} credits have been added to your account.`)
-                      },
-                    },
-                  ])
-                }}
-              >
-                {pack.popular && (
-                  <View style={styles.packageBadge}>
-                    <Text style={styles.packageBadgeText}>BEST VALUE</Text>
-                  </View>
-                )}
-                <View style={styles.packageCreditsRow}>
-                  <Feather name="zap" size={18} color={pack.popular ? '#fbbf24' : CLTheme.accent} />
-                  <Text style={styles.packageCreditsText}>{pack.credits}</Text>
-                  <Text style={styles.packageCreditsLabel}>credits</Text>
-                </View>
-                <Text style={styles.packagePrice}>{pack.price}</Text>
-                <Text style={styles.packagePerCredit}>{pack.perCredit}/credit</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-
-          <View style={styles.modalActions}>
-            <TouchableOpacity style={styles.cancelButton} onPress={() => setShowCreditPackages(false)}>
-              <Text style={styles.cancelButtonText}>Close</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.primaryButton, { backgroundColor: '#a855f7' }]}
-              onPress={() => {
-                setShowCreditPackages(false)
-                setShowSubscription(true)
-              }}
-            >
-              <Text style={styles.primaryButtonText}>See Plans Instead</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </ModalContainer>
+      <CreditPacksDrawer
+        visible={showScanPackages}
+        onClose={() => setShowScanPackages(false)}
+        mode='scan_credits'
+        copyVariant={scanCopyVariant}
+        onSeePlansInstead={() => openMonetizationPlacement('settings_upgrade_plan')}
+      />
 
       {/* Subscription Upsell Modal */}
       <SubscriptionModal
         visible={showSubscription}
         onClose={() => setShowSubscription(false)}
-        currentBalance={useCreditsStore.getState().balance}
+        currentBalance={creditBalance}
+        selectedTierId={subscriptionTier}
+        onSubscribeTier={setSubscriptionTier}
+        copyVariant={subscriptionCopyVariant}
       />
     </View>
   )

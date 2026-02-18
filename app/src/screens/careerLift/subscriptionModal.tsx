@@ -12,17 +12,20 @@ import {
 import { Feather, MaterialIcons } from '@expo/vector-icons'
 import { CLTheme } from './theme'
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated'
+import { SubscriptionTierId } from '../../store/creditsStore'
+import { MonetizationCopyVariant } from '../../store/monetizationExperimentsStore'
 
 const { width } = Dimensions.get('window')
 
 // ─── Tier Definitions ────────────────────────────────────────────
 export interface SubscriptionTier {
-  id: 'starter' | 'pro' | 'unlimited'
+  id: SubscriptionTierId
   name: string
   price: string
   period: string
   badge?: string
   credits: string
+  scans: string
   highlight: boolean
   features: { text: string; icon: string; included: boolean }[]
 }
@@ -34,9 +37,11 @@ export const TIERS: SubscriptionTier[] = [
     price: '$0',
     period: '/month',
     credits: '50 credits/mo',
+    scans: '10 scans/mo',
     highlight: false,
     features: [
       { text: '50 AI credits per month', icon: 'zap', included: true },
+      { text: '10 job/resume scans per month', icon: 'radar', included: true },
       { text: 'Basic interview prep', icon: 'mic', included: true },
       { text: 'Job tracking (up to 25)', icon: 'briefcase', included: true },
       { text: 'Manual job applications', icon: 'send', included: true },
@@ -52,9 +57,11 @@ export const TIERS: SubscriptionTier[] = [
     period: '/month',
     badge: 'MOST POPULAR',
     credits: '300 credits/mo',
+    scans: '50 scans/mo',
     highlight: true,
     features: [
       { text: '300 AI credits per month', icon: 'zap', included: true },
+      { text: '50 job/resume scans per month', icon: 'radar', included: true },
       { text: 'Advanced interview coaching', icon: 'mic', included: true },
       { text: 'Unlimited job tracking', icon: 'briefcase', included: true },
       { text: 'AI-powered auto-apply (30/mo)', icon: 'repeat', included: true },
@@ -70,9 +77,11 @@ export const TIERS: SubscriptionTier[] = [
     period: '/month',
     badge: 'BEST VALUE',
     credits: 'Unlimited credits',
+    scans: 'Unlimited scans',
     highlight: false,
     features: [
       { text: 'Unlimited AI credits', icon: 'zap', included: true },
+      { text: 'Unlimited job/resume scans', icon: 'radar', included: true },
       { text: 'Priority AI models (GPT-4o)', icon: 'cpu', included: true },
       { text: 'Unlimited job tracking', icon: 'briefcase', included: true },
       { text: 'Unlimited auto-apply', icon: 'repeat', included: true },
@@ -88,17 +97,52 @@ interface SubscriptionModalProps {
   visible: boolean
   onClose: () => void
   currentBalance?: number
+  selectedTierId?: SubscriptionTierId
+  onSubscribeTier?: (tier: SubscriptionTierId) => void
+  copyVariant?: MonetizationCopyVariant
 }
 
 // ─── Component ────────────────────────────────────────────────────
-export function SubscriptionModal({ visible, onClose, currentBalance = 0 }: SubscriptionModalProps) {
-  const [selectedTier, setSelectedTier] = useState<'starter' | 'pro' | 'unlimited'>('pro')
+export function SubscriptionModal({
+  visible,
+  onClose,
+  currentBalance = 0,
+  selectedTierId = 'pro',
+  onSubscribeTier,
+  copyVariant = 'classic',
+}: SubscriptionModalProps) {
+  const [selectedTier, setSelectedTier] = useState<SubscriptionTierId>(selectedTierId)
+
+  React.useEffect(() => {
+    if (!visible) return
+    setSelectedTier(selectedTierId)
+  }, [visible, selectedTierId])
 
   const handleSubscribe = () => {
+    onSubscribeTier?.(selectedTier)
     // Placeholder — would integrate with payment SDK
     alert(`Subscribing to ${TIERS.find(t => t.id === selectedTier)?.name} plan!`)
     onClose()
   }
+
+  const copy =
+    copyVariant === 'value'
+      ? {
+          title: 'Get More Value Per Apply',
+          subtitle: 'Unlock larger credit bundles and scan capacity to keep momentum.',
+          ctaSubtext: 'Cancel anytime · Save more on larger tiers',
+        }
+      : copyVariant === 'urgency'
+        ? {
+            title: 'Do Not Lose Job Search Momentum',
+            subtitle: 'Top up now so scans and AI actions stay uninterrupted this week.',
+            ctaSubtext: 'Cancel anytime · Start instantly',
+          }
+        : {
+            title: 'Upgrade Your Career',
+            subtitle: 'Unlock AI-powered job hunting',
+            ctaSubtext: 'Cancel anytime · 7 day free trial',
+          }
 
   return (
     <Modal visible={visible} animationType="slide" transparent>
@@ -110,8 +154,8 @@ export function SubscriptionModal({ visible, onClose, currentBalance = 0 }: Subs
           {/* Header */}
           <View style={styles.header}>
             <View>
-              <Text style={styles.title}>Upgrade Your Career</Text>
-              <Text style={styles.subtitle}>Unlock AI-powered job hunting</Text>
+              <Text style={styles.title}>{copy.title}</Text>
+              <Text style={styles.subtitle}>{copy.subtitle}</Text>
             </View>
             <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
               <Feather name="x" size={22} color={CLTheme.text.secondary} />
@@ -176,6 +220,12 @@ export function SubscriptionModal({ visible, onClose, currentBalance = 0 }: Subs
                         {tier.credits}
                       </Text>
                     </View>
+                    <View style={[styles.creditsPill, tier.id === 'unlimited' && styles.creditsPillGold]}>
+                      <Feather name="activity" size={14} color={tier.id === 'unlimited' ? '#fbbf24' : CLTheme.accent} />
+                      <Text style={[styles.creditsPillText, tier.id === 'unlimited' && {color: '#fbbf24'}]}>
+                        {tier.scans}
+                      </Text>
+                    </View>
 
                     {/* Features */}
                     <View style={styles.featuresList}>
@@ -217,7 +267,7 @@ export function SubscriptionModal({ visible, onClose, currentBalance = 0 }: Subs
                 {selectedTier === 'starter' ? 'Continue with Free' : `Subscribe to ${TIERS.find(t => t.id === selectedTier)?.name}`}
               </Text>
               {selectedTier !== 'starter' && (
-                <Text style={styles.ctaSubtext}>Cancel anytime · 7 day free trial</Text>
+                <Text style={styles.ctaSubtext}>{copy.ctaSubtext}</Text>
               )}
             </TouchableOpacity>
           </View>
