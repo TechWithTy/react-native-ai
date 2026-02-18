@@ -58,7 +58,16 @@ const SimpleTab = () => (
   </View>
 )
 
-const AdvancedTab = () => {
+type AdvancedTabProps = {
+  role: string
+  company: string
+  location: string
+  logoUri: string | null
+  logoColor: string
+  matchScore: number
+}
+
+const AdvancedTab = ({ role, company, location, logoUri, logoColor, matchScore }: AdvancedTabProps) => {
   const handleCopy = async (text: string) => {
     await Clipboard.setStringAsync(text)
     Alert.alert('Copied', 'Text copied to clipboard')
@@ -68,25 +77,21 @@ const AdvancedTab = () => {
     <View style={styles.advancedContainer}>
       {/* Job Context Card */}
       <View style={styles.jobContextCard}>
-        <View style={styles.logoBox}>
-          <Image
-            source={{
-              uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCjXTbEkWq283nWA5AsOkgv1UXkvvFod0D_xvJqOicg1s1kc8u3cgwfpTtzUs5NB8KU0ji9qzJCwbofOwNzjBayNBGM8z2VkjS-rfuHBg5n1B6ShYhOrzL_9wkpnwpsmwWkMqZF_MszjpazcycYf-9H4nXWSyyOufsNfEA_tl8V3-KGRhcDrP6LJZI59dnPbZw9qtw5blw8EacOoTL7Mexfpx1zb6CfMzTribz-Koseh5mu7ImTz8l2tuwM0Hx6y8gw-6wwLnhvj6HL',
-            }}
-            style={styles.logoImage}
-            resizeMode='contain'
-          />
+        <View style={[styles.logoBox, { backgroundColor: logoUri ? '#fff' : logoColor }]}>
+          {logoUri ? (
+            <Image source={{ uri: logoUri }} style={styles.logoImage} resizeMode='contain' />
+          ) : (
+            <Text style={{ fontSize: 22, fontWeight: '700', color: '#fff' }}>{company.charAt(0)}</Text>
+          )}
         </View>
         <View style={styles.jobInfo}>
           <View style={styles.jobHeaderRow}>
-            <Text style={styles.jobTitle} numberOfLines={1}>
-              Senior Software Engineer
-            </Text>
+            <Text style={styles.jobTitle} numberOfLines={1}>{role}</Text>
             <View style={styles.matchBadge}>
-              <Text style={styles.matchText}>94% Match</Text>
+              <Text style={styles.matchText}>{matchScore}% Match</Text>
             </View>
           </View>
-          <Text style={styles.companyLoc}>Google • Mountain View, CA</Text>
+          <Text style={styles.companyLoc}>{company} • {location}</Text>
           <View style={styles.tagsRow}>
             <View style={styles.tag}>
               <Text style={styles.tagText}>FULL-TIME</Text>
@@ -153,12 +158,12 @@ const AdvancedTab = () => {
         <View style={styles.coverTextContainer}>
           <Text style={styles.coverSalutation}>Dear Hiring Team,</Text>
           <Text style={styles.coverBody}>
-            I am writing to express my strong interest in the Senior Software Engineer position at
-            Google, as advertised. With over 6 years of experience building scalable distributed
+            I am writing to express my strong interest in the {role} position at
+            {company}, as advertised. With over 6 years of experience building scalable distributed
             systems and a passion for cloud infrastructure...
           </Text>
           <Text style={[styles.coverBody, styles.coverBlur]}>
-            I have closely followed Google's recent advancements in AI-driven search algorithms and
+            I have closely followed {company}'s recent advancements in AI-driven search algorithms and
             believe my background in machine learning integration would be a significant asset to
             the team.
           </Text>
@@ -182,7 +187,7 @@ const AdvancedTab = () => {
         {[
           {
             q: 'Why do you want to work here?',
-            a: "I've always admired Google's commitment to organizing the world's information. Specifically, the recent work by the Cloud team on Kubernetes fits perfectly with my expertise in container orchestration...",
+            a: `I've always admired ${company}'s commitment to excellence. Specifically, my background aligns strongly with this ${role} role and the team's goals.`,
           },
           {
             q: 'Salary Expectations?',
@@ -215,9 +220,17 @@ const AdvancedTab = () => {
   )
 }
 
-export function ApplyPackScreen() {
+export function ApplyPackScreen({ route }: any) {
   const navigation = useNavigation<any>()
-  const [activeTab, setActiveTab] = useState<'simple' | 'advanced'>('simple')
+  const [activeTab, setActiveTab] = useState<'simple' | 'advanced'>('advanced')
+
+  const job = route?.params?.job ?? null
+  const role = job?.role ?? 'Senior Software Engineer'
+  const company = job?.company ?? 'Google'
+  const location = job?.location ?? 'Mountain View, CA'
+  const logoUri = job?.logo ?? null
+  const logoColor = job?.color ?? '#1e293b'
+  const matchScore = job?.matchScore ?? 94
 
   return (
     <SafeAreaView style={styles.container}>
@@ -231,27 +244,8 @@ export function ApplyPackScreen() {
         </TouchableOpacity>
       </View>
 
-      <View style={styles.tabBar}>
-        <TouchableOpacity
-          style={[styles.tab, activeTab === 'simple' && styles.activeTab]}
-          onPress={() => setActiveTab('simple')}
-        >
-          <Text style={[styles.tabText, activeTab === 'simple' && styles.activeTabText]}>
-            Simple
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.tab, activeTab === 'advanced' && styles.activeTab]}
-          onPress={() => setActiveTab('advanced')}
-        >
-          <Text style={[styles.tabText, activeTab === 'advanced' && styles.activeTabText]}>
-            Advanced
-          </Text>
-        </TouchableOpacity>
-      </View>
-
       <ScrollView contentContainerStyle={styles.content}>
-        {activeTab === 'simple' ? <SimpleTab /> : <AdvancedTab />}
+        <AdvancedTab role={role} company={company} location={location} logoUri={logoUri} logoColor={logoColor} matchScore={matchScore} />
       </ScrollView>
 
       <View style={styles.footer}>
