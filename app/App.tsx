@@ -25,7 +25,7 @@ LogBox.ignoreLogs([
 ])
 
 export default function App() {
-  const [theme, setTheme] = useState<string>('light')
+  const [theme, setTheme] = useState<string>('dark')
   const [chatType, setChatType] = useState<Model>(MODELS.claudeOpus)
   const [imageModel, setImageModel] = useState<string>(IMAGE_MODELS.nanoBanana.label)
   const [modalVisible, setModalVisible] = useState<boolean>(false)
@@ -48,7 +48,8 @@ export default function App() {
   async function configureStorage() {
     try {
       const _theme = await AsyncStorage.getItem('rnai-theme')
-      if (_theme) setTheme(_theme)
+      // Default to dark theme to match CareerLift design
+      setTheme(_theme && _theme !== 'light' ? _theme : 'dark')
       const _chatType = await AsyncStorage.getItem('rnai-chatType')
       if (_chatType) setChatType(JSON.parse(_chatType))
       const _imageModel = await AsyncStorage.getItem('rnai-imageModel')

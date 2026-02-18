@@ -492,17 +492,27 @@ export function JobDetailsScreen() {
           <Pressable style={styles.drawerContent} onPress={event => event.stopPropagation()}>
             <View style={styles.drawerHandle} />
 
+            {/* Drawer title */}
+            <View style={styles.drawerTitleRow}>
+              <Text style={styles.drawerTitle}>Prepare Application</Text>
+              <TouchableOpacity onPress={closeApplyDrawer} style={styles.drawerCloseBtn}>
+                <MaterialIcons name='close' size={20} color='#94a3b8' />
+              </TouchableOpacity>
+            </View>
+
             {/* Tab Switcher */}
             <View style={styles.drawerTabBar}>
               <TouchableOpacity
                 style={[styles.drawerTab, applyTab === 'simple' && styles.drawerTabActive]}
                 onPress={() => setApplyTab('simple')}
+                activeOpacity={0.8}
               >
                 <Text style={[styles.drawerTabText, applyTab === 'simple' && styles.drawerTabTextActive]}>Simple</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.drawerTab, applyTab === 'advanced' && styles.drawerTabActive]}
                 onPress={() => setApplyTab('advanced')}
+                activeOpacity={0.8}
               >
                 <Text style={[styles.drawerTabText, applyTab === 'advanced' && styles.drawerTabTextActive]}>Advanced</Text>
               </TouchableOpacity>
@@ -511,7 +521,6 @@ export function JobDetailsScreen() {
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.drawerScrollContent}>
               {applyTab === 'simple' ? (
                 <>
-                  <Text style={styles.applyHeader}>Prepare Application</Text>
                   <Text style={styles.applySubheader}>
                     Select your resume and cover letter, then hold to apply with AI.
                   </Text>
@@ -956,22 +965,38 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 16,
   },
+  drawerTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+  },
+  drawerTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#f8fafc',
+    letterSpacing: 0.1,
+  },
+  drawerCloseBtn: {
+    padding: 4,
+  },
   drawerTabBar: {
     flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: '#223249',
+    backgroundColor: '#18212f',
+    borderRadius: 10,
     marginHorizontal: 16,
-    marginBottom: 4,
+    marginBottom: 8,
+    padding: 3,
   },
   drawerTab: {
     flex: 1,
-    paddingVertical: 10,
+    paddingVertical: 9,
     alignItems: 'center',
-    borderBottomWidth: 2,
-    borderBottomColor: 'transparent',
+    borderRadius: 8,
   },
   drawerTabActive: {
-    borderBottomColor: '#0d6cf2',
+    backgroundColor: '#0d6cf2',
   },
   drawerTabText: {
     fontSize: 14,
@@ -979,7 +1004,8 @@ const styles = StyleSheet.create({
     color: '#64748b',
   },
   drawerTabTextActive: {
-    color: '#0d6cf2',
+    color: '#ffffff',
+    fontWeight: '700',
   },
   drawerFooter: {
     paddingHorizontal: 16,
