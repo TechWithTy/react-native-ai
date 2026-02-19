@@ -1,11 +1,11 @@
-from pydantic import BaseModel
-from typing import Optional, Dict
+from app.schemas.base import BaseSchema
+from pydantic import Field
 
-class CreditBalance(BaseModel):
-    ai_credits: int
-    scan_credits: int
+class CreditBalance(BaseSchema):
+    ai_credits: int = Field(alias="balance")
+    scan_credits: int = Field(alias="scanCreditsRemaining")
     
-class SubscriptionTier(BaseModel):
+class SubscriptionTier(BaseSchema):
     id: str # 'starter', 'pro', 'unlimited'
     name: str
     features: list[str]

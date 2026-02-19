@@ -203,7 +203,7 @@ export function useStyles() {
           backgroundColor: CLTheme.accent,
         },
         item: {
-          color: '#cbd5e1', // Light slate
+          color: CLTheme.text.secondary, // Light slate
           fontSize: 13,
           flexShrink: 1,
         },

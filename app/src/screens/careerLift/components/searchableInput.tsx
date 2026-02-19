@@ -1,5 +1,6 @@
 import { StyleProp, StyleSheet, TextInput, View, ViewStyle } from 'react-native'
 import Feather from '@expo/vector-icons/Feather'
+import { CLTheme } from '../theme'
 
 type SearchableInputProps = {
   value: string
@@ -16,13 +17,13 @@ export function SearchableInput({
 }: SearchableInputProps) {
   return (
     <View style={[styles.searchWrap, containerStyle]}>
-      <Feather name='search' size={16} color='#94a3b8' />
+      <Feather name='search' size={16} color={CLTheme.text.secondary} />
       <TextInput
         style={styles.searchInput}
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
-        placeholderTextColor='#64748b'
+        placeholderTextColor={CLTheme.text.muted}
       />
     </View>
   )
@@ -32,8 +33,8 @@ const styles = StyleSheet.create({
   searchWrap: {
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#243244',
-    backgroundColor: '#18212f',
+    borderColor: CLTheme.border,
+    backgroundColor: CLTheme.card,
     paddingHorizontal: 12,
     height: 48,
     flexDirection: 'row',
@@ -42,7 +43,7 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    color: '#f8fafc',
+    color: CLTheme.text.primary,
     fontSize: 14,
     paddingVertical: 8,
   },

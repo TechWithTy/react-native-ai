@@ -25,8 +25,8 @@ jest.mock('@react-navigation/native', () => ({
 }))
 
 // Mock Expo Audio
-const mockRequestRecordingPermissionsAsync = jest.fn(() => Promise.resolve({ granted: true }))
-const mockSetAudioModeAsync = jest.fn(() => Promise.resolve())
+const mockRequestRecordingPermissionsAsync = jest.fn(async () => ({ granted: true }))
+const mockSetAudioModeAsync = jest.fn(async (_mode?: any) => {})
 const mockRecordingObj = {
   prepareToRecordAsync: jest.fn(),
   record: jest.fn(),
@@ -35,8 +35,8 @@ const mockRecordingObj = {
 }
 
 jest.mock('expo-audio', () => ({
-  requestRecordingPermissionsAsync: (...args: any[]) => mockRequestRecordingPermissionsAsync(...args),
-  setAudioModeAsync: (...args: any[]) => mockSetAudioModeAsync(...args),
+  requestRecordingPermissionsAsync: () => mockRequestRecordingPermissionsAsync(),
+  setAudioModeAsync: (mode: any) => mockSetAudioModeAsync(mode),
   RecordingPresets: {
     HIGH_QUALITY: {},
   },

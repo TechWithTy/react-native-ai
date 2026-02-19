@@ -314,7 +314,7 @@ export function ApplicationPrepOptions({
           <Text style={styles.applyHeader}>Prepare Application</Text>
           {onClose ? (
             <TouchableOpacity onPress={onClose} style={styles.iconBtn}>
-              <MaterialIcons name='close' size={20} color='#94a3b8' />
+              <MaterialIcons name='close' size={20} color={CLTheme.text.secondary} />
             </TouchableOpacity>
           ) : null}
         </View>
@@ -453,7 +453,7 @@ export function ApplicationPrepOptions({
                       Alert.alert('Copied', 'Answer copied to clipboard')
                     }}
                   >
-                    <MaterialIcons name='content-copy' size={16} color='#64748b' />
+                    <MaterialIcons name='content-copy' size={16} color={CLTheme.text.muted} />
                   </TouchableOpacity>
                 </View>
                 <Text style={[styles.advAnswerText, item.mono ? styles.monoAnswer : null]}>{item.a}</Text>
@@ -528,7 +528,7 @@ const styles = StyleSheet.create({
   },
   applyTabBar: {
     flexDirection: 'row',
-    backgroundColor: '#18212f',
+    backgroundColor: CLTheme.card,
     borderRadius: 10,
     marginBottom: 16,
     padding: 3,
@@ -545,7 +545,7 @@ const styles = StyleSheet.create({
   applyTabText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#64748b',
+    color: CLTheme.text.muted,
   },
   applyTabTextActive: {
     color: '#ffffff',
@@ -739,7 +739,7 @@ const styles = StyleSheet.create({
   },
   hintText: {
     fontSize: 12,
-    color: '#64748b',
+    color: CLTheme.text.muted,
     textAlign: 'center',
     marginTop: 4,
   },
@@ -871,7 +871,7 @@ const styles = StyleSheet.create({
   },
   advancedHintText: {
     fontSize: 12,
-    color: '#94a3b8',
+    color: CLTheme.text.secondary,
   },
   advancedTapLabel: {
     fontSize: 12,

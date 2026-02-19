@@ -202,14 +202,14 @@ export function ATSResultsScreen({ route }: ATSResultsProps = {}) {
           </View>
           <View style={styles.terminalBox}>
             <Text style={styles.terminalText}>
-              <Text style={{ color: '#64748b' }}>&gt;&gt;&gt; PARSING HEADER...</Text>
+              <Text style={{ color: CLTheme.text.muted }}>&gt;&gt;&gt; PARSING HEADER...</Text>
               {'\n'}NAME: Jane Doe{'\n'}
               EMAIL: jane.doe@email.com{'\n'}
               PHONE: [NOT FOUND]{'\n'}
-              <Text style={{ color: '#64748b' }}>&gt;&gt;&gt; PARSING EXPERIENCE...</Text>
+              <Text style={{ color: CLTheme.text.muted }}>&gt;&gt;&gt; PARSING EXPERIENCE...</Text>
               {'\n'}ROLE: Senior PM{'\n'}
               COMPANY: TechFlow Inc.{'\n'}
-              <Text style={{ color: '#64748b' }}>&gt;&gt;&gt; ANALYZING GAPS...</Text>
+              <Text style={{ color: CLTheme.text.muted }}>&gt;&gt;&gt; ANALYZING GAPS...</Text>
               {'\n'}CRITICAL_ERROR: Header image...
             </Text>
           </View>
@@ -518,7 +518,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   rawText: {
-    color: '#94a3b8',
+    color: CLTheme.text.secondary,
     fontSize: 10,
   },
   terminalBox: {

@@ -412,7 +412,7 @@ export function RecommendedJobsScreen() {
             onRefresh={handleRefresh}
             tintColor={CLTheme.accent}
             colors={[CLTheme.accent]}
-            progressBackgroundColor='#1a222e'
+            progressBackgroundColor={CLTheme.card}
           />
         }
         contentContainerStyle={styles.listContent}
@@ -500,7 +500,7 @@ export function RecommendedJobsScreen() {
                       <MaterialIcons
                         name={selected ? 'radio-button-checked' : 'radio-button-unchecked'}
                         size={20}
-                        color={selected ? CLTheme.accent : '#64748b'}
+                        color={selected ? CLTheme.accent : CLTheme.text.muted}
                       />
                     </TouchableOpacity>
                   )
@@ -595,7 +595,7 @@ export function RecommendedJobsScreen() {
                   onChangeText={setPresetName}
                   style={styles.presetNameInput}
                   placeholder='e.g. Remote PM Roles'
-                  placeholderTextColor='#64748b'
+                  placeholderTextColor={CLTheme.text.muted}
                 />
               </View>
 
@@ -666,8 +666,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#223249',
-    backgroundColor: '#101722',
+    borderBottomColor: CLTheme.border,
+    backgroundColor: CLTheme.background,
   },
   headerTop: {
     flexDirection: 'row',
@@ -682,7 +682,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   pageTitle: {
-    color: '#f8fafc',
+    color: CLTheme.text.primary,
     fontSize: 22,
     fontWeight: '700',
     letterSpacing: -0.4,
@@ -717,7 +717,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1a222e',
+    backgroundColor: CLTheme.card,
   },
   searchIcon: {
     marginRight: 8,
@@ -734,7 +734,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#1a222e',
+    backgroundColor: CLTheme.card,
   },
   filterScroll: {
     columnGap: 8,
@@ -744,7 +744,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 7,
     borderRadius: 999,
-    backgroundColor: '#1a222e',
+    backgroundColor: CLTheme.card,
     borderWidth: 1,
     borderColor: 'transparent',
   },
@@ -754,7 +754,7 @@ const styles = StyleSheet.create({
   filterText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#cbd5e1',
+    color: CLTheme.text.secondary,
   },
   activeFilterText: {
     color: '#ffffff',
@@ -765,10 +765,10 @@ const styles = StyleSheet.create({
     rowGap: 14,
   },
   card: {
-    backgroundColor: '#1a222e',
+    backgroundColor: CLTheme.card,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#223249',
+    borderColor: CLTheme.border,
     padding: 14,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 3 },
@@ -797,7 +797,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
-    backgroundColor: '#223249',
+    backgroundColor: CLTheme.border,
   },
   logoImage: {
     width: '100%',
@@ -809,12 +809,12 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   roleText: {
-    color: '#f8fafc',
+    color: CLTheme.text.primary,
     fontSize: 16,
     fontWeight: '700',
   },
   companyText: {
-    color: '#94a3b8',
+    color: CLTheme.text.secondary,
     fontSize: 13,
     marginTop: 2,
     fontWeight: '500',
@@ -828,7 +828,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   matchLabel: {
-    color: '#64748b',
+    color: CLTheme.text.muted,
     fontSize: 10,
     textTransform: 'uppercase',
     letterSpacing: 0.8,
@@ -843,7 +843,7 @@ const styles = StyleSheet.create({
   },
   tagChip: {
     borderRadius: 6,
-    backgroundColor: '#223249',
+    backgroundColor: CLTheme.border,
     paddingHorizontal: 8,
     paddingVertical: 4,
   },
@@ -851,7 +851,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(13, 108, 242, 0.15)',
   },
   tagText: {
-    color: '#cbd5e1',
+    color: CLTheme.text.secondary,
     fontSize: 11,
     fontWeight: '600',
   },
@@ -863,7 +863,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     columnGap: 8,
     borderTopWidth: 1,
-    borderTopColor: '#223249',
+    borderTopColor: CLTheme.border,
     paddingTop: 12,
   },
   viewDetailsBtn: {
@@ -885,14 +885,14 @@ const styles = StyleSheet.create({
     borderRadius: 9,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#223249',
+    backgroundColor: CLTheme.border,
   },
   emptyState: {
     borderWidth: 1,
-    borderColor: '#223249',
+    borderColor: CLTheme.border,
     borderRadius: 12,
     padding: 20,
-    backgroundColor: '#1a222e',
+    backgroundColor: CLTheme.card,
   },
   emptyStateTitle: {
     color: CLTheme.text.primary,
@@ -914,22 +914,22 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     height: height * 0.67,
-    backgroundColor: '#101722',
+    backgroundColor: CLTheme.background,
     borderTopLeftRadius: 22,
     borderTopRightRadius: 22,
     borderTopWidth: 1,
-    borderTopColor: '#223249',
+    borderTopColor: CLTheme.border,
     paddingHorizontal: 20,
     paddingTop: 12,
     paddingBottom: 20,
   },
   filtersModalContent: {
     maxHeight: height * 0.86,
-    backgroundColor: '#101722',
+    backgroundColor: CLTheme.background,
     borderTopLeftRadius: 22,
     borderTopRightRadius: 22,
     borderTopWidth: 1,
-    borderTopColor: '#223249',
+    borderTopColor: CLTheme.border,
     paddingHorizontal: 20,
     paddingTop: 12,
     paddingBottom: 10,
@@ -941,13 +941,13 @@ const styles = StyleSheet.create({
     paddingBottom: 14,
   },
   filtersTitle: {
-    color: '#f8fafc',
+    color: CLTheme.text.primary,
     fontSize: 20,
     fontWeight: '700',
     marginBottom: 4,
   },
   filtersSubtitle: {
-    color: '#94a3b8',
+    color: CLTheme.text.secondary,
     fontSize: 13,
     marginBottom: 18,
   },
@@ -966,21 +966,21 @@ const styles = StyleSheet.create({
     height: 42,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#223249',
+    borderColor: CLTheme.border,
     paddingHorizontal: 12,
-    backgroundColor: '#1a222e',
+    backgroundColor: CLTheme.card,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 8,
   },
   optionLabel: {
-    color: '#cbd5e1',
+    color: CLTheme.text.secondary,
     fontSize: 14,
     fontWeight: '500',
   },
   optionLabelSelected: {
-    color: '#f8fafc',
+    color: CLTheme.text.primary,
     fontWeight: '700',
   },
   quickFiltersRow: {
@@ -990,7 +990,7 @@ const styles = StyleSheet.create({
     rowGap: 8,
   },
   filterSubsectionTitle: {
-    color: '#94a3b8',
+    color: CLTheme.text.secondary,
     fontSize: 11,
     textTransform: 'uppercase',
     letterSpacing: 0.7,
@@ -1009,15 +1009,15 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: '#223249',
-    backgroundColor: '#1a222e',
+    borderColor: CLTheme.border,
+    backgroundColor: CLTheme.card,
   },
   filterOptionChipActive: {
     borderColor: CLTheme.accent,
     backgroundColor: 'rgba(13, 108, 242, 0.18)',
   },
   filterOptionText: {
-    color: '#cbd5e1',
+    color: CLTheme.text.secondary,
     fontSize: 12,
     fontWeight: '600',
   },
@@ -1029,15 +1029,15 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: '#223249',
-    backgroundColor: '#1a222e',
+    borderColor: CLTheme.border,
+    backgroundColor: CLTheme.card,
   },
   quickFilterChipActive: {
     borderColor: CLTheme.accent,
     backgroundColor: 'rgba(13, 108, 242, 0.18)',
   },
   quickFilterText: {
-    color: '#cbd5e1',
+    color: CLTheme.text.secondary,
     fontSize: 12,
     fontWeight: '600',
   },
@@ -1045,35 +1045,35 @@ const styles = StyleSheet.create({
     color: CLTheme.accent,
   },
   locationFilterInputContainer: {
-    backgroundColor: '#1a222e',
-    borderColor: '#223249',
+    backgroundColor: CLTheme.card,
+    borderColor: CLTheme.border,
   },
   locationFilterSuggestions: {
-    borderColor: '#223249',
-    backgroundColor: '#1a222e',
+    borderColor: CLTheme.border,
+    backgroundColor: CLTheme.card,
     maxHeight: 150,
   },
   locationFilterSuggestionRow: {
-    borderBottomColor: '#223249',
+    borderBottomColor: CLTheme.border,
   },
   locationFilterSuggestionText: {
-    color: '#cbd5e1',
+    color: CLTheme.text.secondary,
   },
   presetNameInput: {
     borderWidth: 1,
-    borderColor: '#223249',
+    borderColor: CLTheme.border,
     borderRadius: 10,
-    backgroundColor: '#1a222e',
-    color: '#f8fafc',
+    backgroundColor: CLTheme.card,
+    color: CLTheme.text.primary,
     fontSize: 14,
     paddingHorizontal: 12,
     paddingVertical: 10,
   },
   savedPresetCard: {
     borderWidth: 1,
-    borderColor: '#223249',
+    borderColor: CLTheme.border,
     borderRadius: 12,
-    backgroundColor: '#1a222e',
+    backgroundColor: CLTheme.card,
     padding: 12,
     marginBottom: 10,
   },
@@ -1086,7 +1086,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   savedPresetText: {
-    color: '#94a3b8',
+    color: CLTheme.text.secondary,
     fontSize: 13,
     lineHeight: 19,
   },
@@ -1105,7 +1105,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 4,
     borderRadius: 999,
-    backgroundColor: '#223249',
+    backgroundColor: CLTheme.border,
     marginBottom: 16,
   },
   modalBody: {
@@ -1123,7 +1123,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
-    backgroundColor: '#223249',
+    backgroundColor: CLTheme.border,
   },
   logoImageLarge: {
     width: '100%',
@@ -1135,13 +1135,13 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   modalRole: {
-    color: '#f8fafc',
+    color: CLTheme.text.primary,
     fontSize: 20,
     fontWeight: '700',
     textAlign: 'center',
   },
   modalCompany: {
-    color: '#94a3b8',
+    color: CLTheme.text.secondary,
     fontSize: 13,
     textAlign: 'center',
     marginTop: 4,
@@ -1154,14 +1154,14 @@ const styles = StyleSheet.create({
   },
   modalNotesCard: {
     borderWidth: 1,
-    borderColor: '#223249',
+    borderColor: CLTheme.border,
     borderRadius: 12,
     padding: 14,
-    backgroundColor: '#1a222e',
+    backgroundColor: CLTheme.card,
     marginBottom: 'auto',
   },
   modalNotesTitle: {
-    color: '#94a3b8',
+    color: CLTheme.text.secondary,
     fontSize: 11,
     textTransform: 'uppercase',
     fontWeight: '700',
@@ -1169,7 +1169,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.6,
   },
   modalNotesText: {
-    color: '#cbd5e1',
+    color: CLTheme.text.secondary,
     fontSize: 14,
     lineHeight: 20,
   },
@@ -1183,10 +1183,10 @@ const styles = StyleSheet.create({
     height: 44,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#223249',
+    borderColor: CLTheme.border,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#1a222e',
+    backgroundColor: CLTheme.card,
   },
   secondaryButtonText: {
     color: '#e2e8f0',

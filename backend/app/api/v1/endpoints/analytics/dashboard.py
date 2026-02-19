@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.schemas.analytics import DashboardData, PipelineStats, WeeklyProgress
+from app.schemas.analytics import DashboardData
 from app.services.mock_data import get_mock_analytics
 
 router = APIRouter()

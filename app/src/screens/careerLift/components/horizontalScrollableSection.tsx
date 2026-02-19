@@ -1,6 +1,7 @@
 import { ReactNode, useCallback, useMemo, useState } from 'react'
 import { LayoutChangeEvent, ScrollView, StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native'
 import Feather from '@expo/vector-icons/Feather'
+import { CLTheme } from '../theme'
 
 type HorizontalScrollableSectionProps = {
   title: string
@@ -34,7 +35,7 @@ export function HorizontalScrollableSection({
         {canScroll ? (
           <View style={styles.scrollHintWrap}>
             <Text style={styles.scrollHintText}>Scroll</Text>
-            <Feather name='chevron-right' size={13} color='#94a3b8' />
+            <Feather name='chevron-right' size={13} color={CLTheme.text.secondary} />
           </View>
         ) : null}
       </View>
@@ -63,7 +64,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   sectionTitle: {
-    color: '#cbd5e1',
+    color: CLTheme.text.secondary,
     fontSize: 12,
     textTransform: 'uppercase',
     letterSpacing: 0.8,
@@ -75,7 +76,7 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   scrollHintText: {
-    color: '#94a3b8',
+    color: CLTheme.text.secondary,
     fontSize: 11,
     fontWeight: '600',
   },

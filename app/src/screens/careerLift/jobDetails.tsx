@@ -512,7 +512,7 @@ export function JobDetailsScreen() {
             <View style={styles.drawerTitleRow}>
               <Text style={styles.drawerTitle}>Prepare Application</Text>
               <TouchableOpacity onPress={closeApplyDrawer} style={styles.drawerCloseBtn}>
-                <MaterialIcons name='close' size={20} color='#94a3b8' />
+                <MaterialIcons name='close' size={20} color={CLTheme.text.secondary} />
               </TouchableOpacity>
             </View>
 
@@ -631,7 +631,7 @@ export function JobDetailsScreen() {
                     <Text style={styles.advCoverSalutation}>Dear Hiring Team,</Text>
                     <Text style={styles.advCoverBody}>{selectedCoverLetter.content}</Text>
                     <LinearGradient
-                      colors={['transparent', '#101722']}
+                      colors={['transparent', CLTheme.background]}
                       style={styles.advCoverOverlay}
                     >
                       <TouchableOpacity style={styles.advReadFullBtn} onPress={() => setPreviewDoc(selectedCoverLetter)}>
@@ -654,7 +654,7 @@ export function JobDetailsScreen() {
                       <View style={styles.advAnswerHeader}>
                         <Text style={styles.advQuestionText}>{item.q}</Text>
                         <TouchableOpacity onPress={() => handleCopyAnswer(item.a)}>
-                          <MaterialIcons name='content-copy' size={17} color='#64748b' />
+                          <MaterialIcons name='content-copy' size={17} color={CLTheme.text.muted} />
                         </TouchableOpacity>
                       </View>
                       {item.isMono ? (
@@ -736,7 +736,7 @@ export function JobDetailsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#101722',
+    backgroundColor: CLTheme.background,
   },
   header: {
     paddingHorizontal: 16,
@@ -746,11 +746,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     borderBottomWidth: 1,
-    borderBottomColor: '#223249',
-    backgroundColor: '#101722',
+    borderBottomColor: CLTheme.border,
+    backgroundColor: CLTheme.background,
   },
   headerTitle: {
-    color: '#f8fafc',
+    color: CLTheme.text.primary,
     fontSize: 18,
     fontWeight: '700',
   },
@@ -760,9 +760,9 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#1a222e',
+    backgroundColor: CLTheme.card,
     borderWidth: 1,
-    borderColor: '#223249',
+    borderColor: CLTheme.border,
   },
   content: {
     padding: 16,
@@ -795,7 +795,7 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   logoFallback: {
-    color: '#f8fafc',
+    color: CLTheme.text.primary,
     fontWeight: '800',
     fontSize: 20,
   },
@@ -848,25 +848,25 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
   },
   heroChipText: {
-    color: '#f8fafc',
+    color: CLTheme.text.primary,
     fontSize: 11,
     fontWeight: '600',
   },
   card: {
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#223249',
-    backgroundColor: '#1a222e',
+    borderColor: CLTheme.border,
+    backgroundColor: CLTheme.card,
     padding: 14,
   },
   cardTitle: {
-    color: '#f8fafc',
+    color: CLTheme.text.primary,
     fontWeight: '700',
     fontSize: 15,
     marginBottom: 8,
   },
   cardBody: {
-    color: '#cbd5e1',
+    color: CLTheme.text.secondary,
     fontSize: 14,
     lineHeight: 21,
   },
@@ -885,7 +885,7 @@ const styles = StyleSheet.create({
   },
   bulletText: {
     flex: 1,
-    color: '#cbd5e1',
+    color: CLTheme.text.secondary,
     fontSize: 14,
     lineHeight: 20,
   },
@@ -898,7 +898,7 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     borderTopWidth: 1,
-    borderTopColor: '#223249',
+    borderTopColor: CLTheme.border,
     paddingHorizontal: 16,
     paddingTop: 12,
     paddingBottom: 18,
@@ -914,14 +914,14 @@ const styles = StyleSheet.create({
     borderColor: '#2d3f56',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#1a222e',
+    backgroundColor: CLTheme.card,
   },
   secondaryButtonSaved: {
     borderColor: 'rgba(13,108,242,0.65)',
     backgroundColor: 'rgba(13,108,242,0.16)',
   },
   secondaryButtonText: {
-    color: '#f8fafc',
+    color: CLTheme.text.primary,
     fontSize: 14,
     fontWeight: '600',
   },
@@ -949,18 +949,18 @@ const styles = StyleSheet.create({
   },
   drawerContent: {
     maxHeight: '85%',
-    backgroundColor: '#101722',
+    backgroundColor: CLTheme.background,
     borderTopLeftRadius: 22,
     borderTopRightRadius: 22,
     borderTopWidth: 1,
-    borderTopColor: '#223249',
+    borderTopColor: CLTheme.border,
   },
   drawerHandle: {
     alignSelf: 'center',
     width: 40,
     height: 4,
     borderRadius: 999,
-    backgroundColor: '#223249',
+    backgroundColor: CLTheme.border,
     marginTop: 12,
     marginBottom: 10,
   },
@@ -978,7 +978,7 @@ const styles = StyleSheet.create({
   drawerTitle: {
     fontSize: 17,
     fontWeight: '700',
-    color: '#f8fafc',
+    color: CLTheme.text.primary,
     letterSpacing: 0.1,
   },
   drawerCloseBtn: {
@@ -986,7 +986,7 @@ const styles = StyleSheet.create({
   },
   drawerTabBar: {
     flexDirection: 'row',
-    backgroundColor: '#18212f',
+    backgroundColor: CLTheme.card,
     borderRadius: 10,
     marginHorizontal: 16,
     marginBottom: 8,
@@ -1004,7 +1004,7 @@ const styles = StyleSheet.create({
   drawerTabText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#64748b',
+    color: CLTheme.text.muted,
   },
   drawerTabTextActive: {
     color: '#ffffff',
@@ -1015,18 +1015,18 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
     paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: '#223249',
+    borderTopColor: CLTheme.border,
   },
   // Advanced tab styles
   advancedTabContainer: {
     gap: 16,
   },
   advJobCard: {
-    backgroundColor: '#18212f',
+    backgroundColor: CLTheme.card,
     borderRadius: 12,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#223249',
+    borderColor: CLTheme.border,
     flexDirection: 'row',
     gap: 14,
   },
@@ -1077,7 +1077,7 @@ const styles = StyleSheet.create({
   },
   advCompanyLoc: {
     fontSize: 12,
-    color: '#94a3b8',
+    color: CLTheme.text.secondary,
     fontWeight: '500',
   },
   advTagsRow: {
@@ -1094,7 +1094,7 @@ const styles = StyleSheet.create({
   advTagText: {
     fontSize: 9,
     fontWeight: '600',
-    color: '#94a3b8',
+    color: CLTheme.text.secondary,
   },
   advSectionHeader: {
     flexDirection: 'row',
@@ -1104,7 +1104,7 @@ const styles = StyleSheet.create({
   advSectionTitle: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#94a3b8',
+    color: CLTheme.text.secondary,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
@@ -1120,11 +1120,11 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   advCard: {
-    backgroundColor: '#18212f',
+    backgroundColor: CLTheme.card,
     borderRadius: 12,
     padding: 14,
     borderWidth: 1,
-    borderColor: '#223249',
+    borderColor: CLTheme.border,
   },
   advResumeContent: {
     flexDirection: 'row',
@@ -1167,7 +1167,7 @@ const styles = StyleSheet.create({
   },
   advPdfLine: {
     height: 2,
-    backgroundColor: '#64748b',
+    backgroundColor: CLTheme.text.muted,
     width: '100%',
   },
   advResumeInfo: {
@@ -1181,12 +1181,12 @@ const styles = StyleSheet.create({
   },
   advResumeMeta: {
     fontSize: 11,
-    color: '#94a3b8',
+    color: CLTheme.text.secondary,
     marginTop: 3,
   },
   advResumeDate: {
     fontSize: 11,
-    color: '#64748b',
+    color: CLTheme.text.muted,
     marginTop: 2,
   },
   advResumeActions: {
@@ -1220,11 +1220,11 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   advCoverCard: {
-    backgroundColor: '#18212f',
+    backgroundColor: CLTheme.card,
     borderRadius: 12,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#223249',
+    borderColor: CLTheme.border,
     overflow: 'hidden',
   },
   advCoverSalutation: {
@@ -1236,7 +1236,7 @@ const styles = StyleSheet.create({
   advCoverBody: {
     fontSize: 13,
     lineHeight: 20,
-    color: '#cbd5e1',
+    color: CLTheme.text.secondary,
     marginBottom: 40,
   },
   advCoverOverlay: {
@@ -1250,7 +1250,7 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
   },
   advReadFullBtn: {
-    backgroundColor: '#101722',
+    backgroundColor: CLTheme.background,
     borderWidth: 1,
     borderColor: '#334155',
     flexDirection: 'row',
@@ -1267,11 +1267,11 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   advAnswerCard: {
-    backgroundColor: '#18212f',
+    backgroundColor: CLTheme.card,
     borderRadius: 12,
     padding: 14,
     borderWidth: 1,
-    borderColor: '#223249',
+    borderColor: CLTheme.border,
   },
   advAnswerHeader: {
     flexDirection: 'row',
@@ -1289,7 +1289,7 @@ const styles = StyleSheet.create({
   advAnswerText: {
     fontSize: 13,
     lineHeight: 19,
-    color: '#cbd5e1',
+    color: CLTheme.text.secondary,
   },
   advMonoWrap: {
     backgroundColor: 'rgba(0,0,0,0.2)',
@@ -1300,7 +1300,7 @@ const styles = StyleSheet.create({
   },
   advMonoText: {
     fontSize: 12,
-    color: '#cbd5e1',
+    color: CLTheme.text.secondary,
     fontFamily: 'monospace',
   },
   advFooterHint: {
@@ -1311,7 +1311,7 @@ const styles = StyleSheet.create({
   },
   advFooterHintText: {
     fontSize: 12,
-    color: '#94a3b8',
+    color: CLTheme.text.secondary,
   },
   applyHeader: {
     color: CLTheme.text.primary,
@@ -1329,9 +1329,9 @@ const styles = StyleSheet.create({
   },
   applySectionCard: {
     marginBottom: 12,
-    backgroundColor: '#18212f',
+    backgroundColor: CLTheme.card,
     borderWidth: 1,
-    borderColor: '#223249',
+    borderColor: CLTheme.border,
     borderRadius: 12,
     padding: 12,
   },
@@ -1366,26 +1366,26 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   iconCircleMuted: {
-    backgroundColor: '#223249',
+    backgroundColor: CLTheme.border,
   },
   dropdownContainer: {
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#223249',
+    borderColor: CLTheme.border,
     overflow: 'hidden',
   },
   dropdownOption: {
     minHeight: 58,
     paddingHorizontal: 10,
-    backgroundColor: '#101722',
+    backgroundColor: CLTheme.background,
     borderBottomWidth: 1,
-    borderBottomColor: '#223249',
+    borderBottomColor: CLTheme.border,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
   dropdownOptionSelected: {
-    backgroundColor: '#18212f',
+    backgroundColor: CLTheme.card,
   },
   applyActionSection: {
     marginTop: 18,
@@ -1394,9 +1394,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#18212f',
+    backgroundColor: CLTheme.card,
     borderWidth: 1,
-    borderColor: '#223249',
+    borderColor: CLTheme.border,
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 10,
@@ -1477,10 +1477,10 @@ const styles = StyleSheet.create({
   previewModalContent: {
     marginHorizontal: 16,
     marginVertical: 48,
-    backgroundColor: '#18212f',
+    backgroundColor: CLTheme.card,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#223249',
+    borderColor: CLTheme.border,
     overflow: 'hidden',
     flex: 1,
   },
@@ -1491,7 +1491,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#223249',
+    borderBottomColor: CLTheme.border,
   },
   previewTitle: {
     color: CLTheme.text.primary,

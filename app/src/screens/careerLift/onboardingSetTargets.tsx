@@ -10,6 +10,7 @@ import {
 } from '../../store/careerSetup'
 import { HorizontalScrollableSection } from './components/horizontalScrollableSection'
 import { SearchableInput } from './components/searchableInput'
+import { CLTheme } from './theme'
 
 const MAX_BADGES_PER_ROW = 4
 const MAX_BADGE_ROWS = 4
@@ -102,7 +103,7 @@ export function OnboardingSetTargetsScreen({ navigation }: any) {
       <View style={styles.header}>
         <View style={styles.topMetaRow}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.topLinkBtn} activeOpacity={0.9}>
-            <MaterialIcons name="arrow-back" size={24} color="#64748b" />
+            <MaterialIcons name="arrow-back" size={24} color={CLTheme.text.muted} />
           </TouchableOpacity>
           <Text style={styles.stepLabel}>Step 2 of 3</Text>
 
@@ -217,11 +218,11 @@ export function OnboardingSetTargetsScreen({ navigation }: any) {
           disabled={!canProceed}
           style={[
             styles.cta,
-            !canProceed && { opacity: 0.5, backgroundColor: '#334155' }
+            !canProceed && { opacity: 0.5, backgroundColor: CLTheme.border }
           ]}
           activeOpacity={0.9}
         >
-          <Text style={[styles.ctaText, !canProceed && { color: '#94a3b8' }]}>Continue</Text>
+          <Text style={[styles.ctaText, !canProceed && { color: CLTheme.text.secondary }]}>Continue</Text>
         </TouchableOpacity>
         {!canProceed ? (
           <Text style={styles.validationDockText}>Complete all required selections to continue.</Text>
@@ -234,7 +235,7 @@ export function OnboardingSetTargetsScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: '#101722',
+    backgroundColor: CLTheme.background,
   },
   header: {
     paddingHorizontal: 16,
@@ -258,12 +259,12 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   stepLabel: {
-    color: '#cbd5e1',
+    color: CLTheme.text.secondary,
     fontSize: 12,
     fontWeight: '700',
   },
   headerTitle: {
-    color: '#f8fafc',
+    color: CLTheme.text.primary,
     fontSize: 24,
     fontWeight: '700',
   },
@@ -271,7 +272,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     height: 6,
     borderRadius: 999,
-    backgroundColor: '#243244',
+    backgroundColor: CLTheme.border,
     overflow: 'hidden',
   },
   progressFill: {
@@ -287,7 +288,7 @@ const styles = StyleSheet.create({
     marginTop: 18,
   },
   sectionTitle: {
-    color: '#cbd5e1',
+    color: CLTheme.text.secondary,
     fontSize: 12,
     textTransform: 'uppercase',
     letterSpacing: 0.8,
@@ -295,13 +296,13 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   helperText: {
-    color: '#94a3b8',
+    color: CLTheme.text.secondary,
     fontSize: 12,
     marginBottom: 8,
   },
   emptyText: {
     marginTop: 8,
-    color: '#94a3b8',
+    color: CLTheme.text.secondary,
     fontSize: 12,
   },
   validationText: {
@@ -329,8 +330,8 @@ const styles = StyleSheet.create({
   salaryChip: {
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#243244',
-    backgroundColor: '#18212f',
+    borderColor: CLTheme.border,
+    backgroundColor: CLTheme.card,
     paddingHorizontal: 12,
     paddingVertical: 8,
   },
@@ -339,7 +340,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#0d6cf2',
   },
   salaryChipText: {
-    color: '#cbd5e1',
+    color: CLTheme.text.secondary,
     fontSize: 12,
     fontWeight: '700',
   },
@@ -350,8 +351,8 @@ const styles = StyleSheet.create({
     minWidth: 138,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#243244',
-    backgroundColor: '#18212f',
+    borderColor: CLTheme.border,
+    backgroundColor: CLTheme.card,
     paddingHorizontal: 10,
     paddingVertical: 8,
     alignItems: 'center',
@@ -361,7 +362,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(13,108,242,0.15)',
   },
   goalBadgeText: {
-    color: '#e2e8f0',
+    color: CLTheme.text.primary,
     fontSize: 12,
     fontWeight: '600',
     textAlign: 'center',
@@ -378,8 +379,8 @@ const styles = StyleSheet.create({
   chip: {
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: '#243244',
-    backgroundColor: '#18212f',
+    borderColor: CLTheme.border,
+    backgroundColor: CLTheme.card,
     paddingHorizontal: 12,
     paddingVertical: 8,
   },
@@ -388,7 +389,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#0d6cf2',
   },
   chipText: {
-    color: '#cbd5e1',
+    color: CLTheme.text.secondary,
     fontSize: 12,
     fontWeight: '600',
   },
@@ -425,9 +426,9 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     borderTopWidth: 1,
-    borderTopColor: '#243244',
+    borderTopColor: CLTheme.border,
     padding: 14,
-    backgroundColor: '#101722',
+    backgroundColor: CLTheme.background,
     gap: 8,
   },
   cta: {
@@ -451,12 +452,12 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderColor: '#334155',
-    backgroundColor: '#18212f',
+    backgroundColor: CLTheme.card,
     paddingVertical: 12,
     alignItems: 'center',
   },
   secondaryCtaText: {
-    color: '#cbd5e1',
+    color: CLTheme.text.secondary,
     fontWeight: '700',
     fontSize: 14,
   },

@@ -1,7 +1,8 @@
 from pydantic import BaseModel, EmailStr, HttpUrl
 from typing import Optional
+from app.schemas.base import BaseSchema
 
-class UserProfile(BaseModel):
+class UserProfile(BaseSchema):
     id: str
     name: str = "Tyriq King"
     email: EmailStr = "tyriq@careerlift.io"
@@ -10,6 +11,3 @@ class UserProfile(BaseModel):
     is_open_to_work: bool = False
     bio: Optional[str] = None
     linkedin_connected: bool = False
-    
-    class Config:
-        from_attributes = True

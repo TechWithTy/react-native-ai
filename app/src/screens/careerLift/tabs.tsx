@@ -2,6 +2,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { StyleSheet, TouchableOpacity, View } from 'react-native'
 import Feather from '@expo/vector-icons/Feather'
 import MaterialIcons from '@expo/vector-icons/MaterialIcons'
+import type { BottomTabBarButtonProps } from '@react-navigation/bottom-tabs'
 import { DashboardScreen } from './dashboard'
 import { JobTrackerScreen } from './jobTracker'
 import { RecommendedJobsScreen } from './recommendedJobs'
@@ -50,8 +51,32 @@ export function CareerLiftTabs() {
               <MaterialIcons name="smart-toy" size={21} color="#fff" />
             </View>
           ),
-          tabBarButton: ({ children, style, ...props }) => (
-            <TouchableOpacity {...props} activeOpacity={0.9} style={[style, styles.aiCoachTabButton]}>
+          tabBarButton: ({
+            children,
+            style,
+            delayLongPress,
+            onPress,
+            onLongPress,
+            accessibilityLabel,
+            accessibilityRole,
+            accessibilityState,
+            accessibilityValue,
+            testID,
+            disabled,
+          }: BottomTabBarButtonProps) => (
+            <TouchableOpacity
+              onPress={onPress ?? undefined}
+              onLongPress={onLongPress ?? undefined}
+              accessibilityLabel={accessibilityLabel ?? undefined}
+              accessibilityRole={accessibilityRole ?? 'button'}
+              accessibilityState={accessibilityState ?? undefined}
+              accessibilityValue={accessibilityValue ?? undefined}
+              testID={testID ?? undefined}
+              disabled={disabled ?? false}
+              delayLongPress={delayLongPress ?? undefined}
+              activeOpacity={0.9}
+              style={[style, styles.aiCoachTabButton]}
+            >
               {children}
             </TouchableOpacity>
           ),

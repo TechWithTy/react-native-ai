@@ -287,7 +287,7 @@ export function WeeklyDigestScreen() {
               color={CLTheme.text.secondary}
               fillColor={CLTheme.text.secondary}
               fillPercent={digestStats.funnel.applicationsPercent}
-              iconColor="#64748b"
+              iconColor={CLTheme.text.muted}
             />
 
             {/* Interviews Stage */}

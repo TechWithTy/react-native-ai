@@ -11,6 +11,7 @@ import {
 } from 'react-native'
 import { City, State as CountryState } from 'country-state-city'
 import { Feather } from '@expo/vector-icons'
+import { CLTheme } from '../theme'
 
 const MAX_LOCATION_SUGGESTIONS = 8
 const DEFAULT_LOCATION_OPTIONS = [
@@ -90,8 +91,8 @@ export function LocationAutocomplete({
   return (
     <View style={containerStyle}>
       <View style={[styles.inputContainer, inputContainerStyle]}>
-        {!isFocused && !showSearchIcon && <Feather name='edit-3' size={16} color='#94a3b8' />}
-        {showSearchIcon ? <Feather name='search' size={16} color='#94a3b8' /> : null}
+        {!isFocused && !showSearchIcon && <Feather name='edit-3' size={16} color={CLTheme.text.secondary} />}
+        {showSearchIcon ? <Feather name='search' size={16} color={CLTheme.text.secondary} /> : null}
         <TextInput
           value={value}
           onChangeText={onChangeText}
@@ -99,7 +100,7 @@ export function LocationAutocomplete({
           onBlur={() => setIsFocused(false)}
           style={[styles.input, inputStyle]}
           placeholder={placeholder}
-          placeholderTextColor='#64748b'
+          placeholderTextColor={CLTheme.text.muted}
           autoCorrect={false}
           autoCapitalize='words'
         />
@@ -121,24 +122,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     borderWidth: 1,
-    borderColor: '#223249',
+    borderColor: CLTheme.border,
     borderRadius: 10,
-    backgroundColor: '#0f1722',
+    backgroundColor: CLTheme.card,
     paddingHorizontal: 12,
     minHeight: 44,
   },
   input: {
     flex: 1,
-    color: '#f8fafc',
+    color: CLTheme.text.primary,
     fontSize: 14,
     paddingVertical: 10,
   },
   suggestionsContainer: {
     marginTop: 8,
     borderWidth: 1,
-    borderColor: '#223249',
+    borderColor: CLTheme.border,
     borderRadius: 10,
-    backgroundColor: '#1a222e',
+    backgroundColor: CLTheme.card,
     maxHeight: 200,
     overflow: 'hidden',
   },
@@ -146,10 +147,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#223249',
+    borderBottomColor: CLTheme.border,
   },
   suggestionText: {
-    color: '#e2e8f0',
+    color: CLTheme.text.primary,
     fontSize: 14,
     fontWeight: '500',
   },

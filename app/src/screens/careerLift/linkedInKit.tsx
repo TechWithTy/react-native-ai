@@ -952,7 +952,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   learningSubtitle: {
-    color: '#cbd5e1',
+    color: CLTheme.text.secondary,
     fontSize: 12,
     lineHeight: 18,
     marginTop: 4,

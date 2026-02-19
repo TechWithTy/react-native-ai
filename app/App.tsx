@@ -1,7 +1,6 @@
 import 'react-native-gesture-handler'
-import { useState, useEffect, useRef } from 'react'
+import { ComponentType, SetStateAction, useState, useEffect, useRef } from 'react'
 import { NavigationContainer } from '@react-navigation/native'
-import { Main } from './src/main'
 import { useFonts } from 'expo-font'
 import { ThemeContext, AppContext } from './src/context'
 import * as themes from './src/theme'
@@ -17,7 +16,7 @@ import {
   BottomSheetModalProvider,
   BottomSheetView,
 } from '@gorhom/bottom-sheet'
-import { StyleSheet, LogBox } from 'react-native'
+import { DevSettings, StyleSheet, LogBox } from 'react-native'
 import { useAIAgentsStore } from './src/store/aiAgentsStore'
 
 LogBox.ignoreLogs([
@@ -27,6 +26,8 @@ LogBox.ignoreLogs([
 
 export default function App() {
   const [theme, setTheme] = useState<string>('dark')
+  const [MainComponent, setMainComponent] = useState<ComponentType | null>(null)
+  const [isBootstrapped, setIsBootstrapped] = useState(false)
   const [chatType, setChatType] = useState<Model>(MODELS.claudeOpus)
   const [imageModel, setImageModel] = useState<string>(IMAGE_MODELS.nanoBanana.label)
   const [modalVisible, setModalVisible] = useState<boolean>(false)
@@ -43,14 +44,15 @@ export default function App() {
   })
 
   useEffect(() => {
-    configureStorage()
+    void configureStorage()
   }, [])
 
   async function configureStorage() {
     try {
       const _theme = await AsyncStorage.getItem('rnai-theme')
-      // Default to dark theme to match CareerLift design
-      setTheme(_theme && _theme !== 'light' ? _theme : 'dark')
+      const resolvedTheme = _theme && getTheme(_theme) ? _theme : 'dark'
+      ;(globalThis as any).__RNAI_THEME_NAME = resolvedTheme
+      setTheme(resolvedTheme)
       const _chatType = await AsyncStorage.getItem('rnai-chatType')
       let resolvedChatType = MODELS.claudeOpus
       if (_chatType) {
@@ -60,8 +62,14 @@ export default function App() {
       useAIAgentsStore.getState().setSelectedModelLabel(resolvedChatType.label)
       const _imageModel = await AsyncStorage.getItem('rnai-imageModel')
       if (_imageModel) setImageModel(_imageModel)
+      const mainModule = await import('./src/main')
+      setMainComponent(() => mainModule.Main)
+      setIsBootstrapped(true)
     } catch (err) {
       console.log('error configuring storage', err)
+      const mainModule = await import('./src/main')
+      setMainComponent(() => mainModule.Main)
+      setIsBootstrapped(true)
     }
   }
 
@@ -91,14 +99,38 @@ export default function App() {
     AsyncStorage.setItem('rnai-imageModel', model)
   }
 
-  function _setTheme(theme) {
-    setTheme(theme)
-    AsyncStorage.setItem('rnai-theme', theme)
+  async function reloadForThemeChange() {
+    const isTestEnv = typeof process !== 'undefined' && Boolean(process.env?.JEST_WORKER_ID)
+    if (isTestEnv) return
+
+    try {
+      const Updates = require('expo-updates')
+      if (typeof Updates?.reloadAsync === 'function') {
+        await Updates.reloadAsync()
+        return
+      }
+    } catch {
+      // Fall back to DevSettings reload in dev.
+    }
+
+    DevSettings.reload()
+  }
+
+  function _setTheme(nextThemeAction: SetStateAction<string>) {
+    const nextTheme =
+      typeof nextThemeAction === 'function'
+        ? nextThemeAction(theme)
+        : nextThemeAction
+    if (nextTheme === theme) return
+    setTheme(nextTheme)
+    ;(globalThis as any).__RNAI_THEME_NAME = nextTheme
+    AsyncStorage.setItem('rnai-theme', nextTheme)
+    void reloadForThemeChange()
   }
 
   const bottomSheetStyles = getBottomsheetStyles(getTheme(theme))
 
-  if (!fontsLoaded) return null
+  if (!fontsLoaded || !isBootstrapped || !MainComponent) return null
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <AppContext.Provider
@@ -118,7 +150,7 @@ export default function App() {
           }}>
           <ActionSheetProvider>
             <NavigationContainer>
-              <Main />
+              <MainComponent />
             </NavigationContainer>
           </ActionSheetProvider>
           <BottomSheetModalProvider>
@@ -158,16 +190,12 @@ const getBottomsheetStyles = theme => StyleSheet.create({
     borderTopRightRadius: 24,
   },
   handleIndicator: {
-    backgroundColor: 'rgba(255, 255, 255, .3)'
+    backgroundColor: theme.borderColor
   }
 })
 
 function getTheme(theme: any) {
-  let current
-  Object.keys(themes).forEach(_theme => {
-    if (_theme.includes(theme)) {
-      current = themes[_theme]
-    }
-  })
-  return current
+  const target = typeof theme === 'string' ? theme : ''
+  const resolved = Object.values(themes).find(candidate => candidate.label === target)
+  return resolved || themes.darkTheme
 }

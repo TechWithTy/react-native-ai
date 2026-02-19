@@ -13,6 +13,7 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons'
 import * as DocumentPicker from 'expo-document-picker'
 import { useCareerSetupStore } from '../../store/careerSetup'
 import { requestPushNotificationsPermission } from '../../utils/pushNotificationsPermission'
+import { CLTheme } from './theme'
 
 export function ResumeIngestionScreen({ navigation }: any) {
   const selectedFile = useCareerSetupStore(state => state.sourceResumeName)
@@ -60,7 +61,7 @@ export function ResumeIngestionScreen({ navigation }: any) {
 
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn} activeOpacity={0.9}>
-          <MaterialIcons name="arrow-back" size={24} color="#64748b" />
+          <MaterialIcons name="arrow-back" size={24} color={CLTheme.text.muted} />
         </TouchableOpacity>
         <View style={styles.stepWrap}>
           <Text style={styles.stepLabel}>Step 3 of 3</Text>
@@ -123,12 +124,12 @@ export function ResumeIngestionScreen({ navigation }: any) {
           }} 
           style={[
             styles.cta,
-            !canProceed && { opacity: 0.5, backgroundColor: '#334155' }
+            !canProceed && { opacity: 0.5, backgroundColor: CLTheme.border }
           ]} 
           disabled={!canProceed}
           activeOpacity={0.9}
         >
-          <Text style={[styles.ctaText, !canProceed && { color: '#94a3b8' }]}>Complete Setup</Text>
+          <Text style={[styles.ctaText, !canProceed && { color: CLTheme.text.secondary }]}>Complete Setup</Text>
         </TouchableOpacity>
         {!canProceed ? (
           <Text style={styles.validationDockText}>A source resume is required to complete setup.</Text>
@@ -206,7 +207,7 @@ export function ResumeIngestionScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: '#101722',
+    backgroundColor: CLTheme.background,
   },
   topSpacer: {
     height: 44,
@@ -224,7 +225,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#18212f',
+    backgroundColor: CLTheme.card,
   },
   stepWrap: {
     alignItems: 'flex-end',
@@ -245,7 +246,7 @@ const styles = StyleSheet.create({
     width: 24,
     height: 6,
     borderRadius: 999,
-    backgroundColor: '#334155',
+    backgroundColor: CLTheme.border,
   },
   stepDotDone: {
     backgroundColor: '#0d6cf2',
@@ -259,14 +260,14 @@ const styles = StyleSheet.create({
     marginBottom: 18,
   },
   title: {
-    color: '#f8fafc',
+    color: CLTheme.text.primary,
     fontSize: 32,
     fontWeight: '700',
     letterSpacing: -0.4,
     marginBottom: 8,
   },
   subtitle: {
-    color: '#94a3b8',
+    color: CLTheme.text.secondary,
     fontSize: 15,
     lineHeight: 22,
   },
@@ -279,8 +280,8 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 2,
     borderStyle: 'dashed',
-    borderColor: '#334155',
-    backgroundColor: '#18212f',
+    borderColor: CLTheme.border,
+    backgroundColor: CLTheme.card,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 18,
@@ -291,19 +292,19 @@ const styles = StyleSheet.create({
     borderRadius: 39,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#0b1220',
+    backgroundColor: CLTheme.background,
     borderWidth: 1,
-    borderColor: '#243244',
+    borderColor: CLTheme.border,
     marginBottom: 14,
   },
   uploadTitle: {
-    color: '#f8fafc',
+    color: CLTheme.text.primary,
     fontSize: 18,
     fontWeight: '700',
     marginBottom: 4,
   },
   uploadSub: {
-    color: '#94a3b8',
+    color: CLTheme.text.secondary,
     fontSize: 13,
     textAlign: 'center',
   },
@@ -340,10 +341,10 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: '#243244',
+    backgroundColor: CLTheme.border,
   },
   dividerText: {
-    color: '#64748b',
+    color: CLTheme.text.muted,
     fontSize: 11,
     textTransform: 'uppercase',
     fontWeight: '700',
@@ -352,13 +353,13 @@ const styles = StyleSheet.create({
   linkedInBtn: {
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#334155',
-    backgroundColor: '#18212f',
+    borderColor: CLTheme.border,
+    backgroundColor: CLTheme.card,
     paddingVertical: 13,
     alignItems: 'center',
   },
   linkedInBtnText: {
-    color: '#f8fafc',
+    color: CLTheme.text.primary,
     fontSize: 14,
     fontWeight: '600',
   },
@@ -370,13 +371,13 @@ const styles = StyleSheet.create({
     gap: 6,
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: '#243244',
-    backgroundColor: '#18212f',
+    borderColor: CLTheme.border,
+    backgroundColor: CLTheme.card,
     paddingHorizontal: 12,
     paddingVertical: 8,
   },
   securityText: {
-    color: '#94a3b8',
+    color: CLTheme.text.secondary,
     fontSize: 12,
     fontWeight: '600',
   },
@@ -386,11 +387,11 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     borderTopWidth: 1,
-    borderTopColor: '#243244',
+    borderTopColor: CLTheme.border,
     paddingHorizontal: 16,
     paddingTop: 12,
     paddingBottom: 14,
-    backgroundColor: '#101722',
+    backgroundColor: CLTheme.background,
   },
   cta: {
     height: 56,
@@ -410,7 +411,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   secondaryBtnText: {
-    color: '#94a3b8',
+    color: CLTheme.text.secondary,
     fontSize: 13,
     fontWeight: '600',
   },
@@ -430,18 +431,18 @@ const styles = StyleSheet.create({
   modalCard: {
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#243244',
-    backgroundColor: '#101722',
+    borderColor: CLTheme.border,
+    backgroundColor: CLTheme.background,
     padding: 16,
   },
   modalTitle: {
-    color: '#f8fafc',
+    color: CLTheme.text.primary,
     fontSize: 18,
     fontWeight: '700',
     marginBottom: 8,
   },
   modalSub: {
-    color: '#94a3b8',
+    color: CLTheme.text.secondary,
     fontSize: 13,
     lineHeight: 20,
   },
@@ -454,13 +455,13 @@ const styles = StyleSheet.create({
   modalSecondary: {
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#334155',
-    backgroundColor: '#18212f',
+    borderColor: CLTheme.border,
+    backgroundColor: CLTheme.card,
     paddingHorizontal: 12,
     paddingVertical: 10,
   },
   modalSecondaryText: {
-    color: '#cbd5e1',
+    color: CLTheme.text.secondary,
     fontWeight: '700',
     fontSize: 12,
   },

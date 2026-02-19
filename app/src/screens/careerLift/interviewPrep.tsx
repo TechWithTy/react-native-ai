@@ -690,7 +690,7 @@ function StoriesSection({ onStoryPress }: { onStoryPress: (story: any) => void }
     const stories = [
         { id: 1, title: 'The API Migration', tag: 'Leadership', status: 'Ready', color: '#10b981' },
         { id: 2, title: 'Q4 Budget Conflict', tag: 'Conflict', status: 'Needs Work', color: '#f59e0b' },
-        { id: 3, title: 'Market Entry 2024', tag: 'Strategy', status: 'Drafting', color: '#64748b' },
+        { id: 3, title: 'Market Entry 2024', tag: 'Strategy', status: 'Drafting', color: CLTheme.text.muted },
         { id: 4, title: 'Team Restructuring', tag: 'Management', status: 'Ready', color: '#10b981' },
     ]
 

@@ -1490,7 +1490,7 @@ const getStatusColor = (status: JobEntry['status']) => {
       case 'Offer Received': return '#10b981' // Green
       case 'Offer Signed': return '#059669' // Darker Green
       case 'Rejected': return '#ef4444' // Red
-      case 'Not Interested': return '#64748b' // Slate/Gray
+      case 'Not Interested': return CLTheme.text.muted // Slate/Gray
       default: return CLTheme.text.muted
     }
 }
@@ -1527,7 +1527,7 @@ const styles = StyleSheet.create({
       width: 36, 
       height: 36, 
       borderRadius: 18, 
-      backgroundColor: '#cbd5e1', 
+      backgroundColor: CLTheme.text.secondary, 
       overflow: 'hidden',
       borderWidth: 1,
       borderColor: CLTheme.border
@@ -1741,7 +1741,7 @@ const styles = StyleSheet.create({
   logoTextSmall: {
       fontSize: 14,
       fontWeight: '700',
-      color: '#64748b',
+      color: CLTheme.text.muted,
   },
   recBadge: {
       backgroundColor: 'rgba(13, 108, 242, 0.1)',
@@ -1798,7 +1798,7 @@ const styles = StyleSheet.create({
   logoText: {
       fontSize: 18,
       fontWeight: '700',
-      color: '#64748b',
+      color: CLTheme.text.muted,
   },
   roleText: {
       fontSize: 15,
@@ -2100,7 +2100,7 @@ const styles = StyleSheet.create({
   },
   applyTabBar: {
       flexDirection: 'row',
-      backgroundColor: '#18212f',
+      backgroundColor: CLTheme.card,
       borderRadius: 10,
       marginBottom: 16,
       padding: 3,
@@ -2117,7 +2117,7 @@ const styles = StyleSheet.create({
   applyTabText: {
       fontSize: 14,
       fontWeight: '600' as const,
-      color: '#64748b',
+      color: CLTheme.text.muted,
   },
   applyTabTextActive: {
       color: '#ffffff',

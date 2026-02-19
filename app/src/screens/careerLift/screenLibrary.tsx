@@ -2,6 +2,7 @@ import { ScrollView, Text, TouchableOpacity, View } from 'react-native'
 import Feather from '@expo/vector-icons/Feather'
 import { careerLiftRoutes } from './routes'
 import { ScreenTitle, useStyles } from './shared'
+import { CLTheme } from './theme'
 
 export function ScreenLibrary({ navigation }: any) {
   const styles = useStyles()
@@ -18,7 +19,7 @@ export function ScreenLibrary({ navigation }: any) {
           >
             <View style={styles.listRow}>
               <Text style={styles.sectionTitle}>{route.label}</Text>
-              <Feather name='chevron-right' size={16} color='#94a3b8' />
+              <Feather name='chevron-right' size={16} color={CLTheme.text.secondary} />
             </View>
           </TouchableOpacity>
         ))}

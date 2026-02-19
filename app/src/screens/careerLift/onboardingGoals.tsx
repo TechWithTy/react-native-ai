@@ -10,6 +10,7 @@ import { USER_WORKING_STYLES } from '../../data/workingStyle'
 import { ModalContainer } from './components/modalContainer'
 import { LocationAutocomplete } from './components/locationAutocomplete'
 import { getCurrentDeviceLocation } from '../../native/permissions/location'
+import { CLTheme } from './theme'
 
 const LOCATION_REQUIRED_WORKING_STYLES = new Set(['Hybrid', 'On-site'])
 const LEGACY_BY_WORKING_STYLE = USER_WORKING_STYLES.reduce<Record<string, string>>((acc, option) => {
@@ -125,7 +126,7 @@ export function OnboardingGoalsScreen({ navigation }: any) {
 
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <MaterialIcons name="arrow-back" size={24} color="#64748b" />
+          <MaterialIcons name="arrow-back" size={24} color={CLTheme.text.muted} />
         </TouchableOpacity>
 
       </View>
@@ -253,12 +254,12 @@ export function OnboardingGoalsScreen({ navigation }: any) {
           }}
           style={[
             styles.cta,
-            { opacity: canProceed ? 1 : 0.5, backgroundColor: canProceed ? '#0d6cf2' : '#334155' }
+            { opacity: canProceed ? 1 : 0.5, backgroundColor: canProceed ? '#0d6cf2' : CLTheme.border }
           ]}
           disabled={!canProceed}
           activeOpacity={0.9}
         >
-          <Text style={[styles.ctaText, { color: canProceed ? '#fff' : '#94a3b8' }]}>Next Step</Text>
+          <Text style={[styles.ctaText, { color: canProceed ? '#fff' : CLTheme.text.secondary }]}>Next Step</Text>
           {canProceed && <MaterialIcons name="arrow-forward" size={20} color="#fff" />}
         </TouchableOpacity>
         {!canProceed ? (
@@ -276,7 +277,7 @@ export function OnboardingGoalsScreen({ navigation }: any) {
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>Set Your Preferred Location</Text>
             <TouchableOpacity onPress={() => setShowLocationModal(false)}>
-              <MaterialIcons name='close' size={22} color='#94a3b8' />
+              <MaterialIcons name='close' size={22} color={CLTheme.text.secondary} />
             </TouchableOpacity>
           </View>
           <ScrollView
@@ -347,7 +348,7 @@ export function OnboardingGoalsScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: '#101722',
+    backgroundColor: CLTheme.background,
   },
   statusBar: {
       height: 44, // Placeholder for status bar
@@ -368,7 +369,7 @@ const styles = StyleSheet.create({
       marginLeft: -8,
   },
   skipBtn: {
-      color: '#94a3b8', 
+      color: CLTheme.text.secondary, 
       fontSize: 14,
       fontWeight: '500', 
   },
@@ -382,7 +383,7 @@ const styles = StyleSheet.create({
       marginBottom: 8,
   },
   stepText: {
-      color: '#64748b',
+      color: CLTheme.text.muted,
       fontSize: 12,
       fontWeight: '500',
   },
@@ -392,7 +393,7 @@ const styles = StyleSheet.create({
   progressTrack: {
     height: 6,
     borderRadius: 999,
-    backgroundColor: '#1e293b', // slate-800
+    backgroundColor: CLTheme.border,
     overflow: 'hidden',
   },
   progressFill: {
@@ -408,14 +409,14 @@ const styles = StyleSheet.create({
       marginBottom: 32,
   },
   headerTitle: {
-    color: '#f8fafc',
+    color: CLTheme.text.primary,
     fontSize: 30,
     fontWeight: '700',
     letterSpacing: -0.5,
     marginBottom: 8,
   },
   headerSubtitle: {
-      color: '#94a3b8',
+      color: CLTheme.text.secondary,
       fontSize: 16,
       lineHeight: 24,
   },
@@ -429,7 +430,7 @@ const styles = StyleSheet.create({
       marginBottom: 12,
   },
   sectionTitle: {
-    color: '#e2e8f0', // slate-200
+    color: CLTheme.text.primary,
     fontSize: 13,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -460,8 +461,8 @@ const styles = StyleSheet.create({
     height: 128, // h-32
     borderRadius: 16, // rounded-xl
     borderWidth: 1,
-    borderColor: '#1e293b', // slate-800
-    backgroundColor: '#0f172a', // slate-900 (slightly darker than bg) or just white for light mode
+    borderColor: CLTheme.border,
+    backgroundColor: CLTheme.card,
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
@@ -480,13 +481,13 @@ const styles = StyleSheet.create({
       width: 48,
       height: 48,
       borderRadius: 999,
-      backgroundColor: '#1e293b', 
+      backgroundColor: CLTheme.border, 
       alignItems: 'center',
       justifyContent: 'center',
       marginBottom: 12,
   },
   gridCardText: {
-    color: '#e2e8f0',
+    color: CLTheme.text.primary,
     fontWeight: '500',
     fontSize: 14,
   },
@@ -505,15 +506,15 @@ const styles = StyleSheet.create({
       paddingVertical: 10,
       borderRadius: 999,
       borderWidth: 1, 
-      borderColor: '#1e293b',
-      backgroundColor: '#0f172a',
+      borderColor: CLTheme.border,
+      backgroundColor: CLTheme.card,
   },
   seniorityPillSelected: {
       backgroundColor: '#0d6cf2',
       borderColor: '#0d6cf2',
   },
   seniorityPillText: {
-      color: '#94a3b8',
+      color: CLTheme.text.secondary,
       fontWeight: '500',
       fontSize: 14,
   },
@@ -532,8 +533,8 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 16, // rounded-xl
     borderWidth: 1,
-    borderColor: '#1e293b',
-    backgroundColor: '#0f172a',
+    borderColor: CLTheme.border,
+    backgroundColor: CLTheme.card,
   },
   locationCardSelected: {
     borderColor: '#0d6cf2',
@@ -548,7 +549,7 @@ const styles = StyleSheet.create({
       width: 40,
       height: 40,
       borderRadius: 10, // rounded-lg
-      backgroundColor: '#1e293b',
+      backgroundColor: CLTheme.border,
       alignItems: 'center',
       justifyContent: 'center',
       marginRight: 16,
@@ -557,7 +558,7 @@ const styles = StyleSheet.create({
       flex: 1,
   },
   locationLabel: {
-    color: '#e2e8f0',
+    color: CLTheme.text.primary,
     fontSize: 15,
     fontWeight: '500',
   },
@@ -565,7 +566,7 @@ const styles = StyleSheet.create({
       color: '#fff',
   },
   locationSubtitle: {
-      color: '#64748b',
+      color: CLTheme.text.muted,
       fontSize: 12,
       marginTop: 2,
   },
@@ -574,7 +575,7 @@ const styles = StyleSheet.create({
       height: 20,
       borderRadius: 10,
       borderWidth: 2,
-      borderColor: '#475569',
+      borderColor: CLTheme.text.muted,
       alignItems: 'center',
       justifyContent: 'center',
   },
@@ -591,9 +592,9 @@ const styles = StyleSheet.create({
     bottom: 0,
     padding: 24,
     // Add gradient effect if possible, else solid bg
-    backgroundColor: '#101722', 
+    backgroundColor: CLTheme.background, 
     borderTopWidth: 1,
-    borderTopColor: '#1e293b',
+    borderTopColor: CLTheme.border,
   },
   cta: {
     height: 56,
@@ -622,10 +623,10 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   modalCard: {
-    backgroundColor: '#172335',
+    backgroundColor: CLTheme.card,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#223249',
+    borderColor: CLTheme.border,
     padding: 20,
   },
   modalHeader: {
@@ -637,12 +638,12 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#f8fafc',
+    color: CLTheme.text.primary,
   },
   modalSubtitle: {
     fontSize: 13,
     lineHeight: 20,
-    color: '#cbd5e1',
+    color: CLTheme.text.secondary,
     marginBottom: 14,
   },
   locationAutocompleteContainer: {
@@ -661,7 +662,7 @@ const styles = StyleSheet.create({
   locationSectionLabel: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#94a3b8',
+    color: CLTheme.text.secondary,
     textTransform: 'uppercase',
     letterSpacing: 0.6,
     marginBottom: 8,
@@ -669,8 +670,8 @@ const styles = StyleSheet.create({
   gpsLocationButton: {
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: '#223249',
-    backgroundColor: '#0f172a',
+    borderColor: CLTheme.border,
+    backgroundColor: CLTheme.card,
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 10,
@@ -681,23 +682,23 @@ const styles = StyleSheet.create({
   gpsLocationButtonText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#f8fafc',
+    color: CLTheme.text.primary,
   },
   textInput: {
-    color: '#f8fafc',
+    color: CLTheme.text.primary,
     fontSize: 14,
     paddingVertical: 10,
   },
   locationInputContainer: {
-    backgroundColor: '#0f172a',
-    borderColor: '#223249',
+    backgroundColor: CLTheme.card,
+    borderColor: CLTheme.border,
   },
   locationResultsContainer: {
     marginTop: 2,
     borderWidth: 1,
-    borderColor: '#223249',
+    borderColor: CLTheme.border,
     borderRadius: 10,
-    backgroundColor: '#0f172a',
+    backgroundColor: CLTheme.card,
     maxHeight: 200,
     overflow: 'hidden',
   },
@@ -705,10 +706,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#223249',
+    borderBottomColor: CLTheme.border,
   },
   locationSuggestionText: {
-    color: '#f8fafc',
+    color: CLTheme.text.primary,
     fontSize: 14,
     fontWeight: '500',
   },
@@ -721,14 +722,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#223249',
+    borderColor: CLTheme.border,
     borderRadius: 10,
     paddingVertical: 12,
   },
   cancelButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#94a3b8',
+    color: CLTheme.text.secondary,
   },
   primaryButton: {
     flex: 1,
