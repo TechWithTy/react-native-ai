@@ -34,3 +34,11 @@ yarn-error.*
 
 # typescript
 *.tsbuildinfo
+
+# local debug dumps
+expo_*_deps.json
+expo_deps.json
+expo_info.json
+install_error.txt
+install_log*.txt
+logcat_latest.txt
