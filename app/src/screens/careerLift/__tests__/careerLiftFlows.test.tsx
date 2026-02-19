@@ -180,9 +180,20 @@ describe('CareerLift flows', () => {
 
     fireEvent.press(getByText('Remote'))
     expect(queryByText('Set Your Preferred Location')).toBeNull()
+    expect(useUserProfileStore.getState().currentLocation).toBe('Remote')
 
     fireEvent.press(getByText('Remote'))
     expect(queryByText('Set Your Preferred Location')).toBeNull()
+  })
+
+  it('prompts for a city when switching from remote to hybrid', () => {
+    const { getByText } = render(<OnboardingGoalsScreen navigation={navigation} />)
+
+    fireEvent.press(getByText('Remote'))
+    expect(useUserProfileStore.getState().currentLocation).toBe('Remote')
+
+    fireEvent.press(getByText('Hybrid'))
+    expect(getByText('Set Your Preferred Location')).toBeTruthy()
   })
 
   it('step 2 supports searchable role and goals/skills content', () => {

@@ -1,8 +1,9 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   View,
   Text,
   ScrollView,
+  RefreshControl,
   StyleSheet,
   TouchableOpacity,
   Image,
@@ -175,9 +176,11 @@ export function DashboardScreen({ navigation, route }: DashboardProps = {}) {
     topMatch: 0,
     remoteRoles: 0,
   })
+  const [isRefreshing, setIsRefreshing] = useState(false)
   const [currentTime, setCurrentTime] = useState(() => new Date())
   const ringAnimPrimary = useRef(new Animated.Value(0)).current
   const ringAnimSecondary = useRef(new Animated.Value(0)).current
+  const refreshTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const trackedJobs = useMemo(() => [...thisWeek, ...nextUp], [thisWeek, nextUp])
   const firstName = name.split(' ')[0]
@@ -201,6 +204,31 @@ export function DashboardScreen({ navigation, route }: DashboardProps = {}) {
     [sourceResumeName, baselineResumeName]
   )
   const greeting = `${getDashboardGreeting(currentTime)},`
+
+  const handleRefresh = useCallback(() => {
+    if (isRefreshing) return
+
+    setIsRefreshing(true)
+    setCurrentTime(new Date())
+
+    if (refreshTimeoutRef.current) {
+      clearTimeout(refreshTimeoutRef.current)
+    }
+
+    refreshTimeoutRef.current = setTimeout(() => {
+      setCurrentTime(new Date())
+      setIsRefreshing(false)
+      refreshTimeoutRef.current = null
+    }, 850)
+  }, [isRefreshing])
+
+  useEffect(() => {
+    return () => {
+      if (refreshTimeoutRef.current) {
+        clearTimeout(refreshTimeoutRef.current)
+      }
+    }
+  }, [])
 
   useEffect(() => {
     if (isTestEnv) return
@@ -627,6 +655,15 @@ export function DashboardScreen({ navigation, route }: DashboardProps = {}) {
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={handleRefresh}
+            tintColor={CLTheme.accent}
+            colors={[CLTheme.accent]}
+            progressBackgroundColor={CLTheme.card}
+          />
+        }
       >
         {/* Quick Actions */}
         <View style={styles.sectionHeader}>

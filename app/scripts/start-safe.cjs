@@ -1,3 +1,4 @@
+const fs = require('fs')
 const { spawnSync } = require('child_process')
 const path = require('path')
 
@@ -5,6 +6,8 @@ const projectRoot = path.resolve(__dirname, '..')
 const requiredModules = [
   '@babel/generator',
   '@babel/helper-globals/data/builtin-lower.json',
+  'expo-local-authentication',
+  'expo-camera',
 ]
 
 function run(command, args, envOverrides) {
@@ -38,6 +41,32 @@ function findMissingModules() {
   })
 }
 
+function findTmpExpoDirs() {
+  const nodeModulesDir = path.join(projectRoot, 'node_modules')
+  if (!fs.existsSync(nodeModulesDir)) return []
+  return fs
+    .readdirSync(nodeModulesDir)
+    .filter(name => name.startsWith('expo-') && name.includes('_tmp_'))
+}
+
+function cleanupTmpExpoDirs() {
+  const tmpDirs = findTmpExpoDirs()
+  if (tmpDirs.length === 0) return 0
+
+  for (const dirName of tmpDirs) {
+    const fullPath = path.join(projectRoot, 'node_modules', dirName)
+    try {
+      fs.rmSync(fullPath, { recursive: true, force: true })
+      console.warn(`[start-safe] Removed stale temp dir: node_modules/${dirName}`)
+    } catch (error) {
+      console.warn(`[start-safe] Failed removing temp dir: node_modules/${dirName}`)
+      return 1
+    }
+  }
+
+  return 0
+}
+
 function printPnpmVersionHint() {
   const userAgent = process.env.npm_config_user_agent || ''
   const match = userAgent.match(/pnpm\/(\d+)\./)
@@ -48,19 +77,38 @@ function printPnpmVersionHint() {
 }
 
 function ensureDependencies() {
-  const missingBefore = findMissingModules()
-  if (missingBefore.length === 0) return 0
+  const cleanupStatus = cleanupTmpExpoDirs()
+  if (cleanupStatus !== 0) return cleanupStatus
 
-  console.warn(`[start-safe] Missing modules detected: ${missingBefore.join(', ')}`)
-  console.warn('[start-safe] Running `pnpm install --frozen-lockfile` before starting Metro...')
-  const installExitCode = run('pnpm', ['install', '--frozen-lockfile'])
+  const missingBefore = findMissingModules()
+  const tmpBefore = findTmpExpoDirs()
+  if (missingBefore.length === 0 && tmpBefore.length === 0) return 0
+
+  if (missingBefore.length > 0) {
+    console.warn(`[start-safe] Missing modules detected: ${missingBefore.join(', ')}`)
+  }
+  if (tmpBefore.length > 0) {
+    console.warn(`[start-safe] Temporary Expo module dirs detected: ${tmpBefore.join(', ')}`)
+  }
+
+  console.warn('[start-safe] Running `pnpm install --frozen-lockfile --ignore-scripts` before starting Metro...')
+  const installExitCode = run('pnpm', ['install', '--frozen-lockfile', '--ignore-scripts'])
   if (installExitCode !== 0) return installExitCode
 
   const missingAfter = findMissingModules()
-  if (missingAfter.length === 0) return 0
+  const cleanupAfterInstallStatus = cleanupTmpExpoDirs()
+  if (cleanupAfterInstallStatus !== 0) return cleanupAfterInstallStatus
 
-  console.error(`[start-safe] Still missing modules after install: ${missingAfter.join(', ')}`)
-  console.error('[start-safe] Run `pnpm run repair:deps` and then start again.')
+  const tmpAfter = findTmpExpoDirs()
+  if (missingAfter.length === 0 && tmpAfter.length === 0) return 0
+
+  if (missingAfter.length > 0) {
+    console.error(`[start-safe] Still missing modules after install: ${missingAfter.join(', ')}`)
+  }
+  if (tmpAfter.length > 0) {
+    console.error(`[start-safe] Temporary Expo module dirs still present: ${tmpAfter.join(', ')}`)
+  }
+  console.error('[start-safe] Run `pnpm run native:doctor` then `pnpm run repair:deps` and start again.')
   return 1
 }
 

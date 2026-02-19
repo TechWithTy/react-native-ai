@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import {
   View,
   Text,
   ScrollView,
+  RefreshControl,
   StyleSheet,
   TouchableOpacity,
   Image,
@@ -86,6 +87,8 @@ export function RecommendedJobsScreen() {
   const [experienceLevel, setExperienceLevel] = useState<RecommendedExperienceLevel>('Any')
   const [presetName, setPresetName] = useState('')
   const [selectedJob, setSelectedJob] = useState<JobEntry | null>(null)
+  const [isRefreshing, setIsRefreshing] = useState(false)
+  const refreshTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const normalizedFilter = screenFilters.includes(recommendedActiveFilter) ? recommendedActiveFilter : 'All Matches'
 
@@ -223,6 +226,28 @@ export function RecommendedJobsScreen() {
     }
     return parseMatchScore(b) - parseMatchScore(a)
   })
+
+  const handleRefresh = useCallback(() => {
+    if (isRefreshing) return
+
+    setIsRefreshing(true)
+    if (refreshTimeoutRef.current) {
+      clearTimeout(refreshTimeoutRef.current)
+    }
+
+    refreshTimeoutRef.current = setTimeout(() => {
+      setIsRefreshing(false)
+      refreshTimeoutRef.current = null
+    }, 850)
+  }, [isRefreshing])
+
+  useEffect(() => {
+    return () => {
+      if (refreshTimeoutRef.current) {
+        clearTimeout(refreshTimeoutRef.current)
+      }
+    }
+  }, [])
 
   const handleCardPress = (job: JobEntry) => {
     navigation.navigate('JobDetails', { job })
@@ -381,6 +406,15 @@ export function RecommendedJobsScreen() {
         keyExtractor={item => item.id}
         renderItem={renderJobCard}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={handleRefresh}
+            tintColor={CLTheme.accent}
+            colors={[CLTheme.accent]}
+            progressBackgroundColor='#1a222e'
+          />
+        }
         contentContainerStyle={styles.listContent}
         ListEmptyComponent={
           <View style={styles.emptyState}>

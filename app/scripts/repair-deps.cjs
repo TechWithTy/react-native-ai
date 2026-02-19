@@ -11,6 +11,8 @@ const pathsToDelete = [
 const requiredModules = [
   '@babel/generator',
   '@babel/helper-globals/data/builtin-lower.json',
+  'expo-local-authentication',
+  'expo-camera',
 ]
 
 function run(command, args) {

@@ -1,0 +1,7 @@
+export * from './capabilities/registry'
+export * from './capabilities/types'
+export * from './capabilities/usageMap'
+export * from './permissions/biometrics'
+export * from './permissions/location'
+export * from './permissions/media'
+export * from './permissions/notifications'

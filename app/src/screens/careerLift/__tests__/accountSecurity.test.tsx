@@ -14,11 +14,9 @@ const mockGetDocumentAsync = jest.fn()
 const mockRequestForegroundPermissionsAsync = jest.fn()
 const mockGetCurrentPositionAsync = jest.fn()
 const mockReverseGeocodeAsync = jest.fn()
-const mockHasHardwareAsync = jest.fn()
-const mockIsEnrolledAsync = jest.fn()
-const mockSupportedAuthenticationTypesAsync = jest.fn()
-const mockAuthenticateAsync = jest.fn()
 const mockRequestPushNotificationsPermission = jest.fn()
+const mockCheckFaceIdAvailability = jest.fn()
+const mockPromptFaceIdAuthentication = jest.fn()
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
@@ -37,19 +35,9 @@ jest.mock('@expo/vector-icons', () => ({
   Feather: 'Feather',
 }))
 
-jest.mock('expo-modules-core', () => ({
-  NativeModulesProxy: {
-    ExpoLocalAuthentication: {
-      AuthenticationType: {
-        FACIAL_RECOGNITION: 2,
-      },
-      hasHardwareAsync: (...args: unknown[]) => mockHasHardwareAsync(...args),
-      isEnrolledAsync: (...args: unknown[]) => mockIsEnrolledAsync(...args),
-      supportedAuthenticationTypesAsync: (...args: unknown[]) =>
-        mockSupportedAuthenticationTypesAsync(...args),
-      authenticateAsync: (...args: unknown[]) => mockAuthenticateAsync(...args),
-    },
-  },
+jest.mock('../../../native/permissions/biometrics', () => ({
+  checkFaceIdAvailability: (...args: unknown[]) => mockCheckFaceIdAvailability(...args),
+  promptFaceIdAuthentication: (...args: unknown[]) => mockPromptFaceIdAuthentication(...args),
 }))
 
 jest.mock('expo-document-picker', () => ({
@@ -94,10 +82,8 @@ describe('Account and security flow', () => {
     jest.clearAllMocks()
     useUserProfileStore.getState().resetProfile()
     mockGetDocumentAsync.mockResolvedValue({ canceled: true, assets: [] })
-    mockHasHardwareAsync.mockResolvedValue(true)
-    mockIsEnrolledAsync.mockResolvedValue(true)
-    mockSupportedAuthenticationTypesAsync.mockResolvedValue([2])
-    mockAuthenticateAsync.mockResolvedValue({ success: true })
+    mockCheckFaceIdAvailability.mockResolvedValue({ available: true })
+    mockPromptFaceIdAuthentication.mockResolvedValue(true)
     mockRequestPushNotificationsPermission.mockResolvedValue('granted')
   })
 
@@ -242,11 +228,11 @@ describe('Account and security flow', () => {
     await waitFor(() => {
       expect(useUserProfileStore.getState().faceIdAuthEnabled).toBe(true)
     })
-    expect(mockAuthenticateAsync).toHaveBeenCalled()
+    expect(mockPromptFaceIdAuthentication).toHaveBeenCalled()
   })
 
   it('does not enable Face ID when biometric verification fails', async () => {
-    mockAuthenticateAsync.mockResolvedValueOnce({ success: false })
+    mockPromptFaceIdAuthentication.mockResolvedValueOnce(false)
     const { getByTestId } = render(<AccountSecurityScreen />)
 
     fireEvent(getByTestId('faceid-toggle'), 'valueChange', true)

@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
+  RefreshControl,
   TouchableOpacity,
   Image,
   Switch,
@@ -14,7 +15,6 @@ import {
 import { MaterialIcons, FontAwesome5, Ionicons, Feather } from '@expo/vector-icons'
 import { useNavigation, useRoute } from '@react-navigation/native'
 import * as DocumentPicker from 'expo-document-picker'
-import * as Location from 'expo-location'
 import { CLTheme } from './theme'
 import { getRoleOptionsForTrack, getSalaryRangesForRole, useCareerSetupStore } from '../../store/careerSetup'
 import { useUserProfileStore } from '../../store/userProfileStore'
@@ -31,6 +31,7 @@ import { CreditPacksDrawer } from './components/creditPacksDrawer'
 import { CustomInterviewPrepPayload } from '../../../types'
 import { ROLE_TRACKS_META } from '../../data/roles'
 import { TARGET_SENIORITY_OPTIONS } from '../../data/seniority'
+import { getCurrentDeviceLocation } from '../../native/permissions/location'
 
 const PLAN_LABELS: Record<SubscriptionTierId, string> = {
   starter: 'STARTER',
@@ -68,8 +69,10 @@ export function SettingsProfileScreen() {
   const [scanCopyVariant, setScanCopyVariant] = useState<MonetizationCopyVariant>('classic')
   const [selectionType, setSelectionType] = useState<ProfileSelectionType>(null)
   const [showLocationModal, setShowLocationModal] = useState(false)
+  const [isRefreshing, setIsRefreshing] = useState(false)
   const [locationInput, setLocationInput] = useState('')
   const [isLocating, setIsLocating] = useState(false)
+  const refreshTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const creditBalance = useCreditsStore(state => state.balance)
   const subscriptionTier = useCreditsStore(state => state.subscriptionTier)
   const scanCreditsRemaining = useCreditsStore(state => state.scanCreditsRemaining)
@@ -81,6 +84,8 @@ export function SettingsProfileScreen() {
     roleTrack, 
     seniority, 
     desiredSalaryRange,
+    locationPreference,
+    locationPreferences,
     setCareerSetup,
   } = useCareerSetupStore()
   
@@ -92,6 +97,27 @@ export function SettingsProfileScreen() {
     isOpenToWork,
     setProfile,
   } = useUserProfileStore()
+
+  const hasRemoteWorkingPreference =
+    locationPreferences.includes('Remote') || locationPreference.trim().toLowerCase() === 'remote'
+  const profileLocationLabel =
+    currentLocation.trim().length > 0 ? currentLocation : hasRemoteWorkingPreference ? 'Remote' : 'No location'
+
+  const handleRefresh = useCallback(() => {
+    if (isRefreshing) return
+
+    setIsRefreshing(true)
+    setLocationInput(profileLocationLabel === 'No location' ? '' : profileLocationLabel)
+
+    if (refreshTimeoutRef.current) {
+      clearTimeout(refreshTimeoutRef.current)
+    }
+
+    refreshTimeoutRef.current = setTimeout(() => {
+      setIsRefreshing(false)
+      refreshTimeoutRef.current = null
+    }, 850)
+  }, [isRefreshing, profileLocationLabel])
 
   const handleEditProfile = async () => {
     try {
@@ -342,51 +368,32 @@ export function SettingsProfileScreen() {
   }, [openCustomPrepAt])
 
   useEffect(() => {
-    setLocationInput(currentLocation || '')
-  }, [currentLocation])
+    setLocationInput(profileLocationLabel === 'No location' ? '' : profileLocationLabel)
+  }, [profileLocationLabel])
 
-  const formatGpsLocation = (
-    latitude: number,
-    longitude: number,
-    geo?: { city?: string | null; region?: string | null; district?: string | null }
-  ) => {
-    if (geo?.city && geo?.region) return `${geo.city}, ${geo.region}`
-    if (geo?.city && geo?.district) return `${geo.city}, ${geo.district}`
-    return `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`
-  }
+  useEffect(() => {
+    return () => {
+      if (refreshTimeoutRef.current) {
+        clearTimeout(refreshTimeoutRef.current)
+      }
+    }
+  }, [])
 
   const handleUseCurrentLocation = async () => {
     try {
       setIsLocating(true)
-      const permission = await Location.requestForegroundPermissionsAsync()
-      if (permission.status !== 'granted') {
-        Alert.alert('Location Permission Needed', 'Allow location access to auto-fill your current location.')
+      const locationResult = await getCurrentDeviceLocation()
+      if (locationResult.status !== 'granted' || !locationResult.label) {
+        const message =
+          locationResult.status === 'blocked'
+            ? 'Location permission is blocked. Enable it from device settings to auto-fill your current location.'
+            : 'Allow location access to auto-fill your current location.'
+        Alert.alert('Location Permission Needed', message)
         return
       }
 
-      const coords = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.Balanced,
-      })
-
-      const geocoded = await Location.reverseGeocodeAsync({
-        latitude: coords.coords.latitude,
-        longitude: coords.coords.longitude,
-      })
-
-      const formatted = formatGpsLocation(
-        coords.coords.latitude,
-        coords.coords.longitude,
-        geocoded?.[0]
-          ? {
-              city: geocoded[0].city,
-              region: geocoded[0].region,
-              district: geocoded[0].district,
-            }
-          : undefined
-      )
-
-      setLocationInput(formatted)
-      setProfile({ currentLocation: formatted })
+      setLocationInput(locationResult.label)
+      setProfile({ currentLocation: locationResult.label })
       setShowLocationModal(false)
     } catch {
       Alert.alert('Unable to detect location', 'Try searching and selecting a location manually.')
@@ -458,6 +465,15 @@ export function SettingsProfileScreen() {
         contentContainerStyle={styles.scrollContent} 
         showsVerticalScrollIndicator={false}
         style={styles.scrollView}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={handleRefresh}
+            tintColor={CLTheme.accent}
+            colors={[CLTheme.accent]}
+            progressBackgroundColor={CLTheme.card}
+          />
+        }
       >
         {/* Profile Header */}
         <View style={styles.header}>
@@ -487,7 +503,7 @@ export function SettingsProfileScreen() {
               </Text>
             </TouchableOpacity>
             <TouchableOpacity style={[styles.pill, styles.pillGray]} onPress={() => setShowLocationModal(true)}>
-              <Text style={styles.pillTextGray}>{currentLocation}</Text>
+              <Text style={styles.pillTextGray}>{profileLocationLabel}</Text>
             </TouchableOpacity>
           </View>
         </View>

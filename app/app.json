@@ -19,7 +19,11 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.anonymous.app",
       "infoPlist": {
-        "NSFaceIDUsageDescription": "Use Face ID to protect your Career Lift account security settings."
+        "NSFaceIDUsageDescription": "Use Face ID to protect your Career Lift account security settings.",
+        "NSCameraUsageDescription": "Allow Career Lift to access your camera for profile and document capture.",
+        "NSPhotoLibraryUsageDescription": "Allow Career Lift to access your photo library for uploads.",
+        "NSMicrophoneUsageDescription": "Allow Career Lift to record mock interview responses.",
+        "NSLocationWhenInUseUsageDescription": "Allow Career Lift to detect your current location for job preferences."
       }
     },
     "android": {
@@ -30,6 +34,10 @@
       "package": "com.anonymous.app",
       "permissions": [
         "POST_NOTIFICATIONS",
+        "CAMERA",
+        "RECORD_AUDIO",
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
         "USE_BIOMETRIC",
         "USE_FINGERPRINT"
       ]
@@ -39,7 +47,15 @@
     },
     "plugins": [
       "expo-font",
-      "expo-notifications"
+      "expo-notifications",
+      "expo-local-authentication",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow Career Lift to access your camera for profile and document capture.",
+          "microphonePermission": "Allow Career Lift to use your microphone when recording video content."
+        }
+      ]
     ]
   }
 }

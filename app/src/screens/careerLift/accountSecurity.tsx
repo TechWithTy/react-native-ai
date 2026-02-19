@@ -2,7 +2,6 @@ import React, { useState } from 'react'
 import {
   Alert,
   Modal,
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -14,28 +13,14 @@ import {
 } from 'react-native'
 import { MaterialIcons } from '@expo/vector-icons'
 import { useNavigation } from '@react-navigation/native'
-import { NativeModulesProxy } from 'expo-modules-core'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { CLTheme } from './theme'
 import { useUserProfileStore } from '../../store/userProfileStore'
+import { checkFaceIdAvailability, promptFaceIdAuthentication } from '../../native/permissions/biometrics'
 
 const DEMO_AUTH_APP_CODE = '135790'
 const DEMO_AUTH_APP_KEY = 'CLFT-2FA-AUTH-7K9P'
 const DEMO_PHONE_VERIFICATION_CODE = '482913'
-
-type LocalAuthenticationModule = {
-  AuthenticationType?: {
-    FACIAL_RECOGNITION?: number
-  }
-  hasHardwareAsync?: () => Promise<boolean>
-  isEnrolledAsync?: () => Promise<boolean>
-  supportedAuthenticationTypesAsync?: () => Promise<number[]>
-  authenticateAsync?: (options?: Record<string, unknown>) => Promise<{ success: boolean }>
-}
-
-function getLocalAuthenticationModule(): LocalAuthenticationModule | null {
-  return ((NativeModulesProxy as any)?.ExpoLocalAuthentication as LocalAuthenticationModule | null) ?? null
-}
 
 function maskPhone(phone: string | null) {
   if (!phone) return null
@@ -261,57 +246,17 @@ export function AccountSecurityScreen() {
       return
     }
 
-    const LocalAuthentication = getLocalAuthenticationModule()
-    if (!LocalAuthentication) {
-      Alert.alert(
-        'Face ID unavailable',
-        'Local authentication module is unavailable in this build.'
-      )
-      return
-    }
-
-    if (
-      !LocalAuthentication.hasHardwareAsync ||
-      !LocalAuthentication.isEnrolledAsync ||
-      !LocalAuthentication.authenticateAsync
-    ) {
-      Alert.alert('Face ID unavailable', 'Local authentication APIs are not fully available.')
-      return
-    }
-
     setIsFaceIdProcessing(true)
     try {
-      const hasHardware = await LocalAuthentication.hasHardwareAsync()
-      if (!hasHardware) {
-        Alert.alert('Face ID unavailable', 'This device does not support biometric authentication.')
+      const availability = await checkFaceIdAvailability()
+      if (!availability.available) {
+        const title = availability.reason?.includes('Set up Face ID') ? 'No biometrics enrolled' : 'Face ID unavailable'
+        Alert.alert(title, availability.reason || 'Face ID could not be enabled on this device.')
         return
       }
 
-      const enrolled = await LocalAuthentication.isEnrolledAsync()
-      if (!enrolled) {
-        Alert.alert(
-          'No biometrics enrolled',
-          'Set up Face ID or biometric unlock in your device settings first.'
-        )
-        return
-      }
-
-      if (Platform.OS === 'ios' && LocalAuthentication.supportedAuthenticationTypesAsync) {
-        const supportedTypes = await LocalAuthentication.supportedAuthenticationTypesAsync()
-        const faceIdType = LocalAuthentication.AuthenticationType?.FACIAL_RECOGNITION ?? 2
-        if (!supportedTypes.includes(faceIdType)) {
-          Alert.alert('Face ID not supported', 'This iOS device does not have Face ID enabled.')
-          return
-        }
-      }
-
-      const authResult = await LocalAuthentication.authenticateAsync({
-        promptMessage: Platform.OS === 'ios' ? 'Enable Face ID' : 'Enable biometric sign-in',
-        cancelLabel: 'Cancel',
-        fallbackLabel: 'Use Passcode',
-      })
-
-      if (!authResult.success) {
+      const didAuthenticate = await promptFaceIdAuthentication()
+      if (!didAuthenticate) {
         Alert.alert('Verification failed', 'Face ID verification was not completed.')
         return
       }

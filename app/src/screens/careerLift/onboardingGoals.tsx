@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useState } from 'react'
 import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import Feather from '@expo/vector-icons/Feather'
 import MaterialIcons from '@expo/vector-icons/MaterialIcons'
-import * as Location from 'expo-location'
 import { getRoleOptionsForTrack, useCareerSetupStore } from '../../store/careerSetup'
 import { useUserProfileStore } from '../../store/userProfileStore'
 import { ROLE_TRACKS_META } from '../../data/roles'
@@ -10,6 +9,7 @@ import { TARGET_SENIORITY_OPTIONS } from '../../data/seniority'
 import { USER_WORKING_STYLES } from '../../data/workingStyle'
 import { ModalContainer } from './components/modalContainer'
 import { LocationAutocomplete } from './components/locationAutocomplete'
+import { getCurrentDeviceLocation } from '../../native/permissions/location'
 
 const LOCATION_REQUIRED_WORKING_STYLES = new Set(['Hybrid', 'On-site'])
 const LEGACY_BY_WORKING_STYLE = USER_WORKING_STYLES.reduce<Record<string, string>>((acc, option) => {
@@ -54,7 +54,8 @@ export function OnboardingGoalsScreen({ navigation }: any) {
   const selectedWorkingStyles =
     locationPreferences.length > 0 ? locationPreferences : locationPreference.trim().length > 0 ? [locationPreference] : []
   const needsLocation = selectedWorkingStyles.some(style => LOCATION_REQUIRED_WORKING_STYLES.has(style))
-  const isLocationValid = (currentLocation || '').trim().length > 0
+  const normalizedCurrentLocation = (currentLocation || '').trim().toLowerCase()
+  const hasConcreteLocation = normalizedCurrentLocation.length > 0 && normalizedCurrentLocation !== 'remote'
   const isRoleSelected = roleTrack.trim().length > 0
   const isSenioritySelected = targetSeniority.trim().length > 0
   const isWorkingStyleSelected = selectedWorkingStyles.length > 0
@@ -62,52 +63,26 @@ export function OnboardingGoalsScreen({ navigation }: any) {
   const seniorityValidationText = !isSenioritySelected ? 'Select your current seniority to continue.' : ''
   const workingStyleValidationText = !isWorkingStyleSelected ? 'Select at least one working style to continue.' : ''
   const locationValidationText =
-    needsLocation && !isLocationValid ? 'Add a preferred location to continue with hybrid or on-site.' : ''
+    needsLocation && !hasConcreteLocation ? 'Add a preferred location to continue with hybrid or on-site.' : ''
 
-  const canProceed = isRoleSelected && isSenioritySelected && isWorkingStyleSelected && (!needsLocation || isLocationValid)
-
-  const formatGpsLocation = (
-    latitude: number,
-    longitude: number,
-    geo?: { city?: string | null; region?: string | null; district?: string | null }
-  ) => {
-    if (geo?.city && geo?.region) return `${geo.city}, ${geo.region}`
-    if (geo?.city && geo?.district) return `${geo.city}, ${geo.district}`
-    return `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`
-  }
+  const canProceed =
+    isRoleSelected && isSenioritySelected && isWorkingStyleSelected && (!needsLocation || hasConcreteLocation)
 
   const handleUseCurrentLocation = async () => {
     try {
       setIsLocating(true)
-      const permission = await Location.requestForegroundPermissionsAsync()
-      if (permission.status !== 'granted') {
-        Alert.alert('Location Permission Needed', 'Allow location access to auto-fill your current location.')
+      const locationResult = await getCurrentDeviceLocation()
+      if (locationResult.status !== 'granted' || !locationResult.label) {
+        const message =
+          locationResult.status === 'blocked'
+            ? 'Location permission is blocked. Enable it from device settings to auto-fill your current location.'
+            : 'Allow location access to auto-fill your current location.'
+        Alert.alert('Location Permission Needed', message)
         return
       }
 
-      const coords = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.Balanced,
-      })
-
-      const geocoded = await Location.reverseGeocodeAsync({
-        latitude: coords.coords.latitude,
-        longitude: coords.coords.longitude,
-      })
-
-      const formatted = formatGpsLocation(
-        coords.coords.latitude,
-        coords.coords.longitude,
-        geocoded?.[0]
-          ? {
-              city: geocoded[0].city,
-              region: geocoded[0].region,
-              district: geocoded[0].district,
-            }
-          : undefined
-      )
-
-      setLocationInput(formatted)
-      setProfile({ currentLocation: formatted })
+      setLocationInput(locationResult.label)
+      setProfile({ currentLocation: locationResult.label })
       setShowLocationModal(false)
     } catch {
       Alert.alert('Unable to detect location', 'Try searching and selecting a location manually.')
@@ -130,8 +105,14 @@ export function OnboardingGoalsScreen({ navigation }: any) {
       workingStyle: nextLegacyWorkingStyle,
     })
 
+    const selectedRemote = !isAlreadySelected && label === 'Remote'
+    if (selectedRemote && !normalizedCurrentLocation) {
+      setLocationInput('Remote')
+      setProfile({ currentLocation: 'Remote' })
+    }
+
     const shouldPromptForLocation =
-      !isAlreadySelected && LOCATION_REQUIRED_WORKING_STYLES.has(label) && !isLocationValid
+      !isAlreadySelected && LOCATION_REQUIRED_WORKING_STYLES.has(label) && !hasConcreteLocation
     if (shouldPromptForLocation) {
       setShowLocationModal(true)
     }

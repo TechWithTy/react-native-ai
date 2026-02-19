@@ -3,6 +3,7 @@ import {
   View,
   Text,
   ScrollView,
+  RefreshControl,
   StyleSheet,
   TouchableOpacity,
   TextInput,
@@ -205,12 +206,14 @@ export function JobTrackerScreen({ route }: JobTrackerProps = {}) {
   const [selectedResponseJob, setSelectedResponseJob] = useState<JobEntry | null>(null)
   const [showCoffeeChatDecisionDrawer, setShowCoffeeChatDecisionDrawer] = useState(false)
   const [selectedCoffeeChatJob, setSelectedCoffeeChatJob] = useState<JobEntry | null>(null)
+  const [isRefreshing, setIsRefreshing] = useState(false)
   const initialStatus = route?.params?.initialStatus
   const openAddJobModalFromRoute = route?.params?.openAddJobModal === true
 
   const fillAnim = React.useRef(new Animated.Value(0)).current
   const holdTimerRef = React.useRef<NodeJS.Timeout | null>(null)
   const isHoldStarted = React.useRef(false)
+  const refreshTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Restore modal when returning from other screens if job was selected
   useFocusEffect(
@@ -234,6 +237,28 @@ export function JobTrackerScreen({ route }: JobTrackerProps = {}) {
     setShowAddJobModal(true)
     navigation.setParams?.({ openAddJobModal: undefined })
   }, [openAddJobModalFromRoute, showAddJobModal, navigation])
+
+  const handleRefresh = useCallback(() => {
+    if (isRefreshing) return
+
+    setIsRefreshing(true)
+    if (refreshTimeoutRef.current) {
+      clearTimeout(refreshTimeoutRef.current)
+    }
+
+    refreshTimeoutRef.current = setTimeout(() => {
+      setIsRefreshing(false)
+      refreshTimeoutRef.current = null
+    }, 850)
+  }, [isRefreshing])
+
+  useEffect(() => {
+    return () => {
+      if (refreshTimeoutRef.current) {
+        clearTimeout(refreshTimeoutRef.current)
+      }
+    }
+  }, [])
 
   const openJobDetails = (job: JobEntry) => {
       setShowOutreachDrawer(false)
@@ -807,7 +832,19 @@ export function JobTrackerScreen({ route }: JobTrackerProps = {}) {
           </View>
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.content}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={handleRefresh}
+            tintColor={CLTheme.accent}
+            colors={[CLTheme.accent]}
+            progressBackgroundColor={CLTheme.card}
+          />
+        }
+      >
           
           {/* Stats Row */}
           <View style={styles.statsRow}>
