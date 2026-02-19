@@ -22,31 +22,23 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }))
 
-// Mock Expo AV
-const mockRequestPermission = jest.fn(() => Promise.resolve({ status: 'granted' }))
-const mockEncodingOption = {
-  isRecording: true,
-}
+// Mock Expo Audio
+const mockRequestRecordingPermissionsAsync = jest.fn(() => Promise.resolve({ granted: true }))
+const mockSetAudioModeAsync = jest.fn(() => Promise.resolve())
 const mockRecordingObj = {
   prepareToRecordAsync: jest.fn(),
-  startAsync: jest.fn(),
-  stopAndUnloadAsync: jest.fn(),
-  getURI: jest.fn(() => 'file://test.m4a'),
+  record: jest.fn(),
+  stop: jest.fn(),
+  uri: 'file://test.m4a',
 }
 
-const mockPermissionResponse = { status: 'granted' } // Mutable object
-
-jest.mock('expo-av', () => ({
-  Audio: {
-    usePermissions: () => [mockPermissionResponse, mockRequestPermission],
-    setAudioModeAsync: jest.fn(),
-    Recording: {
-      createAsync: jest.fn(() => Promise.resolve({ recording: mockRecordingObj })),
-    },
-    RecordingOptionsPresets: {
-      HIGH_QUALITY: {},
-    },
+jest.mock('expo-audio', () => ({
+  requestRecordingPermissionsAsync: (...args: any[]) => mockRequestRecordingPermissionsAsync(...args),
+  setAudioModeAsync: (...args: any[]) => mockSetAudioModeAsync(...args),
+  RecordingPresets: {
+    HIGH_QUALITY: {},
   },
+  useAudioRecorder: () => mockRecordingObj,
 }))
 
 // Mock Expo Speech
@@ -80,9 +72,7 @@ jest.spyOn(Alert, 'alert')
 describe('MockInterviewScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks()
-    // Default permission mock
-    mockRequestPermission.mockResolvedValue({ status: 'granted' })
-    mockPermissionResponse.status = 'granted' // Default to granted
+    mockRequestRecordingPermissionsAsync.mockResolvedValue({ granted: true })
     mockIsSpeakingAsync.mockResolvedValue(false)
   })
 
@@ -125,9 +115,6 @@ describe('MockInterviewScreen', () => {
   })
 
   it('handles recording toggle correctly', async () => {
-    // Set permission to undetermined to force request
-    mockPermissionResponse.status = 'undetermined'
-    
     const { getByTestId } = render(<MockInterviewScreen />)
     
     // Start Recording
@@ -136,7 +123,7 @@ describe('MockInterviewScreen', () => {
     })
     
     // Check permission requested
-    expect(mockRequestPermission).toHaveBeenCalled()
+    expect(mockRequestRecordingPermissionsAsync).toHaveBeenCalled()
     
     // Now that permission is granted (mockRequestPermission resolves to granted), logic proceeds
     // But since it's an async flow in the component, we might need to wait or press again?
@@ -144,8 +131,8 @@ describe('MockInterviewScreen', () => {
     // So we assume it started.
     
     await waitFor(() => {
-        expect(mockRecordingObj.prepareToRecordAsync).not.toHaveBeenCalled()
-        // createAsync is called
+        expect(mockRecordingObj.prepareToRecordAsync).toHaveBeenCalled()
+        expect(mockRecordingObj.record).toHaveBeenCalled()
     })
 
     // Press again to Stop
@@ -155,7 +142,7 @@ describe('MockInterviewScreen', () => {
      
     // Check stopped
     await waitFor(() => {
-        expect(mockRecordingObj.stopAndUnloadAsync).toHaveBeenCalled()
+        expect(mockRecordingObj.stop).toHaveBeenCalled()
     })
   })
 

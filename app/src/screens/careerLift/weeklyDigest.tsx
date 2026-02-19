@@ -16,18 +16,31 @@ import { MaterialIcons } from '@expo/vector-icons'
 import { useNavigation } from '@react-navigation/native'
 import { CLTheme } from './theme'
 import { useUserProfileStore } from '../../store/userProfileStore'
-import { useJobTrackerStore } from '../../store/jobTrackerStore'
+import { JobEntry, useJobTrackerStore } from '../../store/jobTrackerStore'
+import { NotificationItem, NotificationsPanel } from './components/notificationsPanel'
+import { careerLiftNotifications } from './notificationsData'
 
 const { width } = Dimensions.get('window')
+
+type WeeklyActionItem = {
+  id: string
+  title: string
+  subtitle: string
+  type: 'action' | 'generic'
+  job?: JobEntry
+}
 
 export function WeeklyDigestScreen() {
   const navigation = useNavigation<any>()
   const user = useUserProfileStore(state => state)
-  const { thisWeek, nextUp } = useJobTrackerStore(state => state)
+  const { thisWeek, nextUp, updateJobStatus, updateJobAction } = useJobTrackerStore(state => state)
 
   // Calendar State
   const [showCalendar, setShowCalendar] = React.useState(false)
   const [selectedDate, setSelectedDate] = React.useState(new Date().toISOString().split('T')[0])
+  const [showNotifications, setShowNotifications] = React.useState(false)
+  const [notifications, setNotifications] = React.useState<NotificationItem[]>(() => [...careerLiftNotifications])
+  const [completedActions, setCompletedActions] = React.useState<WeeklyActionItem[]>([])
 
   // Calculate week range
   const weekRange = useMemo(() => {
@@ -64,16 +77,105 @@ export function WeeklyDigestScreen() {
         id: job.id,
         title: job.nextAction,
         subtitle: `${job.role} at ${job.company}`,
-        type: 'action'
+        type: 'action' as const,
+        job,
       }))
   }, [nextUp])
 
   // Fallback actions if no scheduled items
-  const displayActions = nextActions.length > 0 ? nextActions : [
+  const displayActions: WeeklyActionItem[] = nextActions.length > 0 ? nextActions : [
     { id: 'a1', title: 'Boost Outreach Volume', subtitle: 'Aim for 5 more cold emails to improve top-of-funnel.', type: 'generic' },
     { id: 'a2', title: 'Interview Follow-up', subtitle: 'Follow up with TechCorp regarding your interview.', type: 'generic' },
     { id: 'a3', title: 'Portfolio Maintenance', subtitle: 'Update portfolio link on LinkedIn profile.', type: 'generic' },
   ]
+
+  const handleCheckAction = (action: WeeklyActionItem) => {
+    // Add to completed list first
+    setCompletedActions(prev => [...prev, action])
+
+    if (action.type === 'generic') return
+    
+    if (action.job) {
+      const title = action.title.toLowerCase()
+      const job = action.job
+      
+      // Delay store update slightly to allow animation if we added one, 
+      // but for now just update state immediately
+      if (title.includes('submit') || title.includes('apply')) {
+        updateJobStatus(job.id, 'Applied')
+        updateJobAction(job.id, 'Follow up', 'in 3 days')
+      } else if (title.includes('interview')) {
+        updateJobAction(job.id, 'Send Thank You', 'Tomorrow')
+      } else if (title.includes('offer')) {
+        updateJobStatus(job.id, 'Offer Signed')
+        updateJobAction(job.id, 'Prepare for onboarding', 'Next Week')
+      } else {
+        updateJobAction(job.id, '', '') 
+      }
+    }
+  }
+
+  const handleNotificationPress = (item: NotificationItem) => {
+    if (!item.target) return
+    setShowNotifications(false)
+    navigation.navigate(item.target.screen, item.target.params)
+  }
+
+  const handleClearNotification = (id: string) => {
+    setNotifications(current => current.filter(item => item.id !== id))
+  }
+
+  const handleClearAllNotifications = () => {
+    setNotifications([])
+  }
+
+  const resolveActionTarget = (action: WeeklyActionItem) => {
+    const normalizedTitle = action.title.toLowerCase()
+
+    if (normalizedTitle.includes('submit application') || normalizedTitle.includes('apply')) {
+      if (action.job) {
+        return { screen: 'ApplyPack', params: { job: action.job } }
+      }
+      return { screen: 'JobTracker', params: { openAddJobModal: true } }
+    }
+
+    if (
+      normalizedTitle.includes('follow') ||
+      normalizedTitle.includes('outreach') ||
+      normalizedTitle.includes('recruiter') ||
+      normalizedTitle.includes('coffee chat')
+    ) {
+      if (action.job) {
+        return { screen: 'OutreachCenter', params: { job: action.job } }
+      }
+      return { screen: 'OutreachCenter' }
+    }
+
+    if (normalizedTitle.includes('interview') || normalizedTitle.includes('screen')) {
+      if (action.job) {
+        return { screen: 'InterviewPrep', params: { job: action.job } }
+      }
+      return { screen: 'InterviewPrep' }
+    }
+
+    if (normalizedTitle.includes('offer') || normalizedTitle.includes('sign')) {
+      if (action.job) {
+        return { screen: 'ApplyPack', params: { job: action.job } }
+      }
+      return { screen: 'ApplyPack' }
+    }
+
+    if (normalizedTitle.includes('portfolio') || normalizedTitle.includes('linkedin')) {
+      return { screen: 'LinkedInKit' }
+    }
+
+    return { screen: 'JobTracker' }
+  }
+
+  const handlePlanActionPress = (action: WeeklyActionItem) => {
+    const target = resolveActionTarget(action)
+    navigation.navigate(target.screen, target.params)
+  }
 
   return (
     <View style={styles.container}>
@@ -95,9 +197,13 @@ export function WeeklyDigestScreen() {
             </TouchableOpacity>
           </View>
 
-          <TouchableOpacity style={styles.iconButton}>
+          <TouchableOpacity
+            style={styles.iconButton}
+            onPress={() => setShowNotifications(true)}
+            accessibilityLabel='Open notifications'
+          >
             <MaterialIcons name="notifications-none" size={24} color={CLTheme.text.secondary} />
-            <View style={styles.notificationBadge} />
+            {notifications.length > 0 ? <View style={styles.notificationBadge} /> : null}
           </TouchableOpacity>
         </View>
       </View>
@@ -180,11 +286,9 @@ export function WeeklyDigestScreen() {
                   </View>
                   <Text style={styles.fullCardLabel}>Interviews Attended</Text>
                 </View>
-                <View style={styles.fullCardStats}>
-                  <Text style={styles.fullCardValue}>{metrics.interviews || 2}</Text>
-                  <Text style={styles.fullCardSubtext}>Scheduled for next week: 1</Text>
-                </View>
+                <Text style={styles.fullCardSubtext}>Scheduled for next week: 1</Text>
               </View>
+              <Text style={styles.fullCardValue}>{metrics.interviews || 2}</Text>
               <View style={styles.trophyIcon}>
                  <MaterialIcons name="emoji-events" size={28} color="#fff" />
               </View>
@@ -244,11 +348,22 @@ export function WeeklyDigestScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionHeader}>NEXT WEEK'S PLAN</Text>
           <View style={styles.planList}>
-            {displayActions.map((action, index) => (
-              <TouchableOpacity key={action.id} style={styles.planItem} activeOpacity={0.7}>
-                <View style={styles.checkboxWrapper}>
+            {displayActions
+              .filter(a => !completedActions.some(ca => ca.id === a.id)) // Hide if in completed
+              .map(action => (
+              <TouchableOpacity
+                key={action.id}
+                style={styles.planItem}
+                activeOpacity={0.7}
+                onPress={() => handlePlanActionPress(action)}
+                accessibilityLabel={`Open action ${action.title}`}
+              >
+                <TouchableOpacity 
+                  style={styles.checkboxWrapper}
+                  onPress={() => handleCheckAction(action)}
+                >
                   <View style={styles.checkbox} />
-                </View>
+                </TouchableOpacity>
                 <View style={styles.planContent}>
                   <Text style={styles.planTitle}>{action.title}</Text>
                   <Text style={styles.planSubtitle}>{action.subtitle}</Text>
@@ -257,6 +372,28 @@ export function WeeklyDigestScreen() {
               </TouchableOpacity>
             ))}
           </View>
+
+          {/* Completed Actions */}
+          {completedActions.length > 0 && (
+            <View style={{ marginTop: 24 }}>
+              <Text style={[styles.sectionHeader, { marginBottom: 12 }]}>COMPLETED</Text>
+              <View style={styles.planList}>
+                {completedActions.map((action, idx) => (
+                  <View key={`${action.id}-completed-${idx}`} style={[styles.planItem, { opacity: 0.6 }]}>
+                    <View style={[styles.checkboxWrapper, { backgroundColor: CLTheme.accent, borderColor: CLTheme.accent }]}>
+                      <MaterialIcons name="check" size={12} color="#fff" />
+                    </View>
+                    <View style={styles.planContent}>
+                      <Text style={[styles.planTitle, { textDecorationLine: 'line-through', color: CLTheme.text.muted }]}>
+                        {action.title}
+                      </Text>
+                      <Text style={styles.planSubtitle}>{action.subtitle}</Text>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
         </View>
         
         <View style={{ height: 100 }} />
@@ -301,6 +438,15 @@ export function WeeklyDigestScreen() {
           </View>
         </TouchableOpacity>
       </Modal>
+
+      <NotificationsPanel
+        visible={showNotifications}
+        onClose={() => setShowNotifications(false)}
+        notifications={notifications}
+        onPressNotification={handleNotificationPress}
+        onClearNotification={handleClearNotification}
+        onClearAll={handleClearAllNotifications}
+      />
     </View>
   )
 }
@@ -531,20 +677,19 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '500',
   },
-  fullCardStats: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: 8,
-  },
+  // fullCardStats removed
   fullCardValue: {
-    fontSize: 30,
+    fontSize: 32,
     fontWeight: '700',
     color: '#fff',
+    marginRight: 16,
   },
   fullCardSubtext: {
     color: '#dbeafe',
     fontSize: 12,
     fontWeight: '500',
+    marginTop: 4,
+    opacity: 0.9,
   },
   trophyIcon: {
     width: 48,
@@ -705,4 +850,3 @@ const styles = StyleSheet.create({
     borderColor: CLTheme.border,
   },
 })
-

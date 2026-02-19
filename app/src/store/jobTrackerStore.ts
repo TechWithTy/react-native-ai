@@ -75,6 +75,7 @@ interface JobTrackerState {
   toggleSaveJob: (job: JobEntry) => void
   updateJobStatus: (id: string, status: JobEntry['status']) => void
   updateJobNotes: (id: string, notes: string) => void
+  updateJobAction: (id: string, action: string, date: string) => void
   addJob: (job: JobEntry) => void
   resetJobTrackerStore: () => void
 }
@@ -294,6 +295,18 @@ export const useJobTrackerStore = create<JobTrackerState>((set) => ({
   }),
   updateJobNotes: (id, notes) => set((state) => {
     const updateList = (list: JobEntry[]) => list.map(job => job.id === id ? { ...job, notes } : job)
+    return {
+      thisWeek: updateList(state.thisWeek),
+      nextUp: updateList(state.nextUp),
+      recommendedJobs: updateList(state.recommendedJobs)
+    }
+  }),
+  updateJobAction: (id, action, date) => set((state) => {
+    const updateList = (list: JobEntry[]) => list.map(job => job.id === id ? { 
+      ...job, 
+      nextAction: action,
+      nextActionDate: date
+    } : job)
     return {
       thisWeek: updateList(state.thisWeek),
       nextUp: updateList(state.nextUp),

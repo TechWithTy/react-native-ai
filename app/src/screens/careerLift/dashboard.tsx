@@ -18,7 +18,7 @@ import { useDashboardStore } from '../../store/dashboardStore'
 import { JobEntry, useJobTrackerStore } from '../../store/jobTrackerStore'
 import { CLTheme } from './theme'
 import { useUserProfileStore } from '../../store/userProfileStore'
-import { NotificationsPanel } from './components/notificationsPanel'
+import { NotificationItem, NotificationsPanel } from './components/notificationsPanel'
 import { ModalContainer } from './components/modalContainer'
 import { useCareerSetupStore } from '../../store/careerSetup'
 import { useCreditsStore } from '../../store/creditsStore'
@@ -153,6 +153,7 @@ export function DashboardScreen({ navigation, route }: DashboardProps = {}) {
   const spendScanCredit = useCreditsStore(state => state.spendScanCredit)
   const scanCreditsRemaining = useCreditsStore(state => state.scanCreditsRemaining)
   const [showNotifications, setShowNotifications] = useState(false)
+  const [notifications, setNotifications] = useState<NotificationItem[]>(() => [...careerLiftNotifications])
   const [showQuickActionsModal, setShowQuickActionsModal] = useState(false)
   const [showResumeScanModal, setShowResumeScanModal] = useState(false)
   const [showCustomPrepModal, setShowCustomPrepModal] = useState(false)
@@ -264,6 +265,20 @@ export function DashboardScreen({ navigation, route }: DashboardProps = {}) {
 
   const handleNavigate = (screen: string, params?: Record<string, unknown>) => {
     navigation?.navigate?.(screen, params)
+  }
+
+  const handleNotificationPress = (item: NotificationItem) => {
+    if (!item.target) return
+    setShowNotifications(false)
+    handleNavigate(item.target.screen, item.target.params)
+  }
+
+  const handleClearNotification = (id: string) => {
+    setNotifications(current => current.filter(item => item.id !== id))
+  }
+
+  const handleClearAllNotifications = () => {
+    setNotifications([])
   }
 
   const resetAddJobModal = () => {
@@ -576,7 +591,7 @@ export function DashboardScreen({ navigation, route }: DashboardProps = {}) {
             accessibilityLabel='Open notifications'
           >
             <MaterialIcons name="notifications-none" size={24} color={CLTheme.text.secondary} />
-            <View style={styles.bellBadge} />
+            {notifications.length > 0 ? <View style={styles.bellBadge} /> : null}
           </TouchableOpacity>
         </View>
       </View>
@@ -999,7 +1014,10 @@ export function DashboardScreen({ navigation, route }: DashboardProps = {}) {
       <NotificationsPanel
         visible={showNotifications}
         onClose={() => setShowNotifications(false)}
-        notifications={careerLiftNotifications}
+        notifications={notifications}
+        onPressNotification={handleNotificationPress}
+        onClearNotification={handleClearNotification}
+        onClearAll={handleClearAllNotifications}
       />
     </View>
   )

@@ -68,6 +68,14 @@ function hasHostArg(args) {
   return args.some(arg => arg === '--localhost' || arg === '--lan' || arg === '--tunnel' || arg === '--host')
 }
 
+function getArgValue(args, flag) {
+  const index = args.indexOf(flag)
+  if (index === -1) return null
+  const value = args[index + 1]
+  if (!value || value.startsWith('--')) return null
+  return value
+}
+
 function ensureAdbReverse(port) {
   const devices = runQuiet('adb', ['devices'], 3000)
   if (devices.status !== 0) {
@@ -103,15 +111,24 @@ function main() {
   }
 
   const extraArgs = process.argv.slice(2)
-  const expoArgs = extraArgs.filter(arg => arg !== '--no-adb')
+  const isEmulator = extraArgs.includes('--emulator')
+  // Filter out --emulator so it doesn't get passed to expo if expo doesn't support it (it doesn't)
+  // Also filter --no-adb
+  const expoArgs = extraArgs.filter(arg => arg !== '--no-adb' && arg !== '--emulator')
+  
   const startEnv = {}
+  if (isEmulator) {
+    console.log('[start-safe] Optimization: Using 10.0.2.2 for Android Emulator loopback.')
+    startEnv.REACT_NATIVE_PACKAGER_HOSTNAME = '10.0.2.2'
+  }
+
   if (!process.env.CI && process.env.ALLOW_HMR !== '1') {
     // Disables Metro reload/delta behavior that can intermittently emit malformed hot updates.
     startEnv.CI = '1'
     console.log('[start-safe] Running in stable mode (CI=1). Set ALLOW_HMR=1 to re-enable hot reload.')
   }
-  const metroPort = process.env.RCT_METRO_PORT || '8081'
-  const skipAdb = extraArgs.includes('--no-adb')
+  const metroPort = getArgValue(expoArgs, '--port') || process.env.RCT_METRO_PORT || '8081'
+  const skipAdb = extraArgs.includes('--no-adb') || isEmulator // Emulator mode implies no-adb reverse needed for 10.0.2.2
   if (!skipAdb) {
     ensureAdbReverse(metroPort)
   } else {

@@ -13,6 +13,7 @@ import { MaterialIcons } from '@expo/vector-icons'
 import { useNavigation } from '@react-navigation/native'
 import { LinearGradient } from 'expo-linear-gradient'
 import * as Clipboard from 'expo-clipboard'
+import { useJobTrackerStore } from '../../store/jobTrackerStore'
 import { CLTheme } from './theme'
 
 const COLORS = {
@@ -232,6 +233,18 @@ export function ApplyPackScreen({ route }: any) {
   const logoColor = job?.color ?? '#1e293b'
   const matchScore = job?.matchScore ?? 94
 
+  const { updateJobStatus, updateJobAction } = useJobTrackerStore(state => state)
+
+  const handleApprove = () => {
+    if (job) {
+      updateJobStatus(job.id, 'Applied')
+      updateJobAction(job.id, 'Follow up', 'in 3 days')
+    }
+    Alert.alert('Success', 'Application logged! Focus on the next one.', [
+      { text: 'OK', onPress: () => navigation.goBack() }
+    ])
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -253,7 +266,7 @@ export function ApplyPackScreen({ route }: any) {
           <MaterialIcons name='info-outline' size={14} color='#f59e0b' />
           <Text style={styles.footerHintText}>Remember to attach the PDF manually!</Text>
         </View>
-        <TouchableOpacity style={styles.ctaButton} onPress={() => navigation.goBack()}>
+        <TouchableOpacity style={styles.ctaButton} onPress={handleApprove}>
           <MaterialIcons name='check-circle' size={20} color='#fff' />
           <Text style={styles.ctaText}>Approve & Log Submission</Text>
         </TouchableOpacity>

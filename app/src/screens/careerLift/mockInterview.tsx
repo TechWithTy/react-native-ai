@@ -23,7 +23,12 @@ import Animated, {
 } from 'react-native-reanimated'
 import { useNavigation, useRoute } from '@react-navigation/native'
 import { MaterialIcons, Feather } from '@expo/vector-icons'
-import { Audio } from 'expo-av'
+import {
+  RecordingPresets,
+  requestRecordingPermissionsAsync,
+  setAudioModeAsync,
+  useAudioRecorder,
+} from 'expo-audio'
 import * as Speech from 'expo-speech'
 import { CLTheme } from './theme'
 
@@ -39,8 +44,7 @@ export function MockInterviewScreen() {
   const sessionCategory = params?.category || "Behavioral"
 
   const [isRecording, setIsRecording] = useState(false)
-  const [recording, setRecording] = useState<Audio.Recording | null>(null)
-  const [permissionResponse, requestPermission] = Audio.usePermissions()
+  const audioRecorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY)
   const [showRubric, setShowRubric] = useState(false)
   const [timeLeft, setTimeLeft] = useState(105) // 01:45 = 105 seconds
   const [transcriptIndex, setTranscriptIndex] = useState(0)
@@ -134,24 +138,19 @@ export function MockInterviewScreen() {
   // Real Recording Logic
   const startRecording = async () => {
     try {
-      if (permissionResponse?.status !== 'granted') {
-        const resetPermission = await requestPermission()
-        if (resetPermission.status !== 'granted') {
+      const permissionResponse = await requestRecordingPermissionsAsync()
+      if (!permissionResponse.granted) {
            Alert.alert('Permission needed', 'Please grant microphone permission to record your answer.')
            return
-        }
       }
 
-      await Audio.setAudioModeAsync({
-        allowsRecordingIOS: true,
-        playsInSilentModeIOS: true,
+      await setAudioModeAsync({
+        allowsRecording: true,
+        playsInSilentMode: true,
       })
 
-      const { recording } = await Audio.Recording.createAsync(
-         Audio.RecordingOptionsPresets.HIGH_QUALITY
-      )
-      
-      setRecording(recording)
+      await audioRecorder.prepareToRecordAsync()
+      audioRecorder.record()
       setIsRecording(true)
       
       // Stop TTS if still speaking
@@ -167,12 +166,11 @@ export function MockInterviewScreen() {
   }
 
   const stopRecording = async () => {
-    if (!recording) return
+    if (!isRecording) return
 
     setIsRecording(false)
-    await recording.stopAndUnloadAsync()
-    const uri = recording.getURI() 
-    setRecording(null)
+    await audioRecorder.stop()
+    const uri = audioRecorder.uri
     
     // Here you would normally send 'uri' to your backend for transcription (Whisper API)
     console.log('Recording stored at', uri)
@@ -327,7 +325,7 @@ export function MockInterviewScreen() {
               Speech.stop()
               setTranscriptIndex(0)
               setIsRecording(false)
-              if(recording) await stopRecording()
+              if (isRecording) await stopRecording()
               setTimeLeft(105)
             }}
           >
@@ -359,7 +357,7 @@ export function MockInterviewScreen() {
             style={styles.controlBtnSecondary}
             onPress={async () => {
                 Speech.stop()
-                if (isRecording && recording) await stopRecording()
+                if (isRecording) await stopRecording()
                 navigation.goBack()
             }}
           >
@@ -393,7 +391,7 @@ export function MockInterviewScreen() {
                    setShowMenu(false)
                    Speech.stop()
                    setIsRecording(false)
-                   if(recording) await stopRecording()
+                   if (isRecording) await stopRecording()
                    setTimeLeft(105)
                    setTranscriptIndex(0)
                }}>

@@ -116,6 +116,28 @@ describe('DashboardScreen — Notifications and Scan UI', () => {
     expect(queryByText('Notifications')).toBeNull()
   })
 
+  it('can clear individual notifications and clear all notifications', () => {
+    const { getByLabelText, getByText, queryByText } = render(<DashboardScreen navigation={navigation} />)
+
+    fireEvent.press(getByLabelText('Open notifications'))
+    expect(getByText('Interview starts in 45 min')).toBeTruthy()
+
+    fireEvent.press(getByLabelText('Clear notification Interview starts in 45 min'))
+    expect(queryByText('Interview starts in 45 min')).toBeNull()
+
+    fireEvent.press(getByLabelText('Clear all notifications'))
+    expect(getByText('No notifications right now.')).toBeTruthy()
+  })
+
+  it('navigates from a notification tap when a target screen is provided', () => {
+    const { getByLabelText } = render(<DashboardScreen navigation={navigation} />)
+
+    fireEvent.press(getByLabelText('Open notifications'))
+    fireEvent.press(getByLabelText('Open notification Interview starts in 45 min'))
+
+    expect(navigation.navigate).toHaveBeenCalledWith('InterviewPrep', undefined)
+  })
+
   it('routes avatar press to profile screen', () => {
     const { getByLabelText } = render(<DashboardScreen navigation={navigation} />)
 

@@ -3,6 +3,9 @@ apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
 
 def projectRoot = rootDir.getAbsoluteFile().getParentFile().getAbsolutePath()
+def nativeBuildStagingDir = System.properties['os.name'].toLowerCase().contains('windows')
+    ? file("C:/.cxx/rnai")
+    : file("${rootProject.projectDir}/.cxx")
 
 /**
  * This is the configuration block to customize your React Native Android app.
@@ -86,6 +89,13 @@ android {
 
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
+
+    // Keep native build intermediates in a short path to avoid Windows path-length issues.
+    externalNativeBuild {
+        cmake {
+            buildStagingDirectory nativeBuildStagingDir
+        }
+    }
 
     namespace 'com.anonymous.app'
     defaultConfig {
