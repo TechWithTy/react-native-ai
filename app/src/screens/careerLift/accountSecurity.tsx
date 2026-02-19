@@ -53,6 +53,8 @@ export function AccountSecurityScreen() {
     faceIdAuthEnabled,
     notificationPhoneNumber,
     notificationPhoneVerified,
+    activityLog,
+    markActivityLogExported,
     setProfile,
   } = useUserProfileStore()
   const [isFaceIdProcessing, setIsFaceIdProcessing] = useState(false)
@@ -428,7 +430,13 @@ export function AccountSecurityScreen() {
           <View style={styles.card}>
             <TouchableOpacity
               style={styles.row}
-              onPress={() => Alert.alert('Data Export', 'Your export request has been queued.')}
+              onPress={() => {
+                markActivityLogExported('account_security')
+                Alert.alert(
+                  'Data Export',
+                  `Your export request has been queued with ${activityLog.length} activity records.`
+                )
+              }}
             >
               <View style={styles.rowLeft}>
                 <View style={[styles.iconBox, styles.indigoBg]}>

@@ -91,6 +91,7 @@ export function DocumentsInsightsScreen() {
   const { roleTrack, targetRole, setCareerSetup } = useCareerSetupStore()
   const {
     careerDocuments,
+    documentInsights,
     currentLocation,
     addCareerDocument,
     updateCareerDocument,
@@ -118,11 +119,8 @@ export function DocumentsInsightsScreen() {
     return sorted
   }, [careerDocuments, filterType, searchQuery, sortMode])
 
-  const applicationsCount = careerDocuments.length
-  const interviewCount = careerDocuments.filter(
-    document => document.status === 'interviewing' || document.status === 'offer'
-  ).length
-  const interviewRate = applicationsCount ? Math.round((interviewCount / applicationsCount) * 100) : 0
+  const applicationsCount = documentInsights.totalDocuments
+  const interviewRate = Math.round(documentInsights.interviewRate * 100)
   const recentUploads = careerDocuments.filter(
     document => Date.now() - new Date(document.createdAt).getTime() <= 7 * 24 * 60 * 60 * 1000
   ).length

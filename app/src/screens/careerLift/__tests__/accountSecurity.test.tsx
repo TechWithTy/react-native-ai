@@ -17,6 +17,7 @@ const mockReverseGeocodeAsync = jest.fn()
 const mockRequestPushNotificationsPermission = jest.fn()
 const mockCheckFaceIdAvailability = jest.fn()
 const mockPromptFaceIdAuthentication = jest.fn()
+const mockClipboardSetStringAsync = jest.fn()
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
@@ -67,6 +68,10 @@ jest.mock('../../../utils/pushNotificationsPermission', () => ({
   requestPushNotificationsPermission: (...args: unknown[]) => mockRequestPushNotificationsPermission(...args),
 }))
 
+jest.mock('expo-clipboard', () => ({
+  setStringAsync: (...args: unknown[]) => mockClipboardSetStringAsync(...args),
+}))
+
 jest.mock('../subscriptionModal', () => {
   const { View } = require('react-native')
   return {
@@ -85,6 +90,7 @@ describe('Account and security flow', () => {
     mockCheckFaceIdAvailability.mockResolvedValue({ available: true })
     mockPromptFaceIdAuthentication.mockResolvedValue(true)
     mockRequestPushNotificationsPermission.mockResolvedValue('granted')
+    mockClipboardSetStringAsync.mockResolvedValue(undefined)
   })
 
   it('opens AccountSecurity from settings profile privacy section', () => {
@@ -103,6 +109,20 @@ describe('Account and security flow', () => {
     const { getByText } = render(<SettingsProfileScreen />)
     fireEvent.press(getByText('Documents & Insights'))
     expect(mockNavigate).toHaveBeenCalledWith('DocumentsInsights')
+  })
+
+  it('exports activity log CSV from settings profile', async () => {
+    const { getByTestId } = render(<SettingsProfileScreen />)
+    fireEvent.press(getByTestId('settings-export-activity-log-button'))
+
+    await waitFor(() => {
+      expect(mockClipboardSetStringAsync).toHaveBeenCalled()
+    })
+
+    expect(mockClipboardSetStringAsync.mock.calls[0][0]).toContain(
+      'timestamp,eventType,source,title,description'
+    )
+    expect(useUserProfileStore.getState().activityLog[0]?.eventType).toBe('data_export')
   })
 
   it('opens UpdatePassword from Change Password row', () => {

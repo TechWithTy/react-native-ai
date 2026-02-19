@@ -27,6 +27,7 @@ describe('DocumentsInsightsScreen', () => {
     jest.clearAllMocks()
     act(() => {
       useUserProfileStore.getState().resetProfile()
+      useUserProfileStore.getState().setProfile({ careerDocuments: [], activityLog: [] })
       useCareerSetupStore.getState().resetCareerSetup()
     })
     mockGetDocumentAsync.mockResolvedValue({ canceled: true, assets: [] })

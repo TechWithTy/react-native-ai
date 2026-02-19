@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
+import { MODELS } from '../../constants'
 
 export type AIAgentId = 'general_coach' | 'interview_coach' | 'resume_reviewer' | 'networking_coach'
 
@@ -13,14 +14,27 @@ export type AIAgentPromptConfig = {
 type AIAgentsState = {
   agents: AIAgentPromptConfig[]
   selectedAgentId: AIAgentId
+  selectedModelLabel: string
+  instructionBadges: string[]
   voiceModeEnabled: boolean
   setSelectedAgent: (id: AIAgentId) => void
+  setSelectedModelLabel: (label: string) => void
+  addInstructionBadge: (value: string) => void
+  removeInstructionBadge: (value: string) => void
+  clearInstructionBadges: () => void
   setVoiceModeEnabled: (enabled: boolean) => void
   toggleVoiceMode: () => void
   updateAgentPrompt: (id: AIAgentId, prompt: string) => void
   getAgentById: (id: AIAgentId) => AIAgentPromptConfig | undefined
   getActivePrompt: () => string
   resetAIAgents: () => void
+}
+
+const MAX_INSTRUCTION_BADGES = 8
+const MAX_INSTRUCTION_BADGE_LENGTH = 80
+
+function normalizeInstructionBadge(value: string) {
+  return value.replace(/\s+/g, ' ').trim().slice(0, MAX_INSTRUCTION_BADGE_LENGTH)
 }
 
 const defaultAgents: AIAgentPromptConfig[] = [
@@ -57,6 +71,8 @@ const defaultAgents: AIAgentPromptConfig[] = [
 const defaultState = {
   agents: defaultAgents,
   selectedAgentId: 'general_coach' as AIAgentId,
+  selectedModelLabel: MODELS.claudeOpus.label,
+  instructionBadges: [],
   voiceModeEnabled: false,
 }
 
@@ -82,6 +98,28 @@ export const useAIAgentsStore = create<AIAgentsState>()(
     (set, get) => ({
       ...defaultState,
       setSelectedAgent: id => set({ selectedAgentId: id }),
+      setSelectedModelLabel: label => set({ selectedModelLabel: label }),
+      addInstructionBadge: value =>
+        set(state => {
+          const nextBadge = normalizeInstructionBadge(value)
+          if (!nextBadge) return state
+          if (
+            state.instructionBadges.some(existing => existing.toLowerCase() === nextBadge.toLowerCase())
+          ) {
+            return state
+          }
+
+          return {
+            instructionBadges: [nextBadge, ...state.instructionBadges].slice(0, MAX_INSTRUCTION_BADGES),
+          }
+        }),
+      removeInstructionBadge: value =>
+        set(state => ({
+          instructionBadges: state.instructionBadges.filter(
+            existing => existing.toLowerCase() !== value.toLowerCase()
+          ),
+        })),
+      clearInstructionBadges: () => set({ instructionBadges: [] }),
       setVoiceModeEnabled: enabled => set({ voiceModeEnabled: enabled }),
       toggleVoiceMode: () => set(state => ({ voiceModeEnabled: !state.voiceModeEnabled })),
       updateAgentPrompt: (id, prompt) =>

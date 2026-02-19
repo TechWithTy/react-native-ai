@@ -11,7 +11,7 @@ import {
   Keyboard
 } from 'react-native'
 import 'react-native-get-random-values'
-import { useContext, useMemo, useState, useRef } from 'react'
+import { useContext, useEffect, useMemo, useState, useRef } from 'react'
 import { ThemeContext, AppContext } from '../context'
 import { getEventSource, getFirstNCharsOrLess, getChatType } from '../utils'
 import { v4 as uuid } from 'uuid'
@@ -21,6 +21,7 @@ import { useActionSheet } from '@expo/react-native-action-sheet'
 import Markdown from '@ronradtke/react-native-markdown-display'
 import { useNavigation } from '@react-navigation/native'
 import { useAIAgentsStore } from '../store/aiAgentsStore'
+import { MODELS } from '../../constants'
 
 type ChatState = {
   messages: Array<{user: string, assistant?: string}>,
@@ -62,6 +63,10 @@ export function Chat() {
   const agents = useAIAgentsStore(state => state.agents)
   const selectedAgentId = useAIAgentsStore(state => state.selectedAgentId)
   const setSelectedAgent = useAIAgentsStore(state => state.setSelectedAgent)
+  const selectedModelLabel = useAIAgentsStore(state => state.selectedModelLabel)
+  const setSelectedModelLabel = useAIAgentsStore(state => state.setSelectedModelLabel)
+  const instructionBadges = useAIAgentsStore(state => state.instructionBadges)
+  const removeInstructionBadge = useAIAgentsStore(state => state.removeInstructionBadge)
   const voiceModeEnabled = useAIAgentsStore(state => state.voiceModeEnabled)
   const setVoiceModeEnabled = useAIAgentsStore(state => state.setVoiceModeEnabled)
   const styles = getStyles(theme)
@@ -70,6 +75,20 @@ export function Chat() {
     [agents, selectedAgentId]
   )
   const activePrompt = activeAgent?.prompt?.trim() || ''
+  const selectedModelName = useMemo(() => {
+    const match = Object.values(MODELS).find(model => model.label === selectedModelLabel)
+    return match?.name || selectedModelLabel
+  }, [selectedModelLabel])
+  const resolvedSystemPrompt = useMemo(() => {
+    const additiveInstructions = instructionBadges.length
+      ? `Additional user instructions:\n${instructionBadges.map((badge, index) => `${index + 1}. ${badge}`).join('\n')}`
+      : ''
+    return [activePrompt, additiveInstructions].filter(Boolean).join('\n\n')
+  }, [activePrompt, instructionBadges])
+
+  useEffect(() => {
+    setSelectedModelLabel(chatType.label)
+  }, [chatType.label, setSelectedModelLabel])
 
   const getVoicePracticeQuestion = () => {
     if (selectedAgentId === 'interview_coach') {
@@ -139,8 +158,8 @@ export function Chat() {
       }
       return acc
     }, [])
-    const messagesWithPrompt = activePrompt
-      ? [{ role: 'system', content: activePrompt }, ...messages]
+    const messagesWithPrompt = resolvedSystemPrompt
+      ? [{ role: 'system', content: resolvedSystemPrompt }, ...messages]
       : messages
 
     const eventSourceArgs = {
@@ -198,8 +217,8 @@ export function Chat() {
     let localResponse = ''
     const modelLabel = chatType.label
     const currentState = getChatState(modelLabel)
-    const geminiInput = activePrompt
-      ? `${activePrompt}\n\nUser prompt:\n${input}`
+    const geminiInput = resolvedSystemPrompt
+      ? `${resolvedSystemPrompt}\n\nUser prompt:\n${input}`
       : `${input}`
 
     let messageArray = [
@@ -279,7 +298,7 @@ export function Chat() {
     let localResponse = ''
     const modelLabel = chatType.label
     const currentState = getChatState(modelLabel)
-    const claudeInput = `${activePrompt ? `System: ${activePrompt}\n\n` : ''}${currentState.apiMessages}\n\nHuman: ${input}\n\nAssistant:`
+    const claudeInput = `${resolvedSystemPrompt ? `System: ${resolvedSystemPrompt}\n\n` : ''}${currentState.apiMessages}\n\nHuman: ${input}\n\nAssistant:`
 
     let messageArray = [
       ...currentState.messages, {
@@ -452,7 +471,7 @@ export function Chat() {
           </ScrollView>
           <View style={styles.modeSwitchRow}>
             <Text style={styles.modeContextText}>
-              {activeAgent?.description || getFirstNCharsOrLess(activePrompt, 80)}
+              {activeAgent?.description || 'Selected assistant preset is active.'}
             </Text>
             <TouchableHighlight
               onPress={() => setVoiceModeEnabled(!voiceModeEnabled)}
@@ -467,6 +486,28 @@ export function Chat() {
                 <Text style={styles.modeToggleText}>{voiceModeEnabled ? 'Voice' : 'Text'}</Text>
               </View>
             </TouchableHighlight>
+          </View>
+          <View style={styles.metaBadgeRow}>
+            <View style={styles.metaBadge}>
+              <Text style={styles.metaBadgeText}>{`Model: ${selectedModelName}`}</Text>
+            </View>
+            <View style={styles.metaBadge}>
+              <Text style={styles.metaBadgeText}>{`Prompt: ${activeAgent?.label || 'General'}`}</Text>
+            </View>
+            {instructionBadges.map(badge => (
+              <TouchableHighlight
+                key={badge}
+                onPress={() => removeInstructionBadge(badge)}
+                underlayColor='transparent'
+              >
+                <View style={styles.userInstructionBadge}>
+                  <Text style={styles.userInstructionBadgeText} numberOfLines={1}>
+                    {badge}
+                  </Text>
+                  <Ionicons name='close' size={12} color={theme.tintTextColor} />
+                </View>
+              </TouchableHighlight>
+            ))}
           </View>
         </View>
         {
@@ -627,6 +668,40 @@ const getStyles = (theme: any) => StyleSheet.create({
     color: theme.tintTextColor,
     fontSize: 11,
     fontFamily: theme.boldFont,
+  },
+  metaBadgeRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginBottom: 8,
+  },
+  metaBadge: {
+    borderWidth: 1,
+    borderColor: theme.borderColor,
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    backgroundColor: theme.backgroundColor,
+  },
+  metaBadgeText: {
+    color: theme.textColor,
+    fontSize: 11,
+    fontFamily: theme.mediumFont,
+  },
+  userInstructionBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    borderRadius: 999,
+    backgroundColor: theme.tintColor,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    maxWidth: 220,
+  },
+  userInstructionBadgeText: {
+    color: theme.tintTextColor,
+    fontSize: 11,
+    fontFamily: theme.mediumFont,
   },
   optionsIconWrapper: {
     padding: 10,

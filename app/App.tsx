@@ -18,6 +18,7 @@ import {
   BottomSheetView,
 } from '@gorhom/bottom-sheet'
 import { StyleSheet, LogBox } from 'react-native'
+import { useAIAgentsStore } from './src/store/aiAgentsStore'
 
 LogBox.ignoreLogs([
   'Key "cancelled" in the image picker result is deprecated and will be removed in SDK 48, use "canceled" instead',
@@ -51,7 +52,12 @@ export default function App() {
       // Default to dark theme to match CareerLift design
       setTheme(_theme && _theme !== 'light' ? _theme : 'dark')
       const _chatType = await AsyncStorage.getItem('rnai-chatType')
-      if (_chatType) setChatType(JSON.parse(_chatType))
+      let resolvedChatType = MODELS.claudeOpus
+      if (_chatType) {
+        resolvedChatType = JSON.parse(_chatType)
+        setChatType(resolvedChatType)
+      }
+      useAIAgentsStore.getState().setSelectedModelLabel(resolvedChatType.label)
       const _imageModel = await AsyncStorage.getItem('rnai-imageModel')
       if (_imageModel) setImageModel(_imageModel)
     } catch (err) {
@@ -77,6 +83,7 @@ export default function App() {
   function _setChatType(type) {
     setChatType(type)
     AsyncStorage.setItem('rnai-chatType', JSON.stringify(type))
+    useAIAgentsStore.getState().setSelectedModelLabel(type.label)
   }
 
   function _setImageModel(model) {

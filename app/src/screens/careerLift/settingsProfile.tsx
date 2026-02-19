@@ -15,6 +15,7 @@ import {
 import { MaterialIcons, FontAwesome5, Ionicons, Feather } from '@expo/vector-icons'
 import { useNavigation, useRoute } from '@react-navigation/native'
 import * as DocumentPicker from 'expo-document-picker'
+import * as Clipboard from 'expo-clipboard'
 import { CLTheme } from './theme'
 import { getRoleOptionsForTrack, getSalaryRangesForRole, useCareerSetupStore } from '../../store/careerSetup'
 import { useUserProfileStore } from '../../store/userProfileStore'
@@ -95,6 +96,8 @@ export function SettingsProfileScreen() {
     avatarUrl, 
     currentLocation, 
     isOpenToWork,
+    activityLog,
+    markActivityLogExported,
     setProfile,
   } = useUserProfileStore()
 
@@ -140,6 +143,38 @@ export function SettingsProfileScreen() {
 
   const handleManageSubscription = () => {
     Alert.alert('Manage Subscription', 'Navigate to subscription settings')
+  }
+
+  const toCsvCell = (value: string) => {
+    if (value.includes(',') || value.includes('"') || value.includes('\n')) {
+      return `"${value.replace(/"/g, '""')}"`
+    }
+    return value
+  }
+
+  const handleExportActivityLog = async () => {
+    const header = ['timestamp', 'eventType', 'source', 'title', 'description']
+    const rows = activityLog.map(entry =>
+      [
+        toCsvCell(entry.timestamp),
+        toCsvCell(entry.eventType),
+        toCsvCell(entry.source),
+        toCsvCell(entry.title),
+        toCsvCell(entry.description),
+      ].join(',')
+    )
+    const csv = [header.join(','), ...rows].join('\n')
+
+    try {
+      await Clipboard.setStringAsync(csv)
+      markActivityLogExported('settings')
+      Alert.alert(
+        'Activity Log Exported',
+        `Copied ${activityLog.length} activity rows as CSV to clipboard.`
+      )
+    } catch {
+      Alert.alert('Export failed', 'Could not export the activity log right now.')
+    }
   }
 
   const handleOpenAccountSecurity = () => {
@@ -822,7 +857,11 @@ export function SettingsProfileScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>PRIVACY & DATA</Text>
           <View style={styles.card}>
-            <TouchableOpacity style={styles.row}>
+            <TouchableOpacity
+              style={styles.row}
+              onPress={handleExportActivityLog}
+              testID='settings-export-activity-log-button'
+            >
               <View style={styles.rowLeft}>
                 <View style={[styles.iconBox, { backgroundColor: CLTheme.border }]}>
                   <MaterialIcons name="download" size={20} color={CLTheme.text.secondary} />

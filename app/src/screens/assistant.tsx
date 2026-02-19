@@ -13,7 +13,7 @@ import {
   ActivityIndicator
 } from 'react-native'
 import { ThemeContext } from '../context'
-import { DOMAIN } from '../../constants'
+import { DOMAIN, MODELS } from '../../constants'
 import { useActionSheet } from '@expo/react-native-action-sheet'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons'
@@ -30,7 +30,7 @@ export function Assistant() {
   const [loading, setLoading] = useState(false)
   const scrollViewRef = useRef<ScrollView | null>(null)
   const [input, setInput] = useState<string>("")
-  const [instructions, setInstructions] = useState<string>("")
+  const [instructionBadgeDraft, setInstructionBadgeDraft] = useState<string>("")
   const [file, setFile] = useState<any>(null)
   const [assistantId, setAssistantId] = useState<string>('')
   const [threadId, setThreadId] = useState<string>('')
@@ -41,6 +41,10 @@ export function Assistant() {
   const agents = useAIAgentsStore(state => state.agents)
   const selectedAgentId = useAIAgentsStore(state => state.selectedAgentId)
   const setSelectedAgent = useAIAgentsStore(state => state.setSelectedAgent)
+  const selectedModelLabel = useAIAgentsStore(state => state.selectedModelLabel)
+  const instructionBadges = useAIAgentsStore(state => state.instructionBadges)
+  const addInstructionBadge = useAIAgentsStore(state => state.addInstructionBadge)
+  const removeInstructionBadge = useAIAgentsStore(state => state.removeInstructionBadge)
   const voiceModeEnabled = useAIAgentsStore(state => state.voiceModeEnabled)
   const setVoiceModeEnabled = useAIAgentsStore(state => state.setVoiceModeEnabled)
   const activeAgent = useMemo(
@@ -48,6 +52,17 @@ export function Assistant() {
     [agents, selectedAgentId]
   )
   const activePrompt = activeAgent?.prompt?.trim() || ''
+  const selectedModelName = useMemo(() => {
+    const match = Object.values(MODELS).find(model => model.label === selectedModelLabel)
+    return match?.name || selectedModelLabel
+  }, [selectedModelLabel])
+
+  const resolvedInstructions = useMemo(() => {
+    const additiveInstructions = instructionBadges.length
+      ? `Additional user instructions:\n${instructionBadges.map((badge, index) => `${index + 1}. ${badge}`).join('\n')}`
+      : ''
+    return [activePrompt, additiveInstructions].filter(Boolean).join('\n\n')
+  }, [activePrompt, instructionBadges])
 
   const getVoicePracticeQuestion = () => {
     if (selectedAgentId === 'interview_coach') {
@@ -73,8 +88,8 @@ export function Assistant() {
     setInput(v)
   }
 
-  function onChangeInstructionsText(v) {
-    setInstructions(v)
+  function onChangeInstructionBadgeText(v) {
+    setInstructionBadgeDraft(v)
   }
 
   async function clearChat() {
@@ -82,9 +97,16 @@ export function Assistant() {
     setFile(null)
     setOpenaiResponse([])
     setInput('')
-    setInstructions('')
+    setInstructionBadgeDraft('')
     setAssistantId('')
     setThreadId('')
+  }
+
+  function onAddInstructionBadge() {
+    const nextValue = instructionBadgeDraft.trim()
+    if (!nextValue) return
+    addInstructionBadge(nextValue)
+    setInstructionBadgeDraft('')
   }
 
   async function copyToClipboard(text) {
@@ -119,7 +141,6 @@ export function Assistant() {
     try {
       Keyboard.dismiss()
       const fileCopy = file
-      const resolvedInstructions = instructions.trim() || activePrompt
       let localInput = {
         type: 'user',
         value: input
@@ -131,7 +152,7 @@ export function Assistant() {
       setOpenaiResponse([localInput])
   
       setInput('')
-      setInstructions('')
+      setInstructionBadgeDraft('')
       setLoading(true)
       setFile(null)
   
@@ -420,6 +441,28 @@ export function Assistant() {
               </View>
             </TouchableHighlight>
           </View>
+          <View style={styles.metaBadgeRow}>
+            <View style={styles.metaBadge}>
+              <Text style={styles.metaBadgeText}>{`Model: ${selectedModelName}`}</Text>
+            </View>
+            <View style={styles.metaBadge}>
+              <Text style={styles.metaBadgeText}>{`Prompt: ${activeAgent?.label || 'General'}`}</Text>
+            </View>
+            {instructionBadges.map(badge => (
+              <TouchableHighlight
+                key={badge}
+                onPress={() => removeInstructionBadge(badge)}
+                underlayColor='transparent'
+              >
+                <View style={styles.userInstructionBadge}>
+                  <Text style={styles.userInstructionBadgeText} numberOfLines={1}>
+                    {badge}
+                  </Text>
+                  <Ionicons name='close' size={12} color={theme.tintTextColor} />
+                </View>
+              </TouchableHighlight>
+            ))}
+          </View>
         </View>
         {
           (!isStarted) && (
@@ -434,13 +477,22 @@ export function Assistant() {
                   value={input}
                 />
                 <TextInput
-                  onChangeText={onChangeInstructionsText}
+                  onChangeText={onChangeInstructionBadgeText}
                   style={styles.midInput}
-                  placeholder='Assistant instructions (optional, agent prompt used by default)'
+                  placeholder='Add prompt instruction badge'
                   placeholderTextColor={theme.placeholderTextColor}
                   autoCorrect={true}
-                  value={instructions}
+                  value={instructionBadgeDraft}
                 />
+                <TouchableHighlight
+                  onPress={onAddInstructionBadge}
+                  underlayColor='transparent'
+                >
+                  <View style={styles.addInstructionButton}>
+                    <Ionicons name='add' size={18} color={theme.tintTextColor} />
+                    <Text style={styles.addInstructionButtonText}>Add</Text>
+                  </View>
+                </TouchableHighlight>
                 <TouchableHighlight
                   underlayColor={'transparent'}
                   onPress={chooseDocument}
@@ -495,7 +547,7 @@ export function Assistant() {
                   <Text style={styles.chatDescription}>
                     {voiceModeEnabled
                       ? 'Voice mode is enabled. Start an AI practice call from this assistant.'
-                      : 'Chat with an assistant (optional files, plus the selected agent prompt).'}
+                      : 'Chat with an assistant. Selected prompt and instruction badges are applied without exposing internal prompt text.'}
                   </Text>
               </View>
             </View>
@@ -657,6 +709,40 @@ const getStyleSheet = theme => StyleSheet.create({
     fontSize: 11,
     fontFamily: theme.boldFont,
   },
+  metaBadgeRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginBottom: 8,
+  },
+  metaBadge: {
+    borderWidth: 1,
+    borderColor: theme.borderColor,
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    backgroundColor: theme.backgroundColor,
+  },
+  metaBadgeText: {
+    color: theme.textColor,
+    fontSize: 11,
+    fontFamily: theme.mediumFont,
+  },
+  userInstructionBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    borderRadius: 999,
+    backgroundColor: theme.tintColor,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    maxWidth: 220,
+  },
+  userInstructionBadgeText: {
+    color: theme.tintTextColor,
+    fontSize: 11,
+    fontFamily: theme.mediumFont,
+  },
   chatDescription: {
     color: theme.textColor,
     textAlign: 'center',
@@ -726,6 +812,22 @@ const getStyleSheet = theme => StyleSheet.create({
     marginLeft: 10,
     fontFamily: theme.boldFont,
     fontSize: 16
+  },
+  addInstructionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 99,
+    backgroundColor: theme.tintColor,
+    marginHorizontal: 14,
+    marginBottom: 10,
+    paddingVertical: 10,
+    gap: 5,
+  },
+  addInstructionButtonText: {
+    color: theme.tintTextColor,
+    fontFamily: theme.boldFont,
+    fontSize: 13,
   },
   closeIconContainer: {
     position: 'absolute',

@@ -31,4 +31,41 @@ describe('userProfileStore next actions', () => {
     expect(nextState.name).toBe('Taylor Jenkins')
     expect(nextState.nextActions.find(item => item.id === '2')?.isCompleted).toBe(true)
   })
+
+  it('seeds mock documents and insights in default state', () => {
+    const { careerDocuments, documentInsights, activityLog } = useUserProfileStore.getState()
+    expect(careerDocuments.length).toBeGreaterThan(0)
+    expect(documentInsights.totalDocuments).toBe(careerDocuments.length)
+    expect(activityLog.length).toBeGreaterThan(0)
+  })
+
+  it('recomputes insights when documents are added and removed', () => {
+    const store = useUserProfileStore.getState()
+    store.setProfile({ careerDocuments: [], activityLog: [] })
+
+    store.addCareerDocument({
+      name: 'QA_Resume.pdf',
+      type: 'resume',
+      uri: 'file:///tmp/QA_Resume.pdf',
+      mimeType: 'application/pdf',
+      targetLabel: 'QA Engineer',
+      track: 'Engineering',
+      status: 'applied',
+      conversionRate: 0.2,
+    })
+
+    const withDoc = useUserProfileStore.getState()
+    expect(withDoc.documentInsights.totalDocuments).toBe(1)
+    expect(withDoc.documentInsights.totalResumes).toBe(1)
+    expect(withDoc.activityLog[0]?.eventType).toBe('document_upload')
+
+    const docId = withDoc.careerDocuments[0]?.id
+    expect(docId).toBeTruthy()
+    if (!docId) return
+
+    store.removeCareerDocument(docId)
+    const afterRemove = useUserProfileStore.getState()
+    expect(afterRemove.documentInsights.totalDocuments).toBe(0)
+    expect(afterRemove.activityLog[0]?.eventType).toBe('document_remove')
+  })
 })
