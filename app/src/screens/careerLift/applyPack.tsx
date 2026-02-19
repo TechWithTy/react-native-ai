@@ -1,6 +1,5 @@
 import * as React from 'react'
 import {
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
@@ -9,6 +8,7 @@ import {
 } from 'react-native'
 import { MaterialIcons } from '@expo/vector-icons'
 import { useNavigation } from '@react-navigation/native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { JobEntry } from '../../store/jobTrackerStore'
 import { ApplicationPrepOptions } from './components/applicationPrepOptions'
 import { CLTheme } from './theme'

@@ -43,6 +43,7 @@ type LocationAutocompleteProps = {
   onSelect: (location: string) => void
   currentLocation?: string
   placeholder?: string
+  includeRemote?: boolean
   maxSuggestions?: number
   showSearchIcon?: boolean
   containerStyle?: StyleProp<ViewStyle>
@@ -62,6 +63,7 @@ export function LocationAutocomplete({
   onSelect,
   currentLocation,
   placeholder = 'City, State or Remote',
+  includeRemote = true,
   maxSuggestions = MAX_LOCATION_SUGGESTIONS,
   showSearchIcon = false,
   containerStyle,
@@ -75,14 +77,15 @@ export function LocationAutocomplete({
 
   const suggestions = React.useMemo(() => {
     const query = value.trim().toLowerCase()
-    const baseOptions = Array.from(new Set(compactLocations([currentLocation, ...US_LOCATION_OPTIONS])))
+    const initialOptions = includeRemote ? US_LOCATION_OPTIONS : US_LOCATION_OPTIONS.filter(option => option !== 'Remote')
+    const baseOptions = Array.from(new Set(compactLocations([currentLocation, ...initialOptions])))
     if (!query) return baseOptions.slice(0, maxSuggestions)
 
     const filtered = baseOptions.filter(option => option.toLowerCase().includes(query))
     if (filtered.length > 0) return filtered.slice(0, maxSuggestions)
 
     return baseOptions.slice(0, maxSuggestions)
-  }, [value, currentLocation, maxSuggestions])
+  }, [value, currentLocation, includeRemote, maxSuggestions])
 
   return (
     <View style={containerStyle}>

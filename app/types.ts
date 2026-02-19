@@ -21,6 +21,7 @@ export interface CareerSetupState {
   roleTrack: string
   seniority: string
   workingStyle: string
+  locationPreferences: string[]
   targetRole: string
   desiredSalaryRange: string
   targetSeniority: string

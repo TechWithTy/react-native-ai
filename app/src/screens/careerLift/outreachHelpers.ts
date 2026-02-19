@@ -1,13 +1,54 @@
 import { JobEntry } from '../../store/jobTrackerStore'
 
-export const isOutreachAction = (nextAction: string) => {
+export const isResponseCheckAction = (nextAction: string) => {
   const normalized = nextAction.toLowerCase()
   return (
+    normalized.includes('check response') ||
+    normalized.includes('response check') ||
+    normalized.includes('did they respond') ||
+    normalized.includes('awaiting response')
+  )
+}
+
+export const isCoffeeChatAction = (nextAction: string) => {
+  const normalized = nextAction.toLowerCase()
+  return (
+    normalized.includes('coffee chat') ||
+    (normalized.includes('coffee') && normalized.includes('chat')) ||
+    normalized.includes('recruiter call')
+  )
+}
+
+export const isThankYouAction = (nextAction: string) => {
+  const normalized = nextAction.toLowerCase()
+  return (
+    normalized.includes('send thank you') ||
+    normalized.includes('send thank-you') ||
+    normalized.includes('thank you note') ||
+    normalized.includes('thank-you note') ||
+    normalized.includes('thankyou') ||
+    normalized.includes('thanks')
+  )
+}
+
+export const isOutreachAction = (nextAction: string) => {
+  const normalized = nextAction.toLowerCase()
+  if (isResponseCheckAction(normalized) || isCoffeeChatAction(normalized)) {
+    return false
+  }
+  return (
+    isThankYouAction(normalized) ||
+    normalized.includes('follow up') ||
+    normalized.includes('follow-up') ||
     normalized.includes('follow up email') ||
     normalized.includes('follow-up email') ||
     normalized.includes('follow up / test') ||
     normalized.includes('follow-up / test') ||
+    normalized.includes('check-in') ||
+    normalized.includes('recruiter') ||
+    normalized.includes('outreach') ||
     (normalized.includes('follow') && normalized.includes('email')) ||
+    normalized.includes('reply') ||
     normalized.includes('test')
   )
 }

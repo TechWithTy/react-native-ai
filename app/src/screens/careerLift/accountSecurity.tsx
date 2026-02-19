@@ -4,7 +4,6 @@ import {
   Modal,
   Platform,
   Pressable,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Switch,
@@ -16,6 +15,7 @@ import {
 import { MaterialIcons } from '@expo/vector-icons'
 import { useNavigation } from '@react-navigation/native'
 import { NativeModulesProxy } from 'expo-modules-core'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { CLTheme } from './theme'
 import { useUserProfileStore } from '../../store/userProfileStore'
 

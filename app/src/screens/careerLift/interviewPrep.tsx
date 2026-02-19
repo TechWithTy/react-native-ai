@@ -6,13 +6,13 @@ import {
   StyleSheet,
   TouchableOpacity,
   Dimensions,
-  SafeAreaView,
   Platform,
   Modal,
   Alert,
 } from 'react-native'
 import { useNavigation, useRoute } from '@react-navigation/native'
 import { Feather, MaterialIcons } from '@expo/vector-icons'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { CLTheme } from './theme'
 import Animated, { FadeInDown } from 'react-native-reanimated'
 import { useCreditsStore, CREDIT_COSTS } from '../../store/creditsStore'
@@ -162,11 +162,14 @@ export function InterviewPrepScreen() {
       ;(navigation as any).navigate('MockInterview', {
         question: openingQuestion,
         category: customPrep.inferredRole,
+        jobId: routeJob?.id,
       })
       return
     }
 
-    ;(navigation as any).navigate('MockInterview')
+    ;(navigation as any).navigate('MockInterview', {
+      jobId: routeJob?.id,
+    })
   }
 
   const handleAdvanceCustomFlow = () => {
@@ -629,7 +632,8 @@ export function InterviewPrepScreen() {
                             setSelectedStory(null);
                             (navigation as any).navigate('MockInterview', { 
                                 question: `Tell me about the ${selectedStory?.title} situation.`,
-                                category: selectedStory?.tag
+                                category: selectedStory?.tag,
+                                jobId: routeJob?.id,
                             })
                         }}
                     >
@@ -722,6 +726,9 @@ function StoriesSection({ onStoryPress }: { onStoryPress: (story: any) => void }
 
 function QuestionsSection() {
     const navigation = useNavigation()
+    const route = useRoute()
+    const routeParams = (route as any)?.params ?? {}
+    const routeJob = routeParams?.job as { id?: string } | undefined
     const [expandedQuestionId, setExpandedQuestionId] = useState('deadline')
     const [questionGroups, setQuestionGroups] = useState(ROLE_SPECIFIC_QUESTION_GROUPS)
 
@@ -729,6 +736,7 @@ function QuestionsSection() {
       ;(navigation as any).navigate('MockInterview', {
         question: question.text,
         category,
+        jobId: routeJob?.id,
       })
     }
 

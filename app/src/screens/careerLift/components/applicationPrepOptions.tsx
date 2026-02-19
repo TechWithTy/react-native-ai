@@ -75,7 +75,7 @@ export function ApplicationPrepOptions({
   showCancel = true,
   initialTab = 'simple',
 }: ApplicationPrepOptionsProps) {
-  const { updateJobStatus } = useJobTrackerStore(state => state)
+  const { updateJobStatus, updateJobAction } = useJobTrackerStore(state => state)
   const { balance: creditBalance, canAfford, spendCredits } = useCreditsStore()
   const applyCost = CREDIT_COSTS.aiApplicationSubmit
   const canAffordApply = canAfford('aiApplicationSubmit')
@@ -109,10 +109,14 @@ export function ApplicationPrepOptions({
     onApplied?.()
   }
 
+  const markJobAppliedAndQueueNextTask = () => {
+    if (!job) return
+    updateJobStatus(job.id, 'Applied')
+    updateJobAction(job.id, 'Follow up', 'in 3 days')
+  }
+
   const handleStandardApply = () => {
-    if (job) {
-      updateJobStatus(job.id, 'Applied')
-    }
+    markJobAppliedAndQueueNextTask()
     completeApply(
       'Application Logged!',
       `${job?.role || 'Job'} at ${job?.company || 'Company'} marked as Applied.`
@@ -134,8 +138,8 @@ export function ApplicationPrepOptions({
       if (!finished) return
       if (job) {
         spendCredits('aiApplicationSubmit', `AI Application for ${job.company}`)
-        updateJobStatus(job.id, 'Applied')
       }
+      markJobAppliedAndQueueNextTask()
       completeApply(
         'Application Submitted',
         'Good luck! The AI has processed your application.'
@@ -351,7 +355,9 @@ export function ApplicationPrepOptions({
               <Text style={styles.creditEstimate}>{applyCost}cr for AI features</Text>
             </View>
 
+            <Text style={styles.quickApplyTapLabel}>Click to Quick Apply</Text>
             <Pressable
+              testID='quick-apply-submit-button'
               onPressIn={handleActionPressIn}
               onPressOut={handleActionPressOut}
               style={({ pressed }) => [
@@ -449,7 +455,7 @@ export function ApplicationPrepOptions({
                 <Feather name='zap' size={14} color={creditColor} />
                 <Text style={styles.creditBalanceSmall}>{creditBalance} credits</Text>
               </View>
-              <Text style={styles.creditEstimate}>Est. cost: ~{applyCost} credits</Text>
+              <Text style={styles.creditEstimate}>No AI credit charge for advanced submit</Text>
             </View>
             <View style={styles.advancedHintRow}>
               <MaterialIcons name='info-outline' size={14} color='#f59e0b' />
@@ -458,17 +464,7 @@ export function ApplicationPrepOptions({
             <TouchableOpacity
               style={styles.advCTABtn}
               onPress={() => {
-                if (!canAffordApply) {
-                  Alert.alert('Insufficient Credits', `You need ${applyCost} credits to submit.`)
-                  return
-                }
-                spendCredits(
-                  'aiApplicationSubmit',
-                  `Applied to ${job?.company || 'job'} — ${job?.role || 'role'}`
-                )
-                if (job) {
-                  updateJobStatus(job.id, 'Applied')
-                }
+                markJobAppliedAndQueueNextTask()
                 completeApply(
                   'Application Logged!',
                   `${job?.role || 'Job'} at ${job?.company || 'Company'} marked as Applied.`
@@ -478,7 +474,6 @@ export function ApplicationPrepOptions({
               <MaterialIcons name='check-circle' size={20} color='#fff' />
               <Text style={styles.advCTAText}>Approve & Log Submission</Text>
             </TouchableOpacity>
-            {!canAffordApply ? <Text style={styles.creditWarning}>Not enough credits</Text> : null}
           </View>
         </View>
       )}
@@ -698,6 +693,15 @@ const styles = StyleSheet.create({
     position: 'relative',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  quickApplyTapLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: CLTheme.accent,
+    textAlign: 'center',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 8,
   },
   holdFill: {
     position: 'absolute',

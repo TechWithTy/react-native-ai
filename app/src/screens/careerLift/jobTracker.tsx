@@ -24,8 +24,14 @@ import { useCreditsStore, CREDIT_COSTS } from '../../store/creditsStore'
 import { CLTheme } from './theme'
 import { CustomPrepEntryModal } from './components/customPrepEntryModal'
 import { ApplicationPrepOptions } from './components/applicationPrepOptions'
+import { ActionDecisionDrawer } from './components/actionDecisionDrawer'
 import * as Clipboard from 'expo-clipboard'
-import { buildOutreachDraft, isOutreachAction } from './outreachHelpers'
+import {
+  buildOutreachDraft,
+  isCoffeeChatAction,
+  isOutreachAction,
+  isResponseCheckAction,
+} from './outreachHelpers'
 
 const { width, height } = Dimensions.get('window')
 
@@ -142,7 +148,18 @@ const PIPELINE_STATUSES: PipelineStatusFilter[] = [
 
 export function JobTrackerScreen({ route }: JobTrackerProps = {}) {
   const navigation = useNavigation<any>()
-  const { thisWeek, nextUp, recommendedJobs, filters, activeFilter, setFilter, updateJobStatus, updateJobNotes, addJob } = useJobTrackerStore()
+  const {
+    thisWeek,
+    nextUp,
+    recommendedJobs,
+    filters,
+    activeFilter,
+    setFilter,
+    updateJobStatus,
+    updateJobNotes,
+    updateJobAction,
+    addJob,
+  } = useJobTrackerStore()
   const { avatarUrl, customInterviewPreps = [] } = useUserProfileStore()
   const { roleTrack, targetRole, locationPreference } = useCareerSetupStore()
   const { balance: creditBalance, canAfford: canAffordCredit, spendCredits } = useCreditsStore()
@@ -184,6 +201,10 @@ export function JobTrackerScreen({ route }: JobTrackerProps = {}) {
   const [showOutreachDrawer, setShowOutreachDrawer] = useState(false)
   const [selectedOutreachJob, setSelectedOutreachJob] = useState<JobEntry | null>(null)
   const [outreachDraft, setOutreachDraft] = useState('')
+  const [showResponseDecisionDrawer, setShowResponseDecisionDrawer] = useState(false)
+  const [selectedResponseJob, setSelectedResponseJob] = useState<JobEntry | null>(null)
+  const [showCoffeeChatDecisionDrawer, setShowCoffeeChatDecisionDrawer] = useState(false)
+  const [selectedCoffeeChatJob, setSelectedCoffeeChatJob] = useState<JobEntry | null>(null)
   const initialStatus = route?.params?.initialStatus
   const openAddJobModalFromRoute = route?.params?.openAddJobModal === true
 
@@ -217,6 +238,10 @@ export function JobTrackerScreen({ route }: JobTrackerProps = {}) {
   const openJobDetails = (job: JobEntry) => {
       setShowOutreachDrawer(false)
       setSelectedOutreachJob(null)
+      setShowResponseDecisionDrawer(false)
+      setSelectedResponseJob(null)
+      setShowCoffeeChatDecisionDrawer(false)
+      setSelectedCoffeeChatJob(null)
       setSelectedJob(job)
       setModalVisible(true)
       setIsApplying(false)
@@ -237,9 +262,41 @@ export function JobTrackerScreen({ route }: JobTrackerProps = {}) {
       setSelectedJob(null)
       setIsApplying(false)
       setIsUpdatingStatus(false)
+      setShowResponseDecisionDrawer(false)
+      setSelectedResponseJob(null)
+      setShowCoffeeChatDecisionDrawer(false)
+      setSelectedCoffeeChatJob(null)
       setSelectedOutreachJob(job)
       setOutreachDraft('')
       setShowOutreachDrawer(true)
+  }
+
+  const openResponseDecisionDrawer = (job: JobEntry) => {
+      setModalVisible(false)
+      setSelectedJob(null)
+      setIsApplying(false)
+      setIsUpdatingStatus(false)
+      setShowOutreachDrawer(false)
+      setSelectedOutreachJob(null)
+      setOutreachDraft('')
+      setSelectedResponseJob(job)
+      setShowCoffeeChatDecisionDrawer(false)
+      setSelectedCoffeeChatJob(null)
+      setShowResponseDecisionDrawer(true)
+  }
+
+  const openCoffeeChatDecisionDrawer = (job: JobEntry) => {
+      setModalVisible(false)
+      setSelectedJob(null)
+      setIsApplying(false)
+      setIsUpdatingStatus(false)
+      setShowOutreachDrawer(false)
+      setSelectedOutreachJob(null)
+      setOutreachDraft('')
+      setShowResponseDecisionDrawer(false)
+      setSelectedResponseJob(null)
+      setSelectedCoffeeChatJob(job)
+      setShowCoffeeChatDecisionDrawer(true)
   }
 
   const closeOutreachDrawer = () => {
@@ -248,7 +305,25 @@ export function JobTrackerScreen({ route }: JobTrackerProps = {}) {
       setOutreachDraft('')
   }
 
+  const closeResponseDecisionDrawer = () => {
+      setShowResponseDecisionDrawer(false)
+      setSelectedResponseJob(null)
+  }
+
+  const closeCoffeeChatDecisionDrawer = () => {
+      setShowCoffeeChatDecisionDrawer(false)
+      setSelectedCoffeeChatJob(null)
+  }
+
   const handleJobPress = (job: JobEntry) => {
+      if (isResponseCheckAction(job.nextAction)) {
+          openResponseDecisionDrawer(job)
+          return
+      }
+      if (isCoffeeChatAction(job.nextAction)) {
+          openCoffeeChatDecisionDrawer(job)
+          return
+      }
       if (isOutreachAction(job.nextAction)) {
           openOutreachDrawer(job)
           return
@@ -307,21 +382,72 @@ export function JobTrackerScreen({ route }: JobTrackerProps = {}) {
   const handleMarkOutreachSent = () => {
       if (!selectedOutreachJob) return
 
-      if (outreachDraft.trim()) {
-        const previousNotes = selectedOutreachJob.notes?.trim() || ''
-        const updatedNotes = [
-          previousNotes,
-          `[Outreach sent • ${new Date().toLocaleDateString()}]`,
-          outreachDraft.trim(),
-        ]
-          .filter(Boolean)
-          .join('\n\n')
+      const previousNotes = selectedOutreachJob.notes?.trim() || ''
+      const sentMarker = `[Outreach sent • ${new Date().toLocaleDateString()}]`
+      const draftNote = outreachDraft.trim()
+      const updatedNotes = [
+        previousNotes,
+        previousNotes.includes(sentMarker) ? '' : sentMarker,
+        draftNote ? `Message:\n${draftNote}` : '',
+      ]
+        .filter(Boolean)
+        .join('\n\n')
+      updateJobNotes(selectedOutreachJob.id, updatedNotes)
 
-        updateJobNotes(selectedOutreachJob.id, updatedNotes)
+      const currentAction = selectedOutreachJob.nextAction.toLowerCase()
+      if (isOutreachAction(currentAction)) {
+        updateJobAction(selectedOutreachJob.id, 'Check response', 'in 2 days')
       }
 
       Alert.alert('Marked as sent', 'Outreach was logged for this role.')
       closeOutreachDrawer()
+      navigation.navigate('OutreachCenter')
+  }
+
+  const handleResponseDecision = (didRespond: boolean) => {
+      if (!selectedResponseJob) return
+
+      const marker = didRespond
+        ? `[Response received • ${new Date().toLocaleDateString()}]`
+        : `[No response yet • ${new Date().toLocaleDateString()}]`
+      const previousNotes = selectedResponseJob.notes?.trim() || ''
+      const updatedNotes = [previousNotes, previousNotes.includes(marker) ? '' : marker]
+        .filter(Boolean)
+        .join('\n\n')
+
+      updateJobNotes(selectedResponseJob.id, updatedNotes)
+
+      if (didRespond) {
+        updateJobStatus(selectedResponseJob.id, 'Interviewing')
+        updateJobAction(selectedResponseJob.id, 'Interview Prep', 'This week')
+      } else {
+        updateJobAction(selectedResponseJob.id, 'Send second follow-up', 'in 3 days')
+      }
+
+      closeResponseDecisionDrawer()
+  }
+
+  const handleCoffeeChatDecision = (completedChat: boolean) => {
+      if (!selectedCoffeeChatJob) return
+
+      const marker = completedChat
+        ? `[Coffee chat completed • ${new Date().toLocaleDateString()}]`
+        : `[Coffee chat pending • ${new Date().toLocaleDateString()}]`
+      const previousNotes = selectedCoffeeChatJob.notes?.trim() || ''
+      const updatedNotes = [previousNotes, previousNotes.includes(marker) ? '' : marker]
+        .filter(Boolean)
+        .join('\n\n')
+
+      updateJobNotes(selectedCoffeeChatJob.id, updatedNotes)
+
+      if (completedChat) {
+        updateJobStatus(selectedCoffeeChatJob.id, 'Interviewing')
+        updateJobAction(selectedCoffeeChatJob.id, 'Send thank-you note', 'Tomorrow')
+      } else {
+        updateJobAction(selectedCoffeeChatJob.id, 'Reschedule coffee chat', 'in 2 days')
+      }
+
+      closeCoffeeChatDecisionDrawer()
   }
 
   const handleUpdateStatus = () => {
@@ -996,6 +1122,28 @@ export function JobTrackerScreen({ route }: JobTrackerProps = {}) {
               </View>
           </View>
       </Modal>
+
+      <ActionDecisionDrawer
+        visible={showResponseDecisionDrawer}
+        title='Did They Respond?'
+        message={`Record the latest response status for ${selectedResponseJob?.company || 'this role'}.`}
+        confirmLabel='Yes, responded'
+        denyLabel='No response yet'
+        onClose={closeResponseDecisionDrawer}
+        onConfirm={() => handleResponseDecision(true)}
+        onDeny={() => handleResponseDecision(false)}
+      />
+
+      <ActionDecisionDrawer
+        visible={showCoffeeChatDecisionDrawer}
+        title='Coffee Chat Completed?'
+        message={`Did you complete the chat with ${selectedCoffeeChatJob?.company || 'this contact'}?`}
+        confirmLabel='Yes, completed'
+        denyLabel='Not yet'
+        onClose={closeCoffeeChatDecisionDrawer}
+        onConfirm={() => handleCoffeeChatDecision(true)}
+        onDeny={() => handleCoffeeChatDecision(false)}
+      />
       
       {/* Job Details Modal - Keeping it simple for now, can be expanded */}
       <Modal visible={modalVisible} animationType="slide" transparent>

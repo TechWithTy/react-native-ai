@@ -11,10 +11,17 @@ import { USER_WORKING_STYLES } from '../../data/workingStyle'
 import { ModalContainer } from './components/modalContainer'
 import { LocationAutocomplete } from './components/locationAutocomplete'
 
+const LOCATION_REQUIRED_WORKING_STYLES = new Set(['Hybrid', 'On-site'])
+const LEGACY_BY_WORKING_STYLE = USER_WORKING_STYLES.reduce<Record<string, string>>((acc, option) => {
+  acc[option.label] = option.legacy
+  return acc
+}, {})
+
 export function OnboardingGoalsScreen({ navigation }: any) {
   const roleTrack = useCareerSetupStore(state => state.roleTrack)
   const targetSeniority = useCareerSetupStore(state => state.targetSeniority)
   const locationPreference = useCareerSetupStore(state => state.locationPreference)
+  const locationPreferences = useCareerSetupStore(state => state.locationPreferences)
   const setCareerSetup = useCareerSetupStore(state => state.setCareerSetup)
   const currentLocation = useUserProfileStore(state => state.currentLocation)
   const setProfile = useUserProfileStore(state => state.setProfile)
@@ -44,11 +51,18 @@ export function OnboardingGoalsScreen({ navigation }: any) {
     setLocationInput(currentLocation || '')
   }, [currentLocation])
 
-  const needsLocation = locationPreference === 'Hybrid' || locationPreference === 'On-site'
-  const isLocationValid = currentLocation && currentLocation.trim().length > 0
+  const selectedWorkingStyles =
+    locationPreferences.length > 0 ? locationPreferences : locationPreference.trim().length > 0 ? [locationPreference] : []
+  const needsLocation = selectedWorkingStyles.some(style => LOCATION_REQUIRED_WORKING_STYLES.has(style))
+  const isLocationValid = (currentLocation || '').trim().length > 0
   const isRoleSelected = roleTrack.trim().length > 0
   const isSenioritySelected = targetSeniority.trim().length > 0
-  const isWorkingStyleSelected = locationPreference.trim().length > 0
+  const isWorkingStyleSelected = selectedWorkingStyles.length > 0
+  const roleValidationText = !isRoleSelected ? 'Select a role track to continue.' : ''
+  const seniorityValidationText = !isSenioritySelected ? 'Select your current seniority to continue.' : ''
+  const workingStyleValidationText = !isWorkingStyleSelected ? 'Select at least one working style to continue.' : ''
+  const locationValidationText =
+    needsLocation && !isLocationValid ? 'Add a preferred location to continue with hybrid or on-site.' : ''
 
   const canProceed = isRoleSelected && isSenioritySelected && isWorkingStyleSelected && (!needsLocation || isLocationValid)
 
@@ -102,13 +116,23 @@ export function OnboardingGoalsScreen({ navigation }: any) {
     }
   }
 
-  const handleWorkingStyleSelect = (label: string, legacy: string) => {
+  const handleWorkingStyleSelect = (label: string) => {
+    const isAlreadySelected = selectedWorkingStyles.includes(label)
+    const nextWorkingStyles = isAlreadySelected
+      ? selectedWorkingStyles.filter(style => style !== label)
+      : [...selectedWorkingStyles, label]
+    const nextPrimaryWorkingStyle = nextWorkingStyles[0] || ''
+    const nextLegacyWorkingStyle = nextWorkingStyles.map(style => LEGACY_BY_WORKING_STYLE[style] || style).join(', ')
+
     setCareerSetup({
-      locationPreference: label,
-      workingStyle: legacy,
+      locationPreferences: nextWorkingStyles,
+      locationPreference: nextPrimaryWorkingStyle,
+      workingStyle: nextLegacyWorkingStyle,
     })
 
-    if (label === 'Hybrid' || label === 'On-site') {
+    const shouldPromptForLocation =
+      !isAlreadySelected && LOCATION_REQUIRED_WORKING_STYLES.has(label) && !isLocationValid
+    if (shouldPromptForLocation) {
       setShowLocationModal(true)
     }
   }
@@ -169,6 +193,7 @@ export function OnboardingGoalsScreen({ navigation }: any) {
               )
             })}
           </View>
+          {roleValidationText ? <Text style={styles.validationText}>{roleValidationText}</Text> : null}
         </View>
 
         {/* Seniority Level Selection */}
@@ -197,18 +222,22 @@ export function OnboardingGoalsScreen({ navigation }: any) {
               )
             })}
           </ScrollView>
+          {seniorityValidationText ? <Text style={styles.validationText}>{seniorityValidationText}</Text> : null}
         </View>
 
         {/* Working Style Selection */}
         <View style={styles.sectionWrap}>
-          <Text style={styles.sectionTitle}>PREFERRED WORKING STYLE</Text>
+          <View style={styles.sectionHeaderRow}>
+            <Text style={styles.sectionTitle}>PREFERRED WORKING STYLE</Text>
+            <Text style={styles.selectionHint}>Select one or more</Text>
+          </View>
           <View style={styles.locationList}>
             {USER_WORKING_STYLES.map(option => {
-              const selected = locationPreference === option.label
+              const selected = selectedWorkingStyles.includes(option.label)
               return (
                 <TouchableOpacity
                   key={option.label}
-                  onPress={() => handleWorkingStyleSelect(option.label, option.legacy)}
+                  onPress={() => handleWorkingStyleSelect(option.label)}
                   style={[styles.locationCard, selected && styles.locationCardSelected]}
                   activeOpacity={0.9}
                 >
@@ -230,6 +259,8 @@ export function OnboardingGoalsScreen({ navigation }: any) {
               )
             })}
           </View>
+          {workingStyleValidationText ? <Text style={styles.validationText}>{workingStyleValidationText}</Text> : null}
+          {locationValidationText ? <Text style={styles.validationText}>{locationValidationText}</Text> : null}
         </View>
       </ScrollView>
 
@@ -249,6 +280,9 @@ export function OnboardingGoalsScreen({ navigation }: any) {
           <Text style={[styles.ctaText, { color: canProceed ? '#fff' : '#94a3b8' }]}>Next Step</Text>
           {canProceed && <MaterialIcons name="arrow-forward" size={20} color="#fff" />}
         </TouchableOpacity>
+        {!canProceed ? (
+          <Text style={styles.validationDockText}>Complete the required fields above to continue.</Text>
+        ) : null}
       </View>
 
       <ModalContainer
@@ -270,7 +304,7 @@ export function OnboardingGoalsScreen({ navigation }: any) {
             keyboardShouldPersistTaps='handled'
           >
             <Text style={styles.modalSubtitle}>
-              You selected a hybrid or on-site work style. Add your preferred location.
+              You selected hybrid and/or on-site. Add your preferred location.
             </Text>
             <Text style={styles.locationSectionLabel}>Quick Actions</Text>
             <TouchableOpacity
@@ -294,7 +328,8 @@ export function OnboardingGoalsScreen({ navigation }: any) {
               onChangeText={setLocationInput}
               onSelect={setLocationInput}
               currentLocation={currentLocation}
-              placeholder='City, State or Remote'
+              includeRemote={false}
+              placeholder='City, State'
               containerStyle={styles.locationAutocompleteContainer}
               inputContainerStyle={styles.locationInputContainer}
               inputStyle={styles.textInput}
@@ -424,6 +459,13 @@ const styles = StyleSheet.create({
       color: '#0d6cf2',
       fontSize: 12,
       fontWeight: '500',
+  },
+  validationText: {
+    marginTop: 10,
+    color: '#f87171',
+    fontSize: 12,
+    fontWeight: '600',
+    lineHeight: 18,
   },
 
   // Grid
@@ -590,6 +632,13 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '600',
     fontSize: 18,
+  },
+  validationDockText: {
+    marginTop: 10,
+    color: '#f87171',
+    fontSize: 12,
+    fontWeight: '600',
+    textAlign: 'center',
   },
   modalCard: {
     backgroundColor: '#172335',

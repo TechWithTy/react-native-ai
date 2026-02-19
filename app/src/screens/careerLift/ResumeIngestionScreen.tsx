@@ -89,6 +89,9 @@ export function ResumeIngestionScreen({ navigation }: any) {
             </View>
           ) : null}
         </TouchableOpacity>
+        {!selectedFile ? (
+          <Text style={styles.validationText}>Upload or import a resume to continue.</Text>
+        ) : null}
 
         <View style={styles.dividerRow}>
           <View style={styles.dividerLine} />
@@ -120,6 +123,9 @@ export function ResumeIngestionScreen({ navigation }: any) {
         >
           <Text style={[styles.ctaText, !canProceed && { color: '#94a3b8' }]}>Complete Setup</Text>
         </TouchableOpacity>
+        {!canProceed ? (
+          <Text style={styles.validationDockText}>A source resume is required to complete setup.</Text>
+        ) : null}
         {!selectedFile && (
           <TouchableOpacity
             onPress={() => {
@@ -309,6 +315,14 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 8,
   },
+  validationText: {
+    marginTop: 10,
+    color: '#f87171',
+    fontSize: 12,
+    fontWeight: '600',
+    lineHeight: 18,
+    textAlign: 'center',
+  },
   dividerRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -391,6 +405,13 @@ const styles = StyleSheet.create({
     color: '#94a3b8',
     fontSize: 13,
     fontWeight: '600',
+  },
+  validationDockText: {
+    marginTop: 8,
+    color: '#f87171',
+    fontSize: 12,
+    fontWeight: '600',
+    textAlign: 'center',
   },
   modalBackdrop: {
     flex: 1,

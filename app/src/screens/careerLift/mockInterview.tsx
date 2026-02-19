@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   ScrollView,
   Dimensions,
-  SafeAreaView,
   Platform,
   Alert,
   Modal
@@ -23,6 +22,7 @@ import Animated, {
 } from 'react-native-reanimated'
 import { useNavigation, useRoute } from '@react-navigation/native'
 import { MaterialIcons, Feather } from '@expo/vector-icons'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import {
   RecordingPresets,
   requestRecordingPermissionsAsync,
@@ -31,6 +31,7 @@ import {
 } from 'expo-audio'
 import * as Speech from 'expo-speech'
 import { CLTheme } from './theme'
+import { useJobTrackerStore } from '../../store/jobTrackerStore'
 
 
 const { width } = Dimensions.get('window')
@@ -38,10 +39,12 @@ const { width } = Dimensions.get('window')
 export function MockInterviewScreen() {
   const navigation = useNavigation()
   const route = useRoute()
-  const params = route.params as { question?: string; category?: string } | undefined
+  const params = route.params as { question?: string; category?: string; jobId?: string } | undefined
+  const { updateJobAction, updateJobStatus } = useJobTrackerStore()
   
   const questionText = params?.question || "Describe a situation where you had to manage a difficult stakeholder. How did you handle it?"
   const sessionCategory = params?.category || "Behavioral"
+  const jobId = params?.jobId
 
   const [isRecording, setIsRecording] = useState(false)
   const audioRecorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY)
@@ -186,6 +189,18 @@ export function MockInterviewScreen() {
       } else {
           await startRecording()
       }
+  }
+
+  const handleDone = async () => {
+    Speech.stop()
+    if (isRecording) await stopRecording()
+
+    if (jobId) {
+      updateJobStatus(jobId, 'Interviewing')
+      updateJobAction(jobId, 'Send Thank You', 'Tomorrow')
+    }
+
+    navigation.goBack()
   }
 
   // Transcript Simulation (Mocking the "live" aspect for now as we don't have real-time STT backend connected)
@@ -355,11 +370,7 @@ export function MockInterviewScreen() {
           {/* Done Button */}
           <TouchableOpacity 
             style={styles.controlBtnSecondary}
-            onPress={async () => {
-                Speech.stop()
-                if (isRecording) await stopRecording()
-                navigation.goBack()
-            }}
+            onPress={handleDone}
           >
             <View style={styles.circleBtnSmall}>
               <MaterialIcons name="check" size={24} color={CLTheme.text.secondary} />

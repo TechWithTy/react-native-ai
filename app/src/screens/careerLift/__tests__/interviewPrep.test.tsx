@@ -3,22 +3,24 @@ import React from 'react'
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native'
 import { MockInterviewScreen } from '../mockInterview'
 import { Alert } from 'react-native'
+import { useJobTrackerStore } from '../../../store/jobTrackerStore'
 
 // --- Mocks ---
 
 // Mock Navigation
 const mockNavigate = jest.fn()
 const mockGoBack = jest.fn()
+let mockRouteParams: { question?: string; category?: string; jobId?: string } = {
+  question: 'Test Question?',
+  category: 'Behavioral',
+}
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     navigate: mockNavigate,
     goBack: mockGoBack,
   }),
   useRoute: () => ({
-    params: {
-      question: 'Test Question?',
-      category: 'Behavioral',
-    },
+    params: mockRouteParams,
   }),
 }))
 
@@ -74,6 +76,11 @@ describe('MockInterviewScreen', () => {
     jest.clearAllMocks()
     mockRequestRecordingPermissionsAsync.mockResolvedValue({ granted: true })
     mockIsSpeakingAsync.mockResolvedValue(false)
+    mockRouteParams = {
+      question: 'Test Question?',
+      category: 'Behavioral',
+    }
+    useJobTrackerStore.getState().resetJobTrackerStore()
   })
 
   it('renders correctly with initial state', async () => {
@@ -180,5 +187,21 @@ describe('MockInterviewScreen', () => {
     // Should stop speech and go back
     expect(mockStop).toHaveBeenCalledTimes(2)
     expect(mockGoBack).toHaveBeenCalled()
+  })
+
+  it('marks interview prep completed for linked job when done is pressed', () => {
+    mockRouteParams = {
+      question: 'Tell me about yourself.',
+      category: 'Behavioral',
+      jobId: '3',
+    }
+
+    const { getByText } = render(<MockInterviewScreen />)
+    fireEvent.press(getByText('Done'))
+
+    const updatedJob = useJobTrackerStore.getState().nextUp.find(job => job.id === '3')
+    expect(updatedJob?.status).toBe('Interviewing')
+    expect(updatedJob?.nextAction).toBe('Send Thank You')
+    expect(updatedJob?.nextActionDate).toBe('Tomorrow')
   })
 })

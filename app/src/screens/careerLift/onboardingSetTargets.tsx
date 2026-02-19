@@ -92,6 +92,10 @@ export function OnboardingSetTargetsScreen({ navigation }: any) {
     desiredSalaryRange.trim().length > 0 && 
     selectedGoals.length > 0 && 
     selectedSkills.length > 0
+  const roleValidationText = !targetRole.trim() ? 'Choose a target role to continue.' : ''
+  const salaryValidationText = !desiredSalaryRange.trim() ? 'Select a desired salary range to continue.' : ''
+  const goalsValidationText = selectedGoals.length === 0 ? 'Select at least one position goal to continue.' : ''
+  const skillsValidationText = selectedSkills.length === 0 ? 'Select at least one highlighted skill to continue.' : ''
 
   return (
     <View style={styles.screen}>
@@ -136,6 +140,7 @@ export function OnboardingSetTargetsScreen({ navigation }: any) {
           {filteredRoleSuggestions.length === 0 ? (
             <Text style={styles.emptyText}>No role matches this search.</Text>
           ) : null}
+          {roleValidationText ? <Text style={styles.validationText}>{roleValidationText}</Text> : null}
         </View>
 
         <HorizontalScrollableSection title='Desired Salary Range' contentContainerStyle={styles.horizontalScrollRow}>
@@ -155,6 +160,7 @@ export function OnboardingSetTargetsScreen({ navigation }: any) {
             })}
           </View>
         </HorizontalScrollableSection>
+        {salaryValidationText ? <Text style={styles.validationText}>{salaryValidationText}</Text> : null}
 
         <HorizontalScrollableSection title='Position Goals' contentContainerStyle={styles.horizontalRowsContent}>
           <View style={styles.rowsWrap}>
@@ -176,6 +182,7 @@ export function OnboardingSetTargetsScreen({ navigation }: any) {
             ))}
           </View>
         </HorizontalScrollableSection>
+        {goalsValidationText ? <Text style={styles.validationText}>{goalsValidationText}</Text> : null}
 
         <HorizontalScrollableSection title='Highlighted Skills' contentContainerStyle={styles.horizontalRowsContent}>
           <View style={styles.rowsWrap}>
@@ -197,6 +204,7 @@ export function OnboardingSetTargetsScreen({ navigation }: any) {
             ))}
           </View>
         </HorizontalScrollableSection>
+        {skillsValidationText ? <Text style={styles.validationText}>{skillsValidationText}</Text> : null}
       </ScrollView>
 
       <View style={styles.bottomDock}>
@@ -215,6 +223,9 @@ export function OnboardingSetTargetsScreen({ navigation }: any) {
         >
           <Text style={[styles.ctaText, !canProceed && { color: '#94a3b8' }]}>Continue</Text>
         </TouchableOpacity>
+        {!canProceed ? (
+          <Text style={styles.validationDockText}>Complete all required selections to continue.</Text>
+        ) : null}
       </View>
     </View>
   )
@@ -292,6 +303,13 @@ const styles = StyleSheet.create({
     marginTop: 8,
     color: '#94a3b8',
     fontSize: 12,
+  },
+  validationText: {
+    marginTop: 8,
+    color: '#f87171',
+    fontSize: 12,
+    fontWeight: '600',
+    lineHeight: 18,
   },
   rowsWrap: {
     gap: 8,
@@ -422,6 +440,12 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '700',
     fontSize: 15,
+  },
+  validationDockText: {
+    color: '#f87171',
+    fontSize: 12,
+    fontWeight: '600',
+    textAlign: 'center',
   },
   secondaryCta: {
     borderRadius: 12,

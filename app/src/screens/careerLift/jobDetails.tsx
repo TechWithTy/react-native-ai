@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   ScrollView,
   Image,
-  SafeAreaView,
   Modal,
   Pressable,
   Animated,
@@ -17,6 +16,7 @@ import * as Clipboard from 'expo-clipboard'
 import { MaterialIcons, Feather } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useNavigation, useRoute } from '@react-navigation/native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { JobEntry, useJobTrackerStore } from '../../store/jobTrackerStore'
 import { CREDIT_COSTS, useCreditsStore } from '../../store/creditsStore'
 import { CLTheme } from './theme'

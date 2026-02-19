@@ -51,16 +51,27 @@ describe('CareerLift flows', () => {
   })
 
   it('moves from onboarding goals to step 2', () => {
-    const { getByText } = render(<OnboardingGoalsScreen navigation={navigation} />)
+    const { getByText, getByPlaceholderText } = render(<OnboardingGoalsScreen navigation={navigation} />)
+    fireEvent.press(getByText('Engineering'))
+    fireEvent.press(getByText('Senior'))
+    fireEvent.press(getByText('Hybrid'))
+    fireEvent.changeText(getByPlaceholderText('City, State'), 'Austin, TX')
+    fireEvent.press(getByText('Save'))
     fireEvent.press(getByText('Next Step'))
     expect(navigation.navigate).toHaveBeenCalledWith('OnboardingSetTargets')
   })
 
-  it('step 2 back/continue actions work', () => {
-    const { getAllByText, getByText } = render(<OnboardingSetTargetsScreen navigation={navigation} />)
-    fireEvent.press(getAllByText('Back')[0])
-    expect(navigation.goBack).toHaveBeenCalled()
-
+  it('step 2 continue action works', () => {
+    act(() => {
+      useCareerSetupStore.getState().setCareerSetup({
+        roleTrack: 'Engineering',
+        targetRole: 'Frontend Engineer',
+        desiredSalaryRange: '$175k-$210k+',
+        selectedGoals: ['UI Performance'],
+        selectedSkills: ['React Native'],
+      })
+    })
+    const { getByText } = render(<OnboardingSetTargetsScreen navigation={navigation} />)
     fireEvent.press(getByText('Continue'))
     expect(navigation.navigate).toHaveBeenCalledWith('ResumeIngestion')
   })
@@ -110,6 +121,7 @@ describe('CareerLift flows', () => {
 
     fireEvent.press(getByText('On-site'))
     expect(useCareerSetupStore.getState().locationPreference).toBe('On-site')
+    expect(useCareerSetupStore.getState().locationPreferences).toEqual(['On-site'])
     expect(getByText('Set Your Preferred Location')).toBeTruthy()
   })
 
@@ -117,10 +129,39 @@ describe('CareerLift flows', () => {
     const { getByText, getByPlaceholderText } = render(<OnboardingGoalsScreen navigation={navigation} />)
 
     fireEvent.press(getByText('Hybrid'))
-    fireEvent.changeText(getByPlaceholderText('City, State or Remote'), 'Austin, TX')
+    fireEvent.changeText(getByPlaceholderText('City, State'), 'Austin, TX')
     fireEvent.press(getByText('Save'))
 
     expect(useUserProfileStore.getState().currentLocation).toBe('Austin, TX')
+  })
+
+  it('supports multiple working styles without requiring location twice', () => {
+    const { getByText, getByPlaceholderText, queryByText } = render(<OnboardingGoalsScreen navigation={navigation} />)
+
+    fireEvent.press(getByText('Hybrid'))
+    fireEvent.changeText(getByPlaceholderText('City, State'), 'Austin, TX')
+    fireEvent.press(getByText('Save'))
+    expect(queryByText('Set Your Preferred Location')).toBeNull()
+
+    fireEvent.press(getByText('On-site'))
+
+    expect(useCareerSetupStore.getState().locationPreferences).toEqual(['Hybrid', 'On-site'])
+    expect(queryByText('Set Your Preferred Location')).toBeNull()
+  })
+
+  it('does not reopen location modal when selecting remote or deselecting options', () => {
+    const { getByText, queryByText } = render(<OnboardingGoalsScreen navigation={navigation} />)
+
+    fireEvent.press(getByText('Hybrid'))
+    expect(getByText('Set Your Preferred Location')).toBeTruthy()
+    fireEvent.press(getByText('Cancel'))
+    expect(queryByText('Set Your Preferred Location')).toBeNull()
+
+    fireEvent.press(getByText('Remote'))
+    expect(queryByText('Set Your Preferred Location')).toBeNull()
+
+    fireEvent.press(getByText('Remote'))
+    expect(queryByText('Set Your Preferred Location')).toBeNull()
   })
 
   it('step 2 supports searchable role and goals/skills content', () => {

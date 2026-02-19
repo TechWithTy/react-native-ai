@@ -15,7 +15,13 @@ import * as Clipboard from 'expo-clipboard'
 import { CLTheme } from './theme'
 import { CREDIT_COSTS, useCreditsStore } from '../../store/creditsStore'
 import { JobEntry, useJobTrackerStore } from '../../store/jobTrackerStore'
-import { buildOutreachDraft, isOutreachAction } from './outreachHelpers'
+import { ActionDecisionDrawer } from './components/actionDecisionDrawer'
+import {
+  buildOutreachDraft,
+  isCoffeeChatAction,
+  isOutreachAction,
+  isResponseCheckAction,
+} from './outreachHelpers'
 
 type OutreachCenterRouteParams = {
   job?: JobEntry
@@ -27,20 +33,29 @@ const OUTREACH_SENT_PREFIX = '[Outreach sent'
 export function OutreachCenterScreen() {
   const navigation = useNavigation<any>()
   const route = useRoute()
-  const { thisWeek, nextUp, updateJobNotes } = useJobTrackerStore()
+  const { thisWeek, nextUp, updateJobAction, updateJobNotes, updateJobStatus } = useJobTrackerStore()
   const { balance: creditBalance, canAfford, spendCredits } = useCreditsStore()
   const outreachCost = CREDIT_COSTS.outreachMessageGen
   const canAffordOutreach = canAfford('outreachMessageGen')
   const creditColor = creditBalance > 30 ? '#10b981' : creditBalance > 10 ? '#f59e0b' : '#ef4444'
 
   const [selectedJob, setSelectedJob] = useState<JobEntry | null>(null)
+  const [selectedResponseJob, setSelectedResponseJob] = useState<JobEntry | null>(null)
+  const [selectedCoffeeChatJob, setSelectedCoffeeChatJob] = useState<JobEntry | null>(null)
   const [outreachDraft, setOutreachDraft] = useState('')
   const [showOutreachDrawer, setShowOutreachDrawer] = useState(false)
+  const [showResponseDecisionDrawer, setShowResponseDecisionDrawer] = useState(false)
+  const [showCoffeeChatDecisionDrawer, setShowCoffeeChatDecisionDrawer] = useState(false)
 
   const routeParams = (route as any)?.params as OutreachCenterRouteParams | undefined
 
   const outreachJobs = useMemo(() => {
-    return [...thisWeek, ...nextUp].filter(job => isOutreachAction(job.nextAction))
+    return [...thisWeek, ...nextUp].filter(
+      job =>
+        isOutreachAction(job.nextAction) ||
+        isResponseCheckAction(job.nextAction) ||
+        isCoffeeChatAction(job.nextAction)
+    )
   }, [thisWeek, nextUp])
 
   const sentThisWeek = useMemo(() => {
@@ -52,13 +67,59 @@ export function OutreachCenterScreen() {
   const openOutreachDrawer = (job: JobEntry) => {
     setSelectedJob(job)
     setOutreachDraft('')
+    setShowResponseDecisionDrawer(false)
+    setSelectedResponseJob(null)
+    setShowCoffeeChatDecisionDrawer(false)
+    setSelectedCoffeeChatJob(null)
     setShowOutreachDrawer(true)
+  }
+
+  const openResponseDecisionDrawer = (job: JobEntry) => {
+    setSelectedJob(null)
+    setOutreachDraft('')
+    setShowOutreachDrawer(false)
+    setSelectedResponseJob(job)
+    setShowCoffeeChatDecisionDrawer(false)
+    setSelectedCoffeeChatJob(null)
+    setShowResponseDecisionDrawer(true)
+  }
+
+  const openCoffeeChatDecisionDrawer = (job: JobEntry) => {
+    setSelectedJob(null)
+    setOutreachDraft('')
+    setShowOutreachDrawer(false)
+    setShowResponseDecisionDrawer(false)
+    setSelectedResponseJob(null)
+    setSelectedCoffeeChatJob(job)
+    setShowCoffeeChatDecisionDrawer(true)
+  }
+
+  const openJobActionDrawer = (job: JobEntry) => {
+    if (isResponseCheckAction(job.nextAction)) {
+      openResponseDecisionDrawer(job)
+      return
+    }
+    if (isCoffeeChatAction(job.nextAction)) {
+      openCoffeeChatDecisionDrawer(job)
+      return
+    }
+    openOutreachDrawer(job)
   }
 
   const closeOutreachDrawer = () => {
     setShowOutreachDrawer(false)
     setSelectedJob(null)
     setOutreachDraft('')
+  }
+
+  const closeResponseDecisionDrawer = () => {
+    setShowResponseDecisionDrawer(false)
+    setSelectedResponseJob(null)
+  }
+
+  const closeCoffeeChatDecisionDrawer = () => {
+    setShowCoffeeChatDecisionDrawer(false)
+    setSelectedCoffeeChatJob(null)
   }
 
   useEffect(() => {
@@ -71,7 +132,7 @@ export function OutreachCenterScreen() {
       null
 
     if (targetJob) {
-      openOutreachDrawer(targetJob)
+      openJobActionDrawer(targetJob)
     }
 
     navigation.setParams?.({ job: undefined, jobId: undefined })
@@ -105,21 +166,71 @@ export function OutreachCenterScreen() {
   const handleMarkOutreachSent = () => {
     if (!selectedJob) return
 
-    if (outreachDraft.trim()) {
-      const previousNotes = selectedJob.notes?.trim() || ''
-      const updatedNotes = [
-        previousNotes,
-        `[Outreach sent • ${new Date().toLocaleDateString()}]`,
-        outreachDraft.trim(),
-      ]
-        .filter(Boolean)
-        .join('\n\n')
+    const previousNotes = selectedJob.notes?.trim() || ''
+    const sentMarker = `[Outreach sent • ${new Date().toLocaleDateString()}]`
+    const draftNote = outreachDraft.trim()
+    const updatedNotes = [
+      previousNotes,
+      previousNotes.includes(sentMarker) ? '' : sentMarker,
+      draftNote ? `Message:\n${draftNote}` : '',
+    ]
+      .filter(Boolean)
+      .join('\n\n')
+    updateJobNotes(selectedJob.id, updatedNotes)
 
-      updateJobNotes(selectedJob.id, updatedNotes)
+    const currentAction = selectedJob.nextAction.toLowerCase()
+    if (isOutreachAction(currentAction)) {
+      updateJobAction(selectedJob.id, 'Check response', 'in 2 days')
     }
 
     Alert.alert('Marked as sent', 'Outreach was logged for this role.')
     closeOutreachDrawer()
+  }
+
+  const handleResponseDecision = (didRespond: boolean) => {
+    if (!selectedResponseJob) return
+
+    const marker = didRespond
+      ? `[Response received • ${new Date().toLocaleDateString()}]`
+      : `[No response yet • ${new Date().toLocaleDateString()}]`
+
+    const previousNotes = selectedResponseJob.notes?.trim() || ''
+    const updatedNotes = [previousNotes, previousNotes.includes(marker) ? '' : marker]
+      .filter(Boolean)
+      .join('\n\n')
+
+    updateJobNotes(selectedResponseJob.id, updatedNotes)
+
+    if (didRespond) {
+      updateJobStatus(selectedResponseJob.id, 'Interviewing')
+      updateJobAction(selectedResponseJob.id, 'Interview Prep', 'This week')
+    } else {
+      updateJobAction(selectedResponseJob.id, 'Send second follow-up', 'in 3 days')
+    }
+
+    closeResponseDecisionDrawer()
+  }
+
+  const handleCoffeeChatDecision = (completedChat: boolean) => {
+    if (!selectedCoffeeChatJob) return
+
+    const marker = completedChat
+      ? `[Coffee chat completed • ${new Date().toLocaleDateString()}]`
+      : `[Coffee chat pending • ${new Date().toLocaleDateString()}]`
+    const previousNotes = selectedCoffeeChatJob.notes?.trim() || ''
+    const updatedNotes = [previousNotes, previousNotes.includes(marker) ? '' : marker]
+      .filter(Boolean)
+      .join('\n\n')
+    updateJobNotes(selectedCoffeeChatJob.id, updatedNotes)
+
+    if (completedChat) {
+      updateJobStatus(selectedCoffeeChatJob.id, 'Interviewing')
+      updateJobAction(selectedCoffeeChatJob.id, 'Send thank-you note', 'Tomorrow')
+    } else {
+      updateJobAction(selectedCoffeeChatJob.id, 'Reschedule coffee chat', 'in 2 days')
+    }
+
+    closeCoffeeChatDecisionDrawer()
   }
 
   return (
@@ -164,7 +275,7 @@ export function OutreachCenterScreen() {
                 <TouchableOpacity
                   key={job.id}
                   style={styles.jobRow}
-                  onPress={() => openOutreachDrawer(job)}
+                  onPress={() => openJobActionDrawer(job)}
                   activeOpacity={0.85}
                   accessibilityLabel={`Open outreach drawer for ${job.role} at ${job.company}`}
                 >
@@ -262,6 +373,28 @@ export function OutreachCenterScreen() {
           </View>
         </View>
       </Modal>
+
+      <ActionDecisionDrawer
+        visible={showResponseDecisionDrawer}
+        title='Did They Respond?'
+        message={`Record the latest response status for ${selectedResponseJob?.company || 'this role'}.`}
+        confirmLabel='Yes, responded'
+        denyLabel='No response yet'
+        onClose={closeResponseDecisionDrawer}
+        onConfirm={() => handleResponseDecision(true)}
+        onDeny={() => handleResponseDecision(false)}
+      />
+
+      <ActionDecisionDrawer
+        visible={showCoffeeChatDecisionDrawer}
+        title='Coffee Chat Completed?'
+        message={`Did you complete the chat with ${selectedCoffeeChatJob?.company || 'this contact'}?`}
+        confirmLabel='Yes, completed'
+        denyLabel='Not yet'
+        onClose={closeCoffeeChatDecisionDrawer}
+        onConfirm={() => handleCoffeeChatDecision(true)}
+        onDeny={() => handleCoffeeChatDecision(false)}
+      />
     </View>
   )
 }

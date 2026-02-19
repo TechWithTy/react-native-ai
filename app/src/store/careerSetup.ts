@@ -52,6 +52,7 @@ const defaultCareerSetupState: CareerSetupState = {
   roleTrack: '',
   seniority: '',
   workingStyle: '',
+  locationPreferences: [],
   targetRole: '',
   desiredSalaryRange: '',
   targetSeniority: '',

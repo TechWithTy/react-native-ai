@@ -39,6 +39,7 @@ describe('JobTrackerScreen — Job Detail Modal', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     mockClipboardSetStringAsync.mockClear()
+    useJobTrackerStore.getState().resetJobTrackerStore()
   })
 
   it('opens modal with job header on card press', () => {
@@ -58,6 +59,53 @@ describe('JobTrackerScreen — Job Detail Modal', () => {
 
     expect(getByText('Draft Outreach Message')).toBeTruthy()
     expect(getAllByText('Follow up email').length).toBeGreaterThanOrEqual(1)
+  })
+
+  it('opens decision drawer for check-response jobs', () => {
+    act(() => {
+      useJobTrackerStore.getState().updateJobAction('3', 'Check response', 'in 2 days')
+    })
+
+    const { getByText, queryByText } = render(<JobTrackerScreen />)
+
+    fireEvent.press(getByText('Design Lead'))
+
+    expect(getByText('Did They Respond?')).toBeTruthy()
+    expect(queryByText('Draft Outreach Message')).toBeNull()
+  })
+
+  it('opens coffee-chat completion drawer instead of outreach draft', () => {
+    const { getAllByText, getByText, queryByText } = render(<JobTrackerScreen />)
+
+    const roleRows = getAllByText('Senior Product Designer')
+    fireEvent.press(roleRows[roleRows.length - 1])
+
+    expect(getByText('Coffee Chat Completed?')).toBeTruthy()
+    expect(queryByText('Draft Outreach Message')).toBeNull()
+  })
+
+  it('opens outreach draft drawer for send-thank-you actions', () => {
+    act(() => {
+      useJobTrackerStore.getState().updateJobAction('3', 'Send Thank You', 'Tomorrow')
+    })
+
+    const { getByText } = render(<JobTrackerScreen />)
+
+    fireEvent.press(getByText('Design Lead'))
+
+    expect(getByText('Draft Outreach Message')).toBeTruthy()
+  })
+
+  it('opens outreach draft drawer for send-thankyou actions', () => {
+    act(() => {
+      useJobTrackerStore.getState().updateJobAction('3', 'Send Thankyou', 'Tomorrow')
+    })
+
+    const { getByText } = render(<JobTrackerScreen />)
+
+    fireEvent.press(getByText('Design Lead'))
+
+    expect(getByText('Draft Outreach Message')).toBeTruthy()
   })
 
   it('shows next action info and notes inside job details modal', () => {
@@ -96,6 +144,19 @@ describe('JobTrackerScreen — Job Detail Modal', () => {
 
     fireEvent.press(getByTestId('tracker-outreach-copy'))
     expect(mockClipboardSetStringAsync).toHaveBeenCalledWith(expect.stringContaining('Quick follow-up'))
+  })
+
+  it('marks outreach task sent, advances next action, and routes to OutreachCenter', () => {
+    const { getByText, getByTestId } = render(<JobTrackerScreen />)
+
+    fireEvent.press(getByText('Staff Product Designer'))
+    fireEvent.press(getByTestId('tracker-outreach-mark-sent'))
+
+    const updatedJob = useJobTrackerStore.getState().thisWeek.find(job => job.id === '2')
+    expect(updatedJob?.nextAction).toBe('Check response')
+    expect(updatedJob?.nextActionDate).toBe('in 2 days')
+    expect(updatedJob?.notes).toContain('[Outreach sent')
+    expect(mockNavigate).toHaveBeenCalledWith('OutreachCenter')
   })
 
   it('shows Submit Application for Target status jobs', () => {
@@ -139,6 +200,7 @@ describe('JobTrackerScreen — Job Detail Modal', () => {
 describe('JobTrackerScreen — Update Status Flow', () => {
   beforeEach(() => {
     jest.clearAllMocks()
+    useJobTrackerStore.getState().resetJobTrackerStore()
   })
 
   it('opens update status view with status options', () => {
@@ -258,6 +320,7 @@ describe('JobTrackerScreen — Update Status Flow', () => {
 describe('JobTrackerScreen — Application Flow', () => {
   beforeEach(() => {
     jest.clearAllMocks()
+    useJobTrackerStore.getState().resetJobTrackerStore()
   })
 
   it('enters application prep view for Target jobs', () => {

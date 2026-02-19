@@ -8,3 +8,16 @@ jest.mock('react-native-reanimated', () => {
 
 jest.mock('@expo/vector-icons')
 
+jest.mock('expo-audio', () => ({
+  RecordingPresets: {
+    HIGH_QUALITY: {},
+  },
+  requestRecordingPermissionsAsync: jest.fn(async () => ({ granted: true })),
+  setAudioModeAsync: jest.fn(async () => undefined),
+  useAudioRecorder: () => ({
+    uri: null,
+    prepareToRecordAsync: jest.fn(async () => undefined),
+    record: jest.fn(),
+    stop: jest.fn(async () => undefined),
+  }),
+}))

@@ -4,7 +4,6 @@ import {
   Linking,
   Modal,
   Pressable,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
@@ -15,6 +14,7 @@ import {
 import { MaterialIcons } from '@expo/vector-icons'
 import { useNavigation } from '@react-navigation/native'
 import * as DocumentPicker from 'expo-document-picker'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { CLTheme } from './theme'
 import {
   CareerDocument,

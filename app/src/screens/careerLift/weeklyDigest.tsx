@@ -19,6 +19,8 @@ import { useUserProfileStore } from '../../store/userProfileStore'
 import { JobEntry, useJobTrackerStore } from '../../store/jobTrackerStore'
 import { NotificationItem, NotificationsPanel } from './components/notificationsPanel'
 import { careerLiftNotifications } from './notificationsData'
+import { ActionDecisionDrawer } from './components/actionDecisionDrawer'
+import { isThankYouAction } from './outreachHelpers'
 
 const { width } = Dimensions.get('window')
 
@@ -29,6 +31,56 @@ type WeeklyActionItem = {
   type: 'action' | 'generic'
   job?: JobEntry
 }
+
+type ActionDecisionPrompt = {
+  action: WeeklyActionItem
+  title: string
+  message: string
+  confirmLabel: string
+  denyLabel: string
+}
+
+type TrackedActionType = 'submit' | 'followup' | 'interview' | 'offer' | 'thankyou'
+const normalizeActionTitle = (title: string) => title.trim().toLowerCase()
+const toPercentLabel = (value: number, total: number) =>
+  total <= 0 ? '0%' : `${Math.round((value / total) * 100)}%`
+const toTaskCountLabel = (count: number) => `${count} ${count === 1 ? 'task' : 'tasks'}`
+
+const getTrackedActionType = (title: string): TrackedActionType | null => {
+  const normalized = normalizeActionTitle(title)
+
+  if (normalized.includes('submit application') || normalized.includes('apply')) {
+    return 'submit'
+  }
+
+  if (isThankYouAction(normalized)) {
+    return 'thankyou'
+  }
+
+  if (
+    normalized.includes('follow') ||
+    normalized.includes('response') ||
+    normalized.includes('reply') ||
+    normalized.includes('check-in') ||
+    normalized.includes('outreach') ||
+    normalized.includes('recruiter') ||
+    normalized.includes('coffee chat')
+  ) {
+    return 'followup'
+  }
+
+  if (normalized.includes('interview') || normalized.includes('screen')) {
+    return 'interview'
+  }
+
+  if (normalized.includes('offer') || normalized.includes('sign')) {
+    return 'offer'
+  }
+
+  return null
+}
+
+const getActionKey = (action: WeeklyActionItem) => `${action.id}:${action.title}`
 
 export function WeeklyDigestScreen() {
   const navigation = useNavigation<any>()
@@ -41,6 +93,8 @@ export function WeeklyDigestScreen() {
   const [showNotifications, setShowNotifications] = React.useState(false)
   const [notifications, setNotifications] = React.useState<NotificationItem[]>(() => [...careerLiftNotifications])
   const [completedActions, setCompletedActions] = React.useState<WeeklyActionItem[]>([])
+  const [decisionPrompt, setDecisionPrompt] = React.useState<ActionDecisionPrompt | null>(null)
+  const previousActionsRef = React.useRef<WeeklyActionItem[]>([])
 
   // Calculate week range
   const weekRange = React.useMemo(() => {
@@ -54,18 +108,65 @@ export function WeeklyDigestScreen() {
     return `${format(monday)} - ${format(sunday)}`
   }, [selectedDate])
 
-  // Derived Metrics
-  const metrics = React.useMemo(() => {
+  const digestStats = React.useMemo(() => {
     const allJobs = [...thisWeek, ...nextUp]
     const applied = allJobs.filter(j => j.status === 'Applied').length
     const interviews = allJobs.filter(j => j.status === 'Interview' || j.status === 'Interviewing').length
     const offers = allJobs.filter(j => j.status === 'Offer Received' || j.status === 'Offer Signed').length
-    
-    // Mocking outreach data for now as we don't track it explicitly yet
-    const outreach = 25 
-    const outreachTarget = 30
 
-    return { applied, interviews, offers, outreach, outreachTarget }
+    let outreachTasks = 0
+    let applicationTasks = 0
+    let interviewTasks = 0
+    let offerTasks = 0
+
+    allJobs.forEach(job => {
+      if (!job.nextAction) return
+      const actionType = getTrackedActionType(job.nextAction)
+      if (actionType === 'followup' || actionType === 'thankyou') {
+        outreachTasks += 1
+        return
+      }
+      if (actionType === 'submit') {
+        applicationTasks += 1
+        return
+      }
+      if (actionType === 'interview') {
+        interviewTasks += 1
+        return
+      }
+      if (actionType === 'offer') {
+        offerTasks += 1
+      }
+    })
+
+    const outreach = outreachTasks
+    const outreachTarget = Math.max(10, outreach + 5)
+
+    const funnelOutreach = Math.max(outreachTasks, applied, interviews, offers)
+    const funnelApplications = Math.max(applicationTasks, applied)
+    const funnelInterviews = Math.max(interviewTasks, interviews)
+    const funnelOffers = Math.max(offerTasks, offers)
+    const funnelBase = Math.max(funnelOutreach, funnelApplications, funnelInterviews, funnelOffers, 1)
+    const offerConversionRate = funnelApplications > 0 ? Math.round((funnelOffers / funnelApplications) * 100) : 0
+
+    return {
+      applied,
+      interviews,
+      offers,
+      outreach,
+      outreachTarget,
+      funnel: {
+        outreach: funnelOutreach,
+        applications: funnelApplications,
+        interviews: funnelInterviews,
+        offers: funnelOffers,
+        outreachPercent: toPercentLabel(funnelOutreach, funnelBase),
+        applicationsPercent: toPercentLabel(funnelApplications, funnelBase),
+        interviewsPercent: toPercentLabel(funnelInterviews, funnelBase),
+        offersPercent: toPercentLabel(funnelOffers, funnelBase),
+        offerConversionRate,
+      },
+    }
   }, [thisWeek, nextUp])
 
   // Get next week's scheduled actions
@@ -89,30 +190,203 @@ export function WeeklyDigestScreen() {
     { id: 'a3', title: 'Portfolio Maintenance', subtitle: 'Update portfolio link on LinkedIn profile.', type: 'generic' },
   ]
 
-  const handleCheckAction = (action: WeeklyActionItem) => {
-    // Add to completed list first
-    setCompletedActions(prev => [...prev, action])
+  React.useEffect(() => {
+    const previousActions = previousActionsRef.current
+    if (previousActions.length === 0) {
+      previousActionsRef.current = nextActions
+      return
+    }
 
-    if (action.type === 'generic') return
-    
+    const currentActionsByJobId = new Map(
+      nextActions.filter(action => action.job).map(action => [action.job!.id, action])
+    )
+
+    const newlyCompletedTrackedActions = previousActions.filter(previousAction => {
+      if (!previousAction.job) return false
+      const previousActionType = getTrackedActionType(previousAction.title)
+      if (!previousActionType) return false
+      const currentAction = currentActionsByJobId.get(previousAction.job.id)
+      if (!currentAction) return true
+      const currentActionType = getTrackedActionType(currentAction.title)
+      if (!currentActionType) return true
+      return normalizeActionTitle(currentAction.title) !== normalizeActionTitle(previousAction.title)
+    })
+
+    if (newlyCompletedTrackedActions.length > 0) {
+      setCompletedActions(existingCompleted => {
+        const existingKeys = new Set(existingCompleted.map(getActionKey))
+        const toAdd = newlyCompletedTrackedActions.filter(action => !existingKeys.has(getActionKey(action)))
+        return toAdd.length > 0 ? [...existingCompleted, ...toAdd] : existingCompleted
+      })
+    }
+
+    previousActionsRef.current = nextActions
+  }, [nextActions])
+
+  const markActionCompleted = (action: WeeklyActionItem) => {
+    setCompletedActions(prev => {
+      const actionKey = getActionKey(action)
+      if (prev.some(item => getActionKey(item) === actionKey)) return prev
+      return [...prev, action]
+    })
+  }
+
+  const unmarkActionCompleted = (action: WeeklyActionItem) => {
+    const actionKey = getActionKey(action)
+    setCompletedActions(prev => prev.filter(item => getActionKey(item) !== actionKey))
+  }
+
+  const buildDecisionPrompt = (action: WeeklyActionItem): ActionDecisionPrompt | null => {
+    if (action.type !== 'action' || !action.job) return null
+
+    const trackedType = getTrackedActionType(action.title)
+    const normalizedTitle = action.title.toLowerCase()
+    const isCoffeeChat = normalizedTitle.includes('coffee chat')
+    if (!trackedType) return null
+
+    if (trackedType === 'submit') {
+      return {
+        action,
+        title: 'Confirm Submission',
+        message: `Did you submit your application for ${action.job.role} at ${action.job.company}?`,
+        confirmLabel: 'Yes, submitted',
+        denyLabel: 'Not yet',
+      }
+    }
+
+    if (trackedType === 'followup') {
+      if (isCoffeeChat) {
+        return {
+          action,
+          title: 'Coffee Chat Completed?',
+          message: `Did you complete the coffee chat for ${action.job.company}?`,
+          confirmLabel: 'Yes, completed',
+          denyLabel: 'Not yet',
+        }
+      }
+      return {
+        action,
+        title: 'Did They Respond?',
+        message: `Record the follow-up result for ${action.job.company}.`,
+        confirmLabel: 'Yes, responded',
+        denyLabel: 'No response yet',
+      }
+    }
+
+    if (trackedType === 'thankyou') {
+      return {
+        action,
+        title: 'Thank-you Sent?',
+        message: `Did you send the thank-you note to ${action.job.company}?`,
+        confirmLabel: 'Yes, sent',
+        denyLabel: 'Not yet',
+      }
+    }
+
+    if (trackedType === 'interview') {
+      return {
+        action,
+        title: 'Interview Outcome',
+        message: `Did ${action.job.company} move you to the next step?`,
+        confirmLabel: 'Yes, next step',
+        denyLabel: 'No, not selected',
+      }
+    }
+
+    return {
+      action,
+      title: 'Offer Decision',
+      message: `Was the offer from ${action.job.company} accepted?`,
+      confirmLabel: 'Accepted',
+      denyLabel: 'Rejected',
+    }
+  }
+
+  const applyActionDecision = (action: WeeklyActionItem, decision: 'confirm' | 'deny') => {
+    if (action.type === 'generic') {
+      if (decision === 'confirm') markActionCompleted(action)
+      return
+    }
+
     if (action.job) {
       const title = action.title.toLowerCase()
       const job = action.job
-      
-      // Delay store update slightly to allow animation if we added one, 
-      // but for now just update state immediately
+
       if (title.includes('submit') || title.includes('apply')) {
-        updateJobStatus(job.id, 'Applied')
-        updateJobAction(job.id, 'Follow up', 'in 3 days')
+        if (decision === 'confirm') {
+          updateJobStatus(job.id, 'Applied')
+          updateJobAction(job.id, 'Follow up', 'in 3 days')
+          markActionCompleted(action)
+        }
+      } else if (
+        title.includes('follow') ||
+        title.includes('response') ||
+        title.includes('reply') ||
+        title.includes('check-in') ||
+        title.includes('outreach') ||
+        title.includes('recruiter') ||
+        title.includes('coffee chat')
+      ) {
+        const isCoffeeChat = title.includes('coffee chat')
+        if (isCoffeeChat) {
+          if (decision === 'confirm') {
+            updateJobStatus(job.id, 'Interviewing')
+            updateJobAction(job.id, 'Send thank-you note', 'Tomorrow')
+          } else {
+            updateJobAction(job.id, 'Reschedule coffee chat', 'in 2 days')
+          }
+        } else if (decision === 'confirm') {
+          updateJobStatus(job.id, 'Interviewing')
+          updateJobAction(job.id, 'Interview Prep', 'This week')
+        } else {
+          updateJobAction(job.id, 'Send second follow-up', 'in 3 days')
+        }
+        markActionCompleted(action)
+      } else if (isThankYouAction(title)) {
+        if (decision === 'confirm') {
+          updateJobAction(job.id, 'Check response', 'in 2 days')
+          markActionCompleted(action)
+        }
       } else if (title.includes('interview')) {
-        updateJobAction(job.id, 'Send Thank You', 'Tomorrow')
+        if (decision === 'confirm') {
+          updateJobStatus(job.id, 'Interviewing')
+          updateJobAction(job.id, 'Send Thank You', 'Tomorrow')
+        } else {
+          updateJobStatus(job.id, 'Rejected')
+          updateJobAction(job.id, 'Keep pipeline warm', 'This week')
+        }
+        markActionCompleted(action)
       } else if (title.includes('offer')) {
-        updateJobStatus(job.id, 'Offer Signed')
-        updateJobAction(job.id, 'Prepare for onboarding', 'Next Week')
+        if (decision === 'confirm') {
+          updateJobStatus(job.id, 'Offer Signed')
+          updateJobAction(job.id, 'Prepare for onboarding', 'Next Week')
+        } else {
+          updateJobStatus(job.id, 'Rejected')
+          updateJobAction(job.id, 'Continue search', 'This week')
+        }
+        markActionCompleted(action)
       } else {
-        updateJobAction(job.id, '', '') 
+        if (decision === 'confirm') {
+          updateJobAction(job.id, '', '')
+          markActionCompleted(action)
+        }
       }
     }
+  }
+
+  const handleCheckAction = (action: WeeklyActionItem) => {
+    if (action.type === 'generic') {
+      markActionCompleted(action)
+      return
+    }
+
+    const prompt = buildDecisionPrompt(action)
+    if (!prompt) {
+      applyActionDecision(action, 'confirm')
+      return
+    }
+
+    setDecisionPrompt(prompt)
   }
 
   const handleNotificationPress = (item: NotificationItem) => {
@@ -140,7 +414,11 @@ export function WeeklyDigestScreen() {
     }
 
     if (
+      isThankYouAction(normalizedTitle) ||
       normalizedTitle.includes('follow') ||
+      normalizedTitle.includes('response') ||
+      normalizedTitle.includes('reply') ||
+      normalizedTitle.includes('check-in') ||
       normalizedTitle.includes('outreach') ||
       normalizedTitle.includes('recruiter') ||
       normalizedTitle.includes('coffee chat')
@@ -241,7 +519,7 @@ export function WeeklyDigestScreen() {
                   <Text style={styles.cardLabel}>Applications</Text>
                 </View>
                 <View>
-                  <Text style={styles.statValue}>{metrics.applied || 12}</Text>
+                  <Text style={styles.statValue}>{digestStats.applied}</Text>
                   <View style={styles.trendRow}>
                     <MaterialIcons name="trending-up" size={14} color="#10b981" />
                     <Text style={styles.trendText}>+20% vs last week</Text>
@@ -263,9 +541,11 @@ export function WeeklyDigestScreen() {
                   <Text style={styles.cardLabel}>Outreach</Text>
                 </View>
                 <View>
-                  <Text style={styles.statValue}>{metrics.outreach}</Text>
+                  <Text style={styles.statValue}>{digestStats.outreach}</Text>
                   <View style={styles.trendRow}>
-                    <Text style={[styles.trendText, { color: CLTheme.text.secondary }]}>Target: {metrics.outreachTarget}</Text>
+                    <Text style={[styles.trendText, { color: CLTheme.text.secondary }]}>
+                      Target: {digestStats.outreachTarget}
+                    </Text>
                   </View>
                 </View>
               </View>
@@ -288,7 +568,7 @@ export function WeeklyDigestScreen() {
                 </View>
                 <Text style={styles.fullCardSubtext}>Scheduled for next week: 1</Text>
               </View>
-              <Text style={styles.fullCardValue}>{metrics.interviews || 2}</Text>
+              <Text style={styles.fullCardValue}>{digestStats.interviews}</Text>
               <View style={styles.trophyIcon}>
                  <MaterialIcons name="emoji-events" size={28} color="#fff" />
               </View>
@@ -301,45 +581,54 @@ export function WeeklyDigestScreen() {
           <View style={styles.funnelHeader}>
             <Text style={styles.sectionHeader}>CONVERSION FUNNEL</Text>
             <View style={styles.topRateBadge}>
-              <Text style={styles.topRateText}>Top 10% Rate</Text>
+              <Text style={styles.topRateText}>Offer Conv {digestStats.funnel.offerConversionRate}%</Text>
             </View>
           </View>
           
           <View style={styles.funnelContainer}>
             <View style={styles.connectorLine} />
+
+            {/* Outreach Stage */}
+            <FunnelStage
+              label="Outreach"
+              count={toTaskCountLabel(digestStats.funnel.outreach)}
+              percent={digestStats.funnel.outreachPercent}
+              color="#a855f7"
+              fillColor="#a855f7"
+              fillPercent={digestStats.funnel.outreachPercent}
+            />
             
             {/* Applications Stage */}
             <FunnelStage 
               label="Applications" 
-              count={`${metrics.applied || 12} total`} 
-              percent="100%" 
+              count={toTaskCountLabel(digestStats.funnel.applications)}
+              percent={digestStats.funnel.applicationsPercent}
               color={CLTheme.text.secondary}
               fillColor={CLTheme.text.secondary}
-              fillPercent="100%"
+              fillPercent={digestStats.funnel.applicationsPercent}
               iconColor="#64748b"
             />
 
             {/* Interviews Stage */}
             <FunnelStage 
               label="Interviews" 
-              count={`${metrics.interviews || 2} total`} 
-              percent="16%" 
+              count={toTaskCountLabel(digestStats.funnel.interviews)}
+              percent={digestStats.funnel.interviewsPercent}
               color={CLTheme.accent}
               fillColor={CLTheme.accent}
-              fillPercent="16%"
+              fillPercent={digestStats.funnel.interviewsPercent}
               isActive
             />
 
             {/* Offers Stage */}
             <FunnelStage 
               label="Offers" 
-              count="Pending" 
-              percent="--" 
+              count={toTaskCountLabel(digestStats.funnel.offers)}
+              percent={digestStats.funnel.offersPercent}
               color="#10b981"
               fillColor="#10b981"
-              fillPercent="0%"
+              fillPercent={digestStats.funnel.offersPercent}
               isLast
-              opacity={0.6}
             />
           </View>
         </View>
@@ -349,7 +638,7 @@ export function WeeklyDigestScreen() {
           <Text style={styles.sectionHeader}>NEXT WEEK'S PLAN</Text>
           <View style={styles.planList}>
             {displayActions
-              .filter(a => !completedActions.some(ca => ca.id === a.id)) // Hide if in completed
+              .filter(a => !completedActions.some(ca => getActionKey(ca) === getActionKey(a)))
               .map(action => (
               <TouchableOpacity
                 key={action.id}
@@ -361,6 +650,7 @@ export function WeeklyDigestScreen() {
                 <TouchableOpacity 
                   style={styles.checkboxWrapper}
                   onPress={() => handleCheckAction(action)}
+                  accessibilityLabel={`Mark action ${action.title} done`}
                 >
                   <View style={styles.checkbox} />
                 </TouchableOpacity>
@@ -380,9 +670,13 @@ export function WeeklyDigestScreen() {
               <View style={styles.planList}>
                 {completedActions.map((action, idx) => (
                   <View key={`${action.id}-completed-${idx}`} style={[styles.planItem, { opacity: 0.6 }]}>
-                    <View style={[styles.checkboxWrapper, { backgroundColor: CLTheme.accent, borderColor: CLTheme.accent }]}>
+                    <TouchableOpacity
+                      style={[styles.checkbox, styles.checkedCheckbox]}
+                      onPress={() => unmarkActionCompleted(action)}
+                      accessibilityLabel={`Uncheck action ${action.title}`}
+                    >
                       <MaterialIcons name="check" size={12} color="#fff" />
-                    </View>
+                    </TouchableOpacity>
                     <View style={styles.planContent}>
                       <Text style={[styles.planTitle, { textDecorationLine: 'line-through', color: CLTheme.text.muted }]}>
                         {action.title}
@@ -446,6 +740,25 @@ export function WeeklyDigestScreen() {
         onPressNotification={handleNotificationPress}
         onClearNotification={handleClearNotification}
         onClearAll={handleClearAllNotifications}
+      />
+
+      <ActionDecisionDrawer
+        visible={Boolean(decisionPrompt)}
+        title={decisionPrompt?.title || ''}
+        message={decisionPrompt?.message || ''}
+        confirmLabel={decisionPrompt?.confirmLabel || 'Confirm'}
+        denyLabel={decisionPrompt?.denyLabel || 'Cancel'}
+        onClose={() => setDecisionPrompt(null)}
+        onConfirm={() => {
+          if (!decisionPrompt) return
+          applyActionDecision(decisionPrompt.action, 'confirm')
+          setDecisionPrompt(null)
+        }}
+        onDeny={() => {
+          if (!decisionPrompt) return
+          applyActionDecision(decisionPrompt.action, 'deny')
+          setDecisionPrompt(null)
+        }}
       />
     </View>
   )
@@ -819,6 +1132,12 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     borderWidth: 2,
     borderColor: 'rgba(13, 108, 242, 0.4)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkedCheckbox: {
+    backgroundColor: CLTheme.accent,
+    borderColor: CLTheme.accent,
   },
   planContent: {
     flex: 1,
