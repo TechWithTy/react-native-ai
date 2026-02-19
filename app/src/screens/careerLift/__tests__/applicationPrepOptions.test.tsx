@@ -54,6 +54,59 @@ describe('ApplicationPrepOptions', () => {
     expect(useJobTrackerStore.getState().nextUp.find(entry => entry.id === '3')?.nextAction).toBe('Follow up')
   })
 
+  it('shows advanced click label and supports single press submit', () => {
+    const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(jest.fn())
+    const onApplied = jest.fn()
+    const job = useJobTrackerStore.getState().nextUp.find(entry => entry.id === '3')!
+    const initialBalance = useCreditsStore.getState().balance
+
+    const { getByText, getByTestId } = render(
+      <ApplicationPrepOptions
+        job={job}
+        showHeader={false}
+        showCancel={false}
+        initialTab='advanced'
+        onApplied={onApplied}
+      />
+    )
+
+    expect(getByText('Click to Approve')).toBeTruthy()
+    fireEvent.press(getByTestId('advanced-apply-submit-button'))
+
+    expect(useCreditsStore.getState().balance).toBe(initialBalance)
+    expect(useJobTrackerStore.getState().nextUp.find(entry => entry.id === '3')?.status).toBe('Applied')
+    expect(onApplied).toHaveBeenCalledTimes(1)
+    expect(alertSpy).toHaveBeenCalledWith(
+      'Application Logged!',
+      expect.stringContaining('marked as Applied.')
+    )
+  })
+
+  it('advanced submit also works on a single press release', () => {
+    const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(jest.fn())
+    const onApplied = jest.fn()
+    const job = useJobTrackerStore.getState().nextUp.find(entry => entry.id === '3')!
+
+    const { getByTestId } = render(
+      <ApplicationPrepOptions
+        job={job}
+        showHeader={false}
+        showCancel={false}
+        initialTab='advanced'
+        onApplied={onApplied}
+      />
+    )
+
+    fireEvent.press(getByTestId('advanced-apply-submit-button'))
+
+    expect(useJobTrackerStore.getState().nextUp.find(entry => entry.id === '3')?.status).toBe('Applied')
+    expect(onApplied).toHaveBeenCalledTimes(1)
+    expect(alertSpy).toHaveBeenCalledWith(
+      'Application Logged!',
+      expect.stringContaining('marked as Applied.')
+    )
+  })
+
   it('quick apply updates next weekly task after marking applied', () => {
     const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(jest.fn())
     const onApplied = jest.fn()

@@ -24,9 +24,9 @@ import {
 import { CLTheme } from './theme'
 import { useNavigation } from '@react-navigation/native'
 import { NotificationsPanel } from './components/notificationsPanel'
-import { careerLiftNotifications } from './notificationsData'
 import { LocationAutocomplete } from './components/locationAutocomplete'
 import { useUserProfileStore } from '../../store/userProfileStore'
+import { useNotificationsPanelState } from './components/useNotificationsPanelState'
 
 const { height } = Dimensions.get('window')
 const screenFilters: RecommendedScreenFilter[] = ['All Matches', 'Remote', 'Full-time', 'Product Design']
@@ -66,7 +66,17 @@ export function RecommendedJobsScreen() {
   const [searchQuery, setSearchQuery] = useState('')
   const [modalVisible, setModalVisible] = useState(false)
   const [filtersModalVisible, setFiltersModalVisible] = useState(false)
-  const [showNotifications, setShowNotifications] = useState(false)
+  const {
+    showNotifications,
+    notifications,
+    openNotifications,
+    closeNotifications,
+    handleNotificationPress,
+    handleClearNotification,
+    handleClearAllNotifications,
+  } = useNotificationsPanelState({
+    onNavigate: (screen, params) => navigation.navigate(screen, params),
+  })
   const [sortBy, setSortBy] = useState<RecommendedSortOption>('matchDesc')
   const [remoteOnly, setRemoteOnly] = useState(false)
   const [fullTimeOnly, setFullTimeOnly] = useState(false)
@@ -322,11 +332,11 @@ export function RecommendedJobsScreen() {
           <TouchableOpacity
             style={styles.notificationBtn}
             activeOpacity={0.85}
-            onPress={() => setShowNotifications(true)}
+            onPress={openNotifications}
             accessibilityLabel='Open notifications'
           >
             <MaterialIcons name='notifications-none' size={22} color={CLTheme.text.primary} />
-            <View style={styles.notificationDot} />
+            {notifications.length > 0 ? <View style={styles.notificationDot} /> : null}
           </TouchableOpacity>
         </View>
 
@@ -602,8 +612,11 @@ export function RecommendedJobsScreen() {
 
       <NotificationsPanel
         visible={showNotifications}
-        onClose={() => setShowNotifications(false)}
-        notifications={careerLiftNotifications}
+        onClose={closeNotifications}
+        notifications={notifications}
+        onPressNotification={handleNotificationPress}
+        onClearNotification={handleClearNotification}
+        onClearAll={handleClearAllNotifications}
       />
     </View>
   )

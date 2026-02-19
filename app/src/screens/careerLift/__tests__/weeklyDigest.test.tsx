@@ -221,4 +221,20 @@ describe('WeeklyDigestScreen', () => {
     fireEvent.press(getByLabelText('Uncheck action Boost Outreach Volume'))
     expect(getByLabelText('Open action Boost Outreach Volume')).toBeTruthy()
   })
+
+  it('restores tracked submit action when unchecked', () => {
+    const { getByLabelText, getByText, queryByLabelText } = render(<WeeklyDigestScreen />)
+
+    fireEvent.press(getByLabelText('Mark action Submit Application done'))
+    fireEvent.press(getByText('Yes, submitted'))
+
+    expect(queryByLabelText('Open action Submit Application')).toBeNull()
+
+    fireEvent.press(getByLabelText('Uncheck action Submit Application'))
+    expect(getByLabelText('Open action Submit Application')).toBeTruthy()
+
+    const restored = useJobTrackerStore.getState().nextUp.find(job => job.id === '3')
+    expect(restored?.status).toBe('Target')
+    expect(restored?.nextAction).toBe('Submit Application')
+  })
 })

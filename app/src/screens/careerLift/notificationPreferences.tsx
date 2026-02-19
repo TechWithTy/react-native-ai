@@ -16,6 +16,7 @@ import {
   useUserProfileStore,
 } from '../../store/userProfileStore'
 import { CLTheme } from './theme'
+import { requestPushNotificationsPermission } from '../../utils/pushNotificationsPermission'
 
 type NotificationSetting = {
   key: NotificationPreferenceKey
@@ -96,13 +97,22 @@ export function NotificationsPreferencesScreen() {
     setNotificationChannel,
   } = useUserProfileStore()
 
-  const handleToggleChannel = (
+  const handleToggleChannel = async (
     setting: NotificationSetting,
     channel: NotificationChannel,
     value: boolean
   ) => {
     if (setting.lockEmail && channel === 'email') return
     if (setting.disableSms && channel === 'sms') return
+
+    if (channel === 'push' && value) {
+      const status = await requestPushNotificationsPermission('settings')
+      if (status !== 'granted') {
+        setNotificationChannel(setting.key, channel, false)
+        return
+      }
+    }
+
     setNotificationChannel(setting.key, channel, value)
   }
 

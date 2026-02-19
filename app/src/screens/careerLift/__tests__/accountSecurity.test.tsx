@@ -18,6 +18,7 @@ const mockHasHardwareAsync = jest.fn()
 const mockIsEnrolledAsync = jest.fn()
 const mockSupportedAuthenticationTypesAsync = jest.fn()
 const mockAuthenticateAsync = jest.fn()
+const mockRequestPushNotificationsPermission = jest.fn()
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
@@ -74,6 +75,10 @@ jest.mock('country-state-city', () => ({
   },
 }))
 
+jest.mock('../../../utils/pushNotificationsPermission', () => ({
+  requestPushNotificationsPermission: (...args: unknown[]) => mockRequestPushNotificationsPermission(...args),
+}))
+
 jest.mock('../subscriptionModal', () => {
   const { View } = require('react-native')
   return {
@@ -93,6 +98,7 @@ describe('Account and security flow', () => {
     mockIsEnrolledAsync.mockResolvedValue(true)
     mockSupportedAuthenticationTypesAsync.mockResolvedValue([2])
     mockAuthenticateAsync.mockResolvedValue({ success: true })
+    mockRequestPushNotificationsPermission.mockResolvedValue('granted')
   })
 
   it('opens AccountSecurity from settings profile privacy section', () => {
@@ -148,6 +154,31 @@ describe('Account and security flow', () => {
 
     fireEvent(getByTestId('pref-newScanReady-push-toggle'), 'valueChange', false)
     expect(useUserProfileStore.getState().notificationPreferences.newScanReady.push).toBe(false)
+  })
+
+  it('requests OS permission when enabling push channel in notification settings', async () => {
+    useUserProfileStore.getState().setNotificationChannel('newScanReady', 'push', false)
+    const { getByTestId } = render(<NotificationsPreferencesScreen />)
+
+    fireEvent(getByTestId('pref-newScanReady-push-toggle'), 'valueChange', true)
+
+    await waitFor(() => {
+      expect(mockRequestPushNotificationsPermission).toHaveBeenCalledWith('settings')
+      expect(useUserProfileStore.getState().notificationPreferences.newScanReady.push).toBe(true)
+    })
+  })
+
+  it('keeps push channel off if OS permission is denied in notification settings', async () => {
+    mockRequestPushNotificationsPermission.mockResolvedValueOnce('denied')
+    useUserProfileStore.getState().setNotificationChannel('newScanReady', 'push', false)
+    const { getByTestId } = render(<NotificationsPreferencesScreen />)
+
+    fireEvent(getByTestId('pref-newScanReady-push-toggle'), 'valueChange', true)
+
+    await waitFor(() => {
+      expect(mockRequestPushNotificationsPermission).toHaveBeenCalledWith('settings')
+      expect(useUserProfileStore.getState().notificationPreferences.newScanReady.push).toBe(false)
+    })
   })
 
   it('navigates to AccountSecurity when tapping Manage phone number', () => {

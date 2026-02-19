@@ -44,6 +44,24 @@ const FALLBACK_ACTIONS: WeeklyActionItem[] = [
 const normalizeActionTitle = (title: string) => title.trim().toLowerCase()
 const getActionKey = (action: WeeklyActionItem) => `${action.id}:${action.title}`
 
+type ActionRollbackSnapshot = {
+  jobId: string
+  status: JobEntry['status']
+  nextAction: string
+  nextActionDate: string
+}
+
+const buildRollbackSnapshot = (action: WeeklyActionItem): ActionRollbackSnapshot | null => {
+  if (action.type !== 'action' || !action.job) return null
+
+  return {
+    jobId: action.job.id,
+    status: action.job.status,
+    nextAction: action.job.nextAction || action.title,
+    nextActionDate: action.job.nextActionDate || '',
+  }
+}
+
 export const getTrackedActionType = (title: string): TrackedActionType | null => {
   const normalized = normalizeActionTitle(title)
 
@@ -204,6 +222,8 @@ export function useTaskChecklistFlow(options: UseTaskChecklistFlowOptions = {}) 
   const [completedActions, setCompletedActions] = React.useState<WeeklyActionItem[]>([])
   const [decisionPrompt, setDecisionPrompt] = React.useState<ActionDecisionPrompt | null>(null)
   const previousActionsRef = React.useRef<WeeklyActionItem[]>([])
+  const rollbackSnapshotsRef = React.useRef<Record<string, ActionRollbackSnapshot>>({})
+  const suppressAutoCompleteRef = React.useRef(false)
 
   const nextActions = React.useMemo(() => {
     return nextUp
@@ -224,6 +244,12 @@ export function useTaskChecklistFlow(options: UseTaskChecklistFlowOptions = {}) 
   }, [nextActions, includeFallback])
 
   React.useEffect(() => {
+    if (suppressAutoCompleteRef.current) {
+      previousActionsRef.current = nextActions
+      suppressAutoCompleteRef.current = false
+      return
+    }
+
     const previousActions = previousActionsRef.current
     if (previousActions.length === 0) {
       previousActionsRef.current = nextActions
@@ -246,6 +272,14 @@ export function useTaskChecklistFlow(options: UseTaskChecklistFlowOptions = {}) 
     })
 
     if (newlyCompletedTrackedActions.length > 0) {
+      newlyCompletedTrackedActions.forEach(action => {
+        const actionKey = getActionKey(action)
+        if (rollbackSnapshotsRef.current[actionKey]) return
+        const snapshot = buildRollbackSnapshot(action)
+        if (!snapshot) return
+        rollbackSnapshotsRef.current[actionKey] = snapshot
+      })
+
       setCompletedActions(existingCompleted => {
         const existingKeys = new Set(existingCompleted.map(getActionKey))
         const toAdd = newlyCompletedTrackedActions.filter(action => !existingKeys.has(getActionKey(action)))
@@ -256,9 +290,12 @@ export function useTaskChecklistFlow(options: UseTaskChecklistFlowOptions = {}) 
     previousActionsRef.current = nextActions
   }, [nextActions])
 
-  const markActionCompleted = React.useCallback((action: WeeklyActionItem) => {
+  const markActionCompleted = React.useCallback((action: WeeklyActionItem, rollbackSnapshot?: ActionRollbackSnapshot) => {
     setCompletedActions(prev => {
       const actionKey = getActionKey(action)
+      if (rollbackSnapshot && !rollbackSnapshotsRef.current[actionKey]) {
+        rollbackSnapshotsRef.current[actionKey] = rollbackSnapshot
+      }
       if (prev.some(item => getActionKey(item) === actionKey)) return prev
       return [...prev, action]
     })
@@ -267,7 +304,17 @@ export function useTaskChecklistFlow(options: UseTaskChecklistFlowOptions = {}) 
   const unmarkActionCompleted = React.useCallback((action: WeeklyActionItem) => {
     const actionKey = getActionKey(action)
     setCompletedActions(prev => prev.filter(item => getActionKey(item) !== actionKey))
-  }, [])
+
+    if (action.type !== 'action') return
+
+    const snapshot = rollbackSnapshotsRef.current[actionKey] ?? buildRollbackSnapshot(action)
+    if (!snapshot) return
+
+    suppressAutoCompleteRef.current = true
+    updateJobStatus(snapshot.jobId, snapshot.status)
+    updateJobAction(snapshot.jobId, snapshot.nextAction, snapshot.nextActionDate)
+    delete rollbackSnapshotsRef.current[actionKey]
+  }, [updateJobAction, updateJobStatus])
 
   const applyActionDecision = React.useCallback(
     (action: WeeklyActionItem, decision: 'confirm' | 'deny') => {
@@ -280,12 +327,13 @@ export function useTaskChecklistFlow(options: UseTaskChecklistFlowOptions = {}) 
 
       const title = action.title.toLowerCase()
       const job = action.job
+      const rollbackSnapshot = buildRollbackSnapshot(action)
 
       if (title.includes('submit') || title.includes('apply')) {
         if (decision === 'confirm') {
           updateJobStatus(job.id, 'Applied')
           updateJobAction(job.id, 'Follow up', 'in 3 days')
-          markActionCompleted(action)
+          markActionCompleted(action, rollbackSnapshot ?? undefined)
         }
         return
       }
@@ -313,14 +361,14 @@ export function useTaskChecklistFlow(options: UseTaskChecklistFlowOptions = {}) 
         } else {
           updateJobAction(job.id, 'Send second follow-up', 'in 3 days')
         }
-        markActionCompleted(action)
+        markActionCompleted(action, rollbackSnapshot ?? undefined)
         return
       }
 
       if (isThankYouAction(title)) {
         if (decision === 'confirm') {
           updateJobAction(job.id, 'Check response', 'in 2 days')
-          markActionCompleted(action)
+          markActionCompleted(action, rollbackSnapshot ?? undefined)
         }
         return
       }
@@ -333,7 +381,7 @@ export function useTaskChecklistFlow(options: UseTaskChecklistFlowOptions = {}) 
           updateJobStatus(job.id, 'Rejected')
           updateJobAction(job.id, 'Keep pipeline warm', 'This week')
         }
-        markActionCompleted(action)
+        markActionCompleted(action, rollbackSnapshot ?? undefined)
         return
       }
 
@@ -345,13 +393,13 @@ export function useTaskChecklistFlow(options: UseTaskChecklistFlowOptions = {}) 
           updateJobStatus(job.id, 'Rejected')
           updateJobAction(job.id, 'Continue search', 'This week')
         }
-        markActionCompleted(action)
+        markActionCompleted(action, rollbackSnapshot ?? undefined)
         return
       }
 
       if (decision === 'confirm') {
         updateJobAction(job.id, '', '')
-        markActionCompleted(action)
+        markActionCompleted(action, rollbackSnapshot ?? undefined)
       }
     },
     [markActionCompleted, updateJobAction, updateJobStatus]

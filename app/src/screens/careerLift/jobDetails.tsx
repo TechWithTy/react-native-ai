@@ -240,7 +240,7 @@ function renderBulletItems(items: string[]) {
 
 export function JobDetailsScreen() {
   const navigation = useNavigation<any>()
-  const { savedJobIds, toggleSaveJob, thisWeek, nextUp, updateJobStatus, addJob } = useJobTrackerStore()
+  const { savedJobIds, toggleSaveJob, thisWeek, nextUp, updateJobStatus, updateJobAction, addJob } = useJobTrackerStore()
   const { balance: creditBalance, canAfford, spendCredits } = useCreditsStore()
   const route = useRoute()
   const params = route.params as JobDetailsRouteParams | undefined
@@ -270,6 +270,22 @@ export function JobDetailsScreen() {
     Alert.alert('Copied', 'Answer copied to clipboard')
   }
 
+  const markJobAppliedAndQueueNextTask = () => {
+    const existsInTracker = [...thisWeek, ...nextUp].some(entry => entry.id === job.id)
+    if (existsInTracker) {
+      updateJobStatus(job.id, 'Applied')
+      updateJobAction(job.id, 'Follow up', 'in 3 days')
+      return
+    }
+
+    addJob({
+      ...job,
+      status: 'Applied',
+      nextAction: 'Follow up',
+      nextActionDate: 'in 3 days',
+    })
+  }
+
   const handleHoldStart = () => {
     Animated.timing(fillAnim, {
       toValue: 1,
@@ -288,17 +304,7 @@ export function JobDetailsScreen() {
         return
       }
 
-      const existsInTracker = [...thisWeek, ...nextUp].some(entry => entry.id === job.id)
-      if (existsInTracker) {
-        updateJobStatus(job.id, 'Applied')
-      } else {
-        addJob({
-          ...job,
-          status: 'Applied',
-          nextAction: 'Follow up email',
-          nextActionDate: 'Due in 2 days',
-        })
-      }
+      markJobAppliedAndQueueNextTask()
 
       Alert.alert('Application Submitted', 'Your application package was submitted with AI.')
       closeApplyDrawer()
@@ -311,6 +317,16 @@ export function JobDetailsScreen() {
       duration: 300,
       useNativeDriver: false,
     }).start()
+  }
+
+  const handleAdvancedSubmit = () => {
+    markJobAppliedAndQueueNextTask()
+    Alert.alert('Application Logged!', `${job.role} at ${job.company} marked as Applied.`)
+    closeApplyDrawer()
+  }
+
+  const handleAdvancedPress = () => {
+    handleAdvancedSubmit()
   }
 
   const fillWidth = fillAnim.interpolate({
@@ -536,23 +552,6 @@ export function JobDetailsScreen() {
                       </View>
                       <Text style={styles.creditEstimate}>Est. cost: ~{applyCost} credits</Text>
                     </View>
-
-                    <Text style={styles.applyHoldLabel}>Hold to Apply with AI</Text>
-                    <Pressable
-                      onPressIn={canAffordApply ? handleHoldStart : undefined}
-                      onPressOut={handleHoldEnd}
-                      style={[styles.holdBtnContainer, !canAffordApply && { opacity: 0.4 }]}
-                    >
-                      <Animated.View style={[styles.holdFill, { width: fillWidth }]} />
-                      <View style={styles.holdContent}>
-                        <Feather name='send' size={18} color='#fff' style={{ marginRight: 8 }} />
-                        <Text style={styles.holdText}>Applying...</Text>
-                      </View>
-                      <View style={styles.holdLabelOverlay}>
-                        <Text style={styles.holdText}>Hold to Apply</Text>
-                      </View>
-                    </Pressable>
-                    {!canAffordApply ? <Text style={styles.creditWarning}>Not enough credits</Text> : null}
                   </View>
                 </>
               ) : (
@@ -674,7 +673,7 @@ export function JobDetailsScreen() {
                       <Feather name='zap' size={14} color={creditColor} />
                       <Text style={styles.creditBalanceSmall}>{creditBalance} credits</Text>
                     </View>
-                    <Text style={styles.creditEstimate}>Est. cost: ~{applyCost} credits</Text>
+                    <Text style={styles.creditEstimate}>No AI credit charge for advanced submit</Text>
                   </View>
 
                   <View style={styles.advFooterHint}>
@@ -691,10 +690,14 @@ export function JobDetailsScreen() {
 
             {/* Sticky CTA always visible */}
             <View style={styles.drawerFooter}>
+              <Text style={styles.applyHoldLabel}>
+                {applyTab === 'advanced' ? 'Click to Approve' : 'Hold to Apply with AI'}
+              </Text>
               <Pressable
-                onPressIn={canAffordApply ? handleHoldStart : undefined}
-                onPressOut={handleHoldEnd}
-                style={[styles.holdBtnContainer, !canAffordApply && { opacity: 0.4 }]}
+                onPressIn={applyTab === 'simple' && canAffordApply ? handleHoldStart : undefined}
+                onPressOut={applyTab === 'simple' ? handleHoldEnd : undefined}
+                onPress={applyTab === 'advanced' ? handleAdvancedPress : undefined}
+                style={[styles.holdBtnContainer, applyTab === 'simple' && !canAffordApply && { opacity: 0.4 }]}
               >
                 <Animated.View style={[styles.holdFill, { width: fillWidth }]} />
                 <View style={styles.holdContent}>
@@ -705,7 +708,7 @@ export function JobDetailsScreen() {
                   <Text style={styles.holdText}>{applyTab === 'advanced' ? 'Approve & Log Submission' : 'Hold to Apply'}</Text>
                 </View>
               </Pressable>
-              {!canAffordApply ? <Text style={styles.creditWarning}>Not enough credits</Text> : null}
+              {applyTab === 'simple' && !canAffordApply ? <Text style={styles.creditWarning}>Not enough credits</Text> : null}
             </View>
           </Pressable>
         </Pressable>

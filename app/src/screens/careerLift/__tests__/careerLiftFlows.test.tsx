@@ -10,6 +10,7 @@ import { useUserProfileStore } from '../../../store/userProfileStore'
 const mockRequestForegroundPermissionsAsync = jest.fn()
 const mockGetCurrentPositionAsync = jest.fn()
 const mockReverseGeocodeAsync = jest.fn()
+const mockRequestPushNotificationsPermission = jest.fn()
 
 jest.mock('expo-location', () => ({
   Accuracy: {
@@ -30,6 +31,10 @@ jest.mock('country-state-city', () => ({
   },
 }))
 
+jest.mock('../../../utils/pushNotificationsPermission', () => ({
+  requestPushNotificationsPermission: (...args: unknown[]) => mockRequestPushNotificationsPermission(...args),
+}))
+
 describe('CareerLift flows', () => {
   const navigation = {
     navigate: jest.fn(),
@@ -38,6 +43,7 @@ describe('CareerLift flows', () => {
 
   beforeEach(() => {
     jest.clearAllMocks()
+    mockRequestPushNotificationsPermission.mockResolvedValue('granted')
     act(() => {
       useCareerSetupStore.getState().resetCareerSetup()
       useUserProfileStore.getState().resetProfile()
@@ -85,6 +91,21 @@ describe('CareerLift flows', () => {
     
     fireEvent.press(getByText('Authorize LinkedIn'))
     fireEvent.press(getByText('Use Imported Profile'))
+    expect(mockRequestPushNotificationsPermission).toHaveBeenCalledWith('onboarding')
+    expect(navigation.navigate).toHaveBeenCalledWith('MainTabs')
+  })
+
+  it('prompts push permission when completing onboarding with an uploaded resume', () => {
+    act(() => {
+      useCareerSetupStore.getState().setCareerSetup({
+        sourceResumeName: 'My_Resume.pdf',
+      })
+    })
+
+    const { getByText } = render(<ResumeIngestionScreen navigation={navigation} />)
+    fireEvent.press(getByText('Complete Setup'))
+
+    expect(mockRequestPushNotificationsPermission).toHaveBeenCalledWith('onboarding')
     expect(navigation.navigate).toHaveBeenCalledWith('MainTabs')
   })
 

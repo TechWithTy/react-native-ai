@@ -365,8 +365,8 @@ describe('JobTrackerScreen — Application Flow', () => {
     expect(getByText('UX Engineer Specialist')).toBeTruthy()
   })
 
-  it('cancel exits application prep view', () => {
-    const { getByText, getAllByText, queryByText } = render(
+  it('header close exits application prep view', () => {
+    const { getByText, getAllByText, getAllByTestId, queryByText } = render(
       <JobTrackerScreen />
     )
 
@@ -376,9 +376,30 @@ describe('JobTrackerScreen — Application Flow', () => {
 
     expect(getByText('Prepare Application')).toBeTruthy()
 
-    fireEvent.press(getByText('Cancel'))
+    const closeIcons = getAllByTestId('icon-mi-close')
+    fireEvent.press(closeIcons[closeIcons.length - 1])
 
     expect(queryByText('Prepare Application')).toBeNull()
     expect(getByText('Job Details')).toBeTruthy()
+  })
+
+  it('advanced submit in tracker drawer supports single click logging', () => {
+    const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(jest.fn())
+    const { getByText, getAllByText } = render(<JobTrackerScreen />)
+
+    fireEvent.press(getByText('Design Lead'))
+    const submitBtns = getAllByText('Submit Application')
+    fireEvent.press(submitBtns[submitBtns.length - 1])
+
+    fireEvent.press(getByText('Advanced'))
+    fireEvent.press(getByText('Approve & Log Submission'))
+
+    const updated = useJobTrackerStore.getState().nextUp.find(entry => entry.id === '3')
+    expect(updated?.status).toBe('Applied')
+    expect(updated?.nextAction).toBe('Follow up')
+    expect(alertSpy).toHaveBeenCalledWith(
+      'Application Logged!',
+      expect.stringContaining('marked as Applied.')
+    )
   })
 })

@@ -313,12 +313,43 @@ export const useJobTrackerStore = create<JobTrackerState>((set) => ({
       recommendedJobs: updateList(state.recommendedJobs)
     }
   }),
-  addJob: (job) => set((state) => ({
-    thisWeek: [job, ...state.thisWeek],
-    savedJobIds:
-      job.status === 'Target'
-        ? Array.from(new Set([...state.savedJobIds, job.id]))
-        : state.savedJobIds,
-  })),
+  addJob: (job) =>
+    set((state) => {
+      const existsInThisWeek = state.thisWeek.some(entry => entry.id === job.id)
+      const existsInNextUp = state.nextUp.some(entry => entry.id === job.id)
+      const existsInRecommended = state.recommendedJobs.some(entry => entry.id === job.id)
+
+      const nextThisWeek = existsInThisWeek
+        ? state.thisWeek.map(entry => (entry.id === job.id ? { ...entry, ...job } : entry))
+        : [job, ...state.thisWeek]
+
+      // Prevent duplicate records for the same job across This Week and Next Up once imported/applied.
+      const nextUp = existsInNextUp ? state.nextUp.filter(entry => entry.id !== job.id) : state.nextUp
+
+      const nextRecommendedJobs = existsInRecommended
+        ? state.recommendedJobs.map(entry =>
+            entry.id === job.id
+              ? {
+                  ...entry,
+                  ...job,
+                  savedFromRecommended:
+                    job.status === 'Target' ? (job.savedFromRecommended ?? entry.savedFromRecommended) : false,
+                }
+              : entry
+          )
+        : state.recommendedJobs
+
+      const savedJobIds =
+        job.status === 'Target'
+          ? Array.from(new Set([...state.savedJobIds, job.id]))
+          : state.savedJobIds.filter(savedId => savedId !== job.id)
+
+      return {
+        thisWeek: nextThisWeek,
+        nextUp,
+        recommendedJobs: nextRecommendedJobs,
+        savedJobIds,
+      }
+    }),
   resetJobTrackerStore: () => set(getDefaultState()),
 }))

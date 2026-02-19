@@ -207,6 +207,18 @@ export function ApplicationPrepOptions({
     )
   }
 
+  const handleAdvancedSubmit = () => {
+    markJobAppliedAndQueueNextTask()
+    completeApply(
+      'Application Logged!',
+      `${job?.role || 'Job'} at ${job?.company || 'Company'} marked as Applied.`
+    )
+  }
+
+  const handleAdvancedPress = () => {
+    handleAdvancedSubmit()
+  }
+
   const renderDocumentSelector = (
     type: 'resume' | 'coverLetter',
     selected: DocumentOption,
@@ -461,24 +473,20 @@ export function ApplicationPrepOptions({
               <MaterialIcons name='info-outline' size={14} color='#f59e0b' />
               <Text style={styles.advancedHintText}>Remember to attach the PDF manually!</Text>
             </View>
-            <TouchableOpacity
+            <Text style={styles.advancedTapLabel}>Click to Approve</Text>
+            <Pressable
+              testID='advanced-apply-submit-button'
               style={styles.advCTABtn}
-              onPress={() => {
-                markJobAppliedAndQueueNextTask()
-                completeApply(
-                  'Application Logged!',
-                  `${job?.role || 'Job'} at ${job?.company || 'Company'} marked as Applied.`
-                )
-              }}
+              onPress={handleAdvancedPress}
             >
               <MaterialIcons name='check-circle' size={20} color='#fff' />
               <Text style={styles.advCTAText}>Approve & Log Submission</Text>
-            </TouchableOpacity>
+            </Pressable>
           </View>
         </View>
       )}
 
-      {showCancel && onClose ? (
+      {showCancel && onClose && applyTab !== 'simple' ? (
         <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
           <Text style={styles.cancelText}>Cancel</Text>
         </TouchableOpacity>
@@ -864,6 +872,15 @@ const styles = StyleSheet.create({
   advancedHintText: {
     fontSize: 12,
     color: '#94a3b8',
+  },
+  advancedTapLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#10b981',
+    textAlign: 'center',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 8,
   },
   advCTABtn: {
     flexDirection: 'row',

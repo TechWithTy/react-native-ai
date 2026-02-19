@@ -12,6 +12,7 @@ import Feather from '@expo/vector-icons/Feather'
 import MaterialIcons from '@expo/vector-icons/MaterialIcons'
 import * as DocumentPicker from 'expo-document-picker'
 import { useCareerSetupStore } from '../../store/careerSetup'
+import { requestPushNotificationsPermission } from '../../utils/pushNotificationsPermission'
 
 export function ResumeIngestionScreen({ navigation }: any) {
   const selectedFile = useCareerSetupStore(state => state.sourceResumeName)
@@ -43,6 +44,10 @@ export function ResumeIngestionScreen({ navigation }: any) {
     setLinkedInAuthorized(false)
     setShowLinkedInAuth(true)
   }
+
+  const promptPushPermissions = useCallback(() => {
+    void requestPushNotificationsPermission('onboarding')
+  }, [])
 
   const authorizeLinkedIn = () => {
     setLinkedInAuthorized(true)
@@ -112,7 +117,9 @@ export function ResumeIngestionScreen({ navigation }: any) {
       <View style={styles.footer}>
         <TouchableOpacity 
           onPress={() => {
-            if (canProceed) navigation.navigate('MainTabs')
+            if (!canProceed) return
+            promptPushPermissions()
+            navigation.navigate('MainTabs')
           }} 
           style={[
             styles.cta,
@@ -179,6 +186,7 @@ export function ResumeIngestionScreen({ navigation }: any) {
                 <TouchableOpacity
                   onPress={() => {
                     setShowLinkedInAuth(false)
+                    promptPushPermissions()
                     navigation.navigate('MainTabs')
                   }}
                   style={styles.modalPrimary}

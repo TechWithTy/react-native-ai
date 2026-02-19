@@ -14,19 +14,18 @@ import {
 } from 'react-native'
 import { MaterialIcons } from '@expo/vector-icons'
 import * as DocumentPicker from 'expo-document-picker'
-import { useDashboardStore } from '../../store/dashboardStore'
 import { JobEntry, useJobTrackerStore } from '../../store/jobTrackerStore'
 import { CLTheme } from './theme'
 import { useUserProfileStore } from '../../store/userProfileStore'
-import { NotificationItem, NotificationsPanel } from './components/notificationsPanel'
+import { NotificationsPanel } from './components/notificationsPanel'
 import { ModalContainer } from './components/modalContainer'
 import { useCareerSetupStore } from '../../store/careerSetup'
 import { useCreditsStore } from '../../store/creditsStore'
-import { careerLiftNotifications } from './notificationsData'
 import { CustomPrepEntryModal } from './components/customPrepEntryModal'
 import { ActionDecisionDrawer } from './components/actionDecisionDrawer'
 import { TaskChecklistList } from './components/taskChecklistList'
 import { useTaskChecklistFlow } from './components/useTaskChecklistFlow'
+import { useNotificationsPanelState } from './components/useNotificationsPanelState'
 
 type DashboardProps = {
   navigation?: {
@@ -149,14 +148,14 @@ const getDashboardGreeting = (date: Date) => {
 }
 
 export function DashboardScreen({ navigation, route }: DashboardProps = {}) {
-  const { pipeline, weeklyPlan } = useDashboardStore()
-  const { recommendedScanPreset, addJob } = useJobTrackerStore()
+  const recommendedScanPreset = useJobTrackerStore(state => state.recommendedScanPreset)
+  const addJob = useJobTrackerStore(state => state.addJob)
+  const thisWeek = useJobTrackerStore(state => state.thisWeek)
+  const nextUp = useJobTrackerStore(state => state.nextUp)
   const { name, avatarUrl } = useUserProfileStore()
   const { sourceResumeName, baselineResumeName, targetRole, locationPreference, setCareerSetup } = useCareerSetupStore()
   const spendScanCredit = useCreditsStore(state => state.spendScanCredit)
   const scanCreditsRemaining = useCreditsStore(state => state.scanCreditsRemaining)
-  const [showNotifications, setShowNotifications] = useState(false)
-  const [notifications, setNotifications] = useState<NotificationItem[]>(() => [...careerLiftNotifications])
   const [showQuickActionsModal, setShowQuickActionsModal] = useState(false)
   const [showResumeScanModal, setShowResumeScanModal] = useState(false)
   const [showCustomPrepModal, setShowCustomPrepModal] = useState(false)
@@ -180,10 +179,23 @@ export function DashboardScreen({ navigation, route }: DashboardProps = {}) {
   const ringAnimPrimary = useRef(new Animated.Value(0)).current
   const ringAnimSecondary = useRef(new Animated.Value(0)).current
 
+  const trackedJobs = useMemo(() => [...thisWeek, ...nextUp], [thisWeek, nextUp])
   const firstName = name.split(' ')[0]
   const startScanFromSavedFilters = route?.params?.startScanFromSavedFilters === true
   const isTestEnv = typeof process !== 'undefined' && Boolean(process.env?.JEST_WORKER_ID)
-  const appliedCount = pipeline.find(item => item.label === 'Applied')?.value ?? 0
+  const appliedCount = useMemo(
+    () => trackedJobs.filter(job => job.status === 'Applied').length,
+    [trackedJobs]
+  )
+  const weeklyTarget = 10
+  const weeklyCurrent = appliedCount
+  const weeklyProgressRatio = weeklyTarget > 0 ? Math.min(weeklyCurrent / weeklyTarget, 1) : 0
+  const weeklyMotivation = useMemo(() => {
+    if (weeklyCurrent >= weeklyTarget) return 'Great work. You hit this week\'s target.'
+    if (weeklyCurrent >= Math.ceil(weeklyTarget / 2)) return 'Halfway there! Keep the momentum going.'
+    if (weeklyCurrent > 0) return 'Momentum is building. Keep applying.'
+    return 'Kick off your week with your first application.'
+  }, [weeklyCurrent, weeklyTarget])
   const storedResumes = useMemo(
     () => Array.from(new Set([sourceResumeName, baselineResumeName].filter((item): item is string => Boolean(item)))),
     [sourceResumeName, baselineResumeName]
@@ -271,6 +283,18 @@ export function DashboardScreen({ navigation, route }: DashboardProps = {}) {
   }
 
   const {
+    showNotifications,
+    notifications,
+    openNotifications,
+    closeNotifications,
+    handleNotificationPress,
+    handleClearNotification,
+    handleClearAllNotifications,
+  } = useNotificationsPanelState({
+    onNavigate: handleNavigate,
+  })
+
+  const {
     activeActions,
     completedActions,
     decisionPrompt,
@@ -284,20 +308,6 @@ export function DashboardScreen({ navigation, route }: DashboardProps = {}) {
     limit: 3,
     includeFallback: true,
   })
-
-  const handleNotificationPress = (item: NotificationItem) => {
-    if (!item.target) return
-    setShowNotifications(false)
-    handleNavigate(item.target.screen, item.target.params)
-  }
-
-  const handleClearNotification = (id: string) => {
-    setNotifications(current => current.filter(item => item.id !== id))
-  }
-
-  const handleClearAllNotifications = () => {
-    setNotifications([])
-  }
 
   const resetAddJobModal = () => {
     setJobInputMode('url')
@@ -605,7 +615,7 @@ export function DashboardScreen({ navigation, route }: DashboardProps = {}) {
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.bellButton}
-            onPress={() => setShowNotifications(true)}
+            onPress={openNotifications}
             accessibilityLabel='Open notifications'
           >
             <MaterialIcons name="notifications-none" size={24} color={CLTheme.text.secondary} />
@@ -666,18 +676,18 @@ export function DashboardScreen({ navigation, route }: DashboardProps = {}) {
             </View>
           </View>
           <View style={styles.progressRow}>
-            <Text style={styles.currentProgress}>{weeklyPlan.current}</Text>
-            <Text style={styles.targetProgress}>/ {weeklyPlan.target} Applications</Text>
+            <Text style={styles.currentProgress}>{weeklyCurrent}</Text>
+            <Text style={styles.targetProgress}>/ {weeklyTarget} Applications</Text>
           </View>
           <View style={styles.progressBarBg}>
             <View
               style={[
                 styles.progressBarFill,
-                { width: `${(weeklyPlan.current / weeklyPlan.target) * 100}%` },
+                { width: `${weeklyProgressRatio * 100}%` },
               ]}
             />
           </View>
-          <Text style={styles.weeklyMotivation}>{`"${weeklyPlan.label}"`}</Text>
+          <Text style={styles.weeklyMotivation}>{`"${weeklyMotivation}"`}</Text>
         </TouchableOpacity>
 
         {/* Next Actions */}
@@ -1015,7 +1025,7 @@ export function DashboardScreen({ navigation, route }: DashboardProps = {}) {
 
       <NotificationsPanel
         visible={showNotifications}
-        onClose={() => setShowNotifications(false)}
+        onClose={closeNotifications}
         notifications={notifications}
         onPressNotification={handleNotificationPress}
         onClearNotification={handleClearNotification}

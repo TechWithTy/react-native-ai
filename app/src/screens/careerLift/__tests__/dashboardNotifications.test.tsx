@@ -175,10 +175,13 @@ describe('DashboardScreen — Notifications and Scan UI', () => {
   it('shows quick actions section and opens modal from View All', () => {
     const { getByText, getAllByText } = render(<DashboardScreen navigation={navigation} />)
     expect(getByText('QUICK ACTIONS')).toBeTruthy()
+    const appliedCount = [...useJobTrackerStore.getState().thisWeek, ...useJobTrackerStore.getState().nextUp].filter(
+      job => job.status === 'Applied'
+    ).length
 
     fireEvent.press(getByText('View All'))
     expect(getByText('Quick Actions')).toBeTruthy()
-    expect(getAllByText('Applied (12)').length).toBeGreaterThan(0)
+    expect(getAllByText(`Applied (${appliedCount})`).length).toBeGreaterThan(0)
     expect(getAllByText('Custom Job Practice').length).toBeGreaterThan(0)
     expect(getAllByText('Resume Scan').length).toBeGreaterThan(0)
     expect(getAllByText('Optimize LinkedIn').length).toBeGreaterThan(0)
@@ -278,6 +281,22 @@ describe('DashboardScreen — Notifications and Scan UI', () => {
     expect(updated?.status).toBe('Applied')
     expect(updated?.nextAction).toBe('Follow up')
     expect(queryByText('Confirm Submission')).toBeNull()
+  })
+
+  it('restores tracked submit action when unchecked on home checklist', () => {
+    const { getByLabelText, getByText, queryByLabelText } = render(<DashboardScreen navigation={navigation} />)
+
+    fireEvent.press(getByLabelText('Mark action Submit Application done'))
+    fireEvent.press(getByText('Yes, submitted'))
+
+    expect(queryByLabelText('Open action Submit Application')).toBeNull()
+
+    fireEvent.press(getByLabelText('Uncheck action Submit Application'))
+    expect(getByLabelText('Open action Submit Application')).toBeTruthy()
+
+    const restored = useJobTrackerStore.getState().nextUp.find(job => job.id === '3')
+    expect(restored?.status).toBe('Target')
+    expect(restored?.nextAction).toBe('Submit Application')
   })
 
   it('opens task actions from home using shared routing', () => {

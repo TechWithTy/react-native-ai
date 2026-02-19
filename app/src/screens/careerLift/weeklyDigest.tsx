@@ -17,11 +17,11 @@ import { useNavigation } from '@react-navigation/native'
 import { CLTheme } from './theme'
 import { useUserProfileStore } from '../../store/userProfileStore'
 import { useJobTrackerStore } from '../../store/jobTrackerStore'
-import { NotificationItem, NotificationsPanel } from './components/notificationsPanel'
-import { careerLiftNotifications } from './notificationsData'
+import { NotificationsPanel } from './components/notificationsPanel'
 import { ActionDecisionDrawer } from './components/actionDecisionDrawer'
 import { TaskChecklistList } from './components/taskChecklistList'
 import { getTrackedActionType, useTaskChecklistFlow } from './components/useTaskChecklistFlow'
+import { useNotificationsPanelState } from './components/useNotificationsPanelState'
 
 const { width } = Dimensions.get('window')
 
@@ -37,8 +37,17 @@ export function WeeklyDigestScreen() {
   // Calendar State
   const [showCalendar, setShowCalendar] = React.useState(false)
   const [selectedDate, setSelectedDate] = React.useState(new Date().toISOString().split('T')[0])
-  const [showNotifications, setShowNotifications] = React.useState(false)
-  const [notifications, setNotifications] = React.useState<NotificationItem[]>(() => [...careerLiftNotifications])
+  const {
+    showNotifications,
+    notifications,
+    openNotifications,
+    closeNotifications,
+    handleNotificationPress,
+    handleClearNotification,
+    handleClearAllNotifications,
+  } = useNotificationsPanelState({
+    onNavigate: (screen, params) => navigation.navigate(screen, params),
+  })
   const {
     activeActions,
     completedActions,
@@ -127,20 +136,6 @@ export function WeeklyDigestScreen() {
     }
   }, [thisWeek, nextUp])
 
-  const handleNotificationPress = (item: NotificationItem) => {
-    if (!item.target) return
-    setShowNotifications(false)
-    navigation.navigate(item.target.screen, item.target.params)
-  }
-
-  const handleClearNotification = (id: string) => {
-    setNotifications(current => current.filter(item => item.id !== id))
-  }
-
-  const handleClearAllNotifications = () => {
-    setNotifications([])
-  }
-
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -163,7 +158,7 @@ export function WeeklyDigestScreen() {
 
           <TouchableOpacity
             style={styles.iconButton}
-            onPress={() => setShowNotifications(true)}
+            onPress={openNotifications}
             accessibilityLabel='Open notifications'
           >
             <MaterialIcons name="notifications-none" size={24} color={CLTheme.text.secondary} />
@@ -376,7 +371,7 @@ export function WeeklyDigestScreen() {
 
       <NotificationsPanel
         visible={showNotifications}
-        onClose={() => setShowNotifications(false)}
+        onClose={closeNotifications}
         notifications={notifications}
         onPressNotification={handleNotificationPress}
         onClearNotification={handleClearNotification}

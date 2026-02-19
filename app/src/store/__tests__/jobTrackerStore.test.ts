@@ -41,6 +41,24 @@ describe('jobTrackerStore save flow', () => {
     expect(nextState.nextUp.find(entry => entry.id === job.id)?.status).toBe('Applied')
   })
 
+  it('synchronizes recommended + tracker state when adding an existing recommended job id', () => {
+    const store = useJobTrackerStore.getState()
+    const recommended = store.recommendedJobs[0]
+
+    store.addJob({
+      ...recommended,
+      status: 'Applied',
+      nextAction: 'Follow up',
+      nextActionDate: 'in 3 days',
+    })
+
+    const nextState = useJobTrackerStore.getState()
+    expect(nextState.thisWeek.find(entry => entry.id === recommended.id)?.status).toBe('Applied')
+    expect(nextState.nextUp.some(entry => entry.id === recommended.id)).toBe(false)
+    expect(nextState.recommendedJobs.find(entry => entry.id === recommended.id)?.status).toBe('Applied')
+    expect(nextState.savedJobIds).not.toContain(recommended.id)
+  })
+
   it('saves recommended scan preset in store with derived label', () => {
     useJobTrackerStore.getState().saveRecommendedScanPreset({
       screenFilter: 'Remote',
