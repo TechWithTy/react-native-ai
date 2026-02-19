@@ -24,6 +24,9 @@ import { useCareerSetupStore } from '../../store/careerSetup'
 import { useCreditsStore } from '../../store/creditsStore'
 import { careerLiftNotifications } from './notificationsData'
 import { CustomPrepEntryModal } from './components/customPrepEntryModal'
+import { ActionDecisionDrawer } from './components/actionDecisionDrawer'
+import { TaskChecklistList } from './components/taskChecklistList'
+import { useTaskChecklistFlow } from './components/useTaskChecklistFlow'
 
 type DashboardProps = {
   navigation?: {
@@ -148,7 +151,7 @@ const getDashboardGreeting = (date: Date) => {
 export function DashboardScreen({ navigation, route }: DashboardProps = {}) {
   const { pipeline, weeklyPlan } = useDashboardStore()
   const { recommendedScanPreset, addJob } = useJobTrackerStore()
-  const { name, avatarUrl, nextActions, toggleNextAction } = useUserProfileStore()
+  const { name, avatarUrl } = useUserProfileStore()
   const { sourceResumeName, baselineResumeName, targetRole, locationPreference, setCareerSetup } = useCareerSetupStore()
   const spendScanCredit = useCreditsStore(state => state.spendScanCredit)
   const scanCreditsRemaining = useCreditsStore(state => state.scanCreditsRemaining)
@@ -266,6 +269,21 @@ export function DashboardScreen({ navigation, route }: DashboardProps = {}) {
   const handleNavigate = (screen: string, params?: Record<string, unknown>) => {
     navigation?.navigate?.(screen, params)
   }
+
+  const {
+    activeActions,
+    completedActions,
+    decisionPrompt,
+    setDecisionPrompt,
+    applyActionDecision,
+    handleCheckAction,
+    handlePlanActionPress,
+    unmarkActionCompleted,
+  } = useTaskChecklistFlow({
+    onNavigate: handleNavigate,
+    limit: 3,
+    includeFallback: true,
+  })
 
   const handleNotificationPress = (item: NotificationItem) => {
     if (!item.target) return
@@ -642,7 +660,10 @@ export function DashboardScreen({ navigation, route }: DashboardProps = {}) {
         >
           <View style={styles.weeklyHeader}>
             <Text style={styles.weeklyTitle}>Weekly Plan</Text>
-            <Text style={styles.weeklyDate}>Oct 24 - 30</Text>
+            <View style={styles.weeklyHeaderRight}>
+              <Text style={styles.weeklyDate}>Oct 24 - 30</Text>
+              <MaterialIcons name='chevron-right' size={18} color={CLTheme.text.muted} />
+            </View>
           </View>
           <View style={styles.progressRow}>
             <Text style={styles.currentProgress}>{weeklyPlan.current}</Text>
@@ -663,55 +684,17 @@ export function DashboardScreen({ navigation, route }: DashboardProps = {}) {
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>NEXT ACTIONS</Text>
           <View style={styles.actionCountBadge}>
-            <Text style={styles.actionCountText}>{nextActions.length}</Text>
+            <Text style={styles.actionCountText}>{activeActions.length}</Text>
           </View>
         </View>
 
-        {nextActions.map((action) => (
-          <TouchableOpacity
-            key={action.id}
-            style={[styles.actionCard, action.muted && styles.mutedCard]}
-            onPress={() => toggleNextAction(action.id)}
-          >
-            {action.id === '1' && <View style={styles.blueLeftBorder} />}
-            <View style={styles.checkboxContainer}>
-              <View style={[styles.checkbox, action.isCompleted && styles.checkedCheckbox]}>
-                {action.isCompleted && <MaterialIcons name="check" size={14} color="#fff" />}
-              </View>
-            </View>
-            <View style={styles.actionContent}>
-              <Text style={styles.actionTitle}>{action.title}</Text>
-              <View style={styles.tagRow}>
-                <View
-                  style={[
-                    styles.tagBadge,
-                    action.tag === 'Due Today'
-                      ? styles.tagRed
-                      : action.tag === 'Tomorrow'
-                      ? styles.tagOrange
-                      : styles.tagGray,
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.tagText,
-                      action.tag === 'Due Today'
-                        ? { color: CLTheme.status.danger }
-                        : action.tag === 'Tomorrow'
-                        ? { color: CLTheme.status.warning }
-                        : { color: CLTheme.text.muted },
-                    ]}
-                  >
-                    {action.tag}
-                  </Text>
-                </View>
-                {action.id === '1' && (
-                 <Text style={styles.subTagText}>Software Engineer Role</Text>
-                )}
-              </View>
-            </View>
-          </TouchableOpacity>
-        ))}
+        <TaskChecklistList
+          activeActions={activeActions}
+          completedActions={completedActions}
+          onOpenAction={handlePlanActionPress}
+          onCheckAction={handleCheckAction}
+          onUncheckAction={unmarkActionCompleted}
+        />
 
         <View style={{ height: 100 }} />
       </ScrollView>
@@ -1008,6 +991,25 @@ export function DashboardScreen({ navigation, route }: DashboardProps = {}) {
         onSubmit={(customPrep) => {
           setShowCustomPrepModal(false)
           handleNavigate('InterviewPrep', { customPrep })
+        }}
+      />
+
+      <ActionDecisionDrawer
+        visible={Boolean(decisionPrompt)}
+        title={decisionPrompt?.title || ''}
+        message={decisionPrompt?.message || ''}
+        confirmLabel={decisionPrompt?.confirmLabel || 'Confirm'}
+        denyLabel={decisionPrompt?.denyLabel || 'Cancel'}
+        onClose={() => setDecisionPrompt(null)}
+        onConfirm={() => {
+          if (!decisionPrompt) return
+          applyActionDecision(decisionPrompt.action, 'confirm')
+          setDecisionPrompt(null)
+        }}
+        onDeny={() => {
+          if (!decisionPrompt) return
+          applyActionDecision(decisionPrompt.action, 'deny')
+          setDecisionPrompt(null)
         }}
       />
 
@@ -1525,6 +1527,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 12,
+  },
+  weeklyHeaderRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
   },
   weeklyTitle: {
     fontSize: 14,

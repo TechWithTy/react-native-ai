@@ -266,4 +266,30 @@ describe('DashboardScreen — Notifications and Scan UI', () => {
 
     expect(navigation.navigate).toHaveBeenCalledWith('ATSResults', { resumeName: 'Tailored_Resume.docx' })
   })
+
+  it('uses shared task-check flow for next actions on home', () => {
+    const { getByLabelText, getByText, queryByText } = render(<DashboardScreen navigation={navigation} />)
+
+    fireEvent.press(getByLabelText('Mark action Submit Application done'))
+    expect(getByText('Confirm Submission')).toBeTruthy()
+    fireEvent.press(getByText('Yes, submitted'))
+
+    const updated = useJobTrackerStore.getState().nextUp.find(job => job.id === '3')
+    expect(updated?.status).toBe('Applied')
+    expect(updated?.nextAction).toBe('Follow up')
+    expect(queryByText('Confirm Submission')).toBeNull()
+  })
+
+  it('opens task actions from home using shared routing', () => {
+    const { getByLabelText } = render(<DashboardScreen navigation={navigation} />)
+
+    fireEvent.press(getByLabelText('Open action Submit Application'))
+
+    expect(navigation.navigate).toHaveBeenCalledWith(
+      'ApplyPack',
+      expect.objectContaining({
+        job: expect.objectContaining({ id: '3' }),
+      })
+    )
+  })
 })
