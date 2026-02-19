@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import * as React from 'react'
 import {
   View,
   Text,
@@ -43,7 +43,7 @@ export function WeeklyDigestScreen() {
   const [completedActions, setCompletedActions] = React.useState<WeeklyActionItem[]>([])
 
   // Calculate week range
-  const weekRange = useMemo(() => {
+  const weekRange = React.useMemo(() => {
     const date = new Date(selectedDate)
     const day = date.getDay()
     const diff = date.getDate() - day + (day === 0 ? -6 : 1) // adjust when day is sunday
@@ -55,7 +55,7 @@ export function WeeklyDigestScreen() {
   }, [selectedDate])
 
   // Derived Metrics
-  const metrics = useMemo(() => {
+  const metrics = React.useMemo(() => {
     const allJobs = [...thisWeek, ...nextUp]
     const applied = allJobs.filter(j => j.status === 'Applied').length
     const interviews = allJobs.filter(j => j.status === 'Interview' || j.status === 'Interviewing').length
@@ -69,7 +69,7 @@ export function WeeklyDigestScreen() {
   }, [thisWeek, nextUp])
 
   // Get next week's scheduled actions
-  const nextActions = useMemo(() => {
+  const nextActions = React.useMemo(() => {
     return nextUp
       .filter(job => job.nextAction)
       .slice(0, 3)

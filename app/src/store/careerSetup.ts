@@ -49,13 +49,13 @@ export function getSalaryRangesForRole(track: string, role: string): string[] {
 }
 
 const defaultCareerSetupState: CareerSetupState = {
-  roleTrack: 'Engineering',
-  seniority: 'Mid-level',
-  workingStyle: 'Remote-first',
-  targetRole: 'Software Engineer',
-  desiredSalaryRange: '$120k-$150k',
-  targetSeniority: 'Mid-Level',
-  locationPreference: 'Hybrid',
+  roleTrack: '',
+  seniority: '',
+  workingStyle: '',
+  targetRole: '',
+  desiredSalaryRange: '',
+  targetSeniority: '',
+  locationPreference: '',
   selectedGoals: [],
   selectedSkills: [],
   sourceResumeName: null,
@@ -92,7 +92,7 @@ export const useCareerSetupStore = create<CareerSetupStore>()(
       resetCareerSetup: () => set(defaultCareerSetupState),
     }),
     {
-      name: 'rnai-career-setup-zustand',
+      name: 'rnai-career-setup-v2',
       storage: createJSONStorage(() => getPersistStorage()),
     }
   )

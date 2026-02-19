@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { MaterialIcons } from '@expo/vector-icons'
 import {
   getHighlightedSkillsForRole,
   getPositionGoalsForRole,
@@ -53,24 +54,14 @@ export function OnboardingSetTargetsScreen({ navigation }: any) {
   const goalRows = useMemo(() => toBadgeRows(positionGoals), [positionGoals])
   const skillRows = useMemo(() => toBadgeRows(highlightedSkills), [highlightedSkills])
 
-  useEffect(() => {
-    if (!roleSuggestions.includes(targetRole)) {
-      setCareerSetup({ targetRole: roleSuggestions[0] })
-    }
-  }, [roleSuggestions, targetRole, setCareerSetup])
 
-  useEffect(() => {
-    if (!salaryRanges.includes(desiredSalaryRange)) {
-      setCareerSetup({ desiredSalaryRange: salaryRanges[0] || '' })
-    }
-  }, [desiredSalaryRange, salaryRanges, setCareerSetup])
 
   useEffect(() => {
     const nextGoals = selectedGoals.filter(goal => positionGoals.includes(goal))
     const nextSkills = selectedSkills.filter(skill => highlightedSkills.includes(skill))
 
-    const normalizedGoals = nextGoals.length ? nextGoals : positionGoals.slice(0, 1)
-    const normalizedSkills = nextSkills.length ? nextSkills : highlightedSkills.slice(0, 1)
+    const normalizedGoals = nextGoals
+    const normalizedSkills = nextSkills
 
     const goalsChanged = normalizedGoals.join('|') !== selectedGoals.join('|')
     const skillsChanged = normalizedSkills.join('|') !== selectedSkills.join('|')
@@ -95,22 +86,22 @@ export function OnboardingSetTargetsScreen({ navigation }: any) {
       : [...selectedSkills, skill]
     setCareerSetup({ selectedSkills: next.length ? next : [skill] })
   }
+  
+  const canProceed = 
+    targetRole.trim().length > 0 && 
+    desiredSalaryRange.trim().length > 0 && 
+    selectedGoals.length > 0 && 
+    selectedSkills.length > 0
 
   return (
     <View style={styles.screen}>
       <View style={styles.header}>
         <View style={styles.topMetaRow}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.topLinkBtn} activeOpacity={0.9}>
-            <Text style={styles.topLinkText}>Back</Text>
+            <MaterialIcons name="arrow-back" size={24} color="#64748b" />
           </TouchableOpacity>
           <Text style={styles.stepLabel}>Step 2 of 3</Text>
-          <TouchableOpacity
-            onPress={() => navigation.navigate('ResumeIngestion')}
-            style={styles.topLinkBtn}
-            activeOpacity={0.9}
-          >
-            <Text style={styles.topLinkText}>Skip</Text>
-          </TouchableOpacity>
+
         </View>
         <Text style={styles.headerTitle}>Set Your Target</Text>
       </View>
@@ -210,18 +201,19 @@ export function OnboardingSetTargetsScreen({ navigation }: any) {
 
       <View style={styles.bottomDock}>
         <TouchableOpacity
-          onPress={() => navigation.navigate('ResumeIngestion')}
-          style={styles.cta}
+          onPress={() => {
+            if (canProceed) {
+              navigation.navigate('ResumeIngestion')
+            }
+          }}
+          disabled={!canProceed}
+          style={[
+            styles.cta,
+            !canProceed && { opacity: 0.5, backgroundColor: '#334155' }
+          ]}
           activeOpacity={0.9}
         >
-          <Text style={styles.ctaText}>Continue</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={styles.secondaryCta}
-          activeOpacity={0.9}
-        >
-          <Text style={styles.secondaryCtaText}>Back</Text>
+          <Text style={[styles.ctaText, !canProceed && { color: '#94a3b8' }]}>Continue</Text>
         </TouchableOpacity>
       </View>
     </View>

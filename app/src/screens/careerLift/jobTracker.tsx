@@ -23,6 +23,7 @@ import { useCareerSetupStore } from '../../store/careerSetup'
 import { useCreditsStore, CREDIT_COSTS } from '../../store/creditsStore'
 import { CLTheme } from './theme'
 import { CustomPrepEntryModal } from './components/customPrepEntryModal'
+import { ApplicationPrepOptions } from './components/applicationPrepOptions'
 import * as Clipboard from 'expo-clipboard'
 import { buildOutreachDraft, isOutreachAction } from './outreachHelpers'
 
@@ -486,7 +487,7 @@ export function JobTrackerScreen({ route }: JobTrackerProps = {}) {
   const hasStatusChange = !!selectedJob && newStatus !== selectedJob.status
   const hasUpdateNote = statusUpdateNote.trim().length > 0
   const updateActionLabel = hasStatusChange
-    ? (hasUpdateNote ? 'Save Update & Note' : 'Save Update')
+    ? 'Save Update'
     : (hasUpdateNote ? 'Save Note' : 'Save Update')
 
   const handleStatusPress = (status: PipelineStatusFilter) => {
@@ -1205,239 +1206,11 @@ export function JobTrackerScreen({ route }: JobTrackerProps = {}) {
                                   </TouchableOpacity>
                               </View>
                           ) : (
-                              <View style={styles.applyContainer}>
-                                  {/* Header */}
-                                  <View style={styles.applyTitleRow}>
-                                    <Text style={styles.applyHeader}>Prepare Application</Text>
-                                    <TouchableOpacity onPress={() => setIsApplying(false)} style={{padding: 4}}>
-                                      <MaterialIcons name='close' size={20} color='#94a3b8' />
-                                    </TouchableOpacity>
-                                  </View>
-
-                                  {/* Tab Switcher */}
-                                  <View style={styles.applyTabBar}>
-                                    <TouchableOpacity
-                                      style={[styles.applyTab, applyTab === 'simple' && styles.applyTabActive]}
-                                      onPress={() => setApplyTab('simple')}
-                                      activeOpacity={0.8}
-                                    >
-                                      <Text style={[styles.applyTabText, applyTab === 'simple' && styles.applyTabTextActive]}>Simple</Text>
-                                    </TouchableOpacity>
-                                    <TouchableOpacity
-                                      style={[styles.applyTab, applyTab === 'advanced' && styles.applyTabActive]}
-                                      onPress={() => setApplyTab('advanced')}
-                                      activeOpacity={0.8}
-                                    >
-                                      <Text style={[styles.applyTabText, applyTab === 'advanced' && styles.applyTabTextActive]}>Advanced</Text>
-                                    </TouchableOpacity>
-                                  </View>
-
-                                  {applyTab === 'simple' ? (
-                                    <>
-                                      <Text style={styles.applySubheader}>Select your resume and cover letter to apply.</Text>
-                                      {renderDocumentSelector('resume', selectedResume, RESUMES, setSelectedResume)}
-                                      {renderDocumentSelector('coverLetter', selectedCoverLetter, COVER_LETTERS, setSelectedCoverLetter)}
-
-                                      {/* AI Generate Buttons */}
-                                      <View style={{flexDirection: 'row', gap: 10, marginTop: 14}}>
-                                        <TouchableOpacity
-                                          style={styles.aiGenBtn}
-                                          onPress={() => {
-                                            if (canAffordCredit('resumeTailor')) {
-                                              spendCredits('resumeTailor', `Tailored resume for ${selectedJob?.company || 'job'}`)
-                                              Alert.alert('Resume Generated', `AI-tailored resume created for ${selectedJob?.role || 'this role'}.\nCost: ${CREDIT_COSTS.resumeTailor} credits`)
-                                            } else {
-                                              Alert.alert('Insufficient Credits', `You need ${CREDIT_COSTS.resumeTailor} credits to generate a resume.`)
-                                            }
-                                          }}
-                                        >
-                                          <Feather name="cpu" size={14} color="#0d6cf2" />
-                                          <Text style={styles.aiGenBtnText}>AI Resume ({CREDIT_COSTS.resumeTailor}cr)</Text>
-                                        </TouchableOpacity>
-                                        <TouchableOpacity
-                                          style={styles.aiGenBtn}
-                                          onPress={() => {
-                                            if (canAffordCredit('coverLetterGen')) {
-                                              spendCredits('coverLetterGen', `Cover letter for ${selectedJob?.company || 'job'}`)
-                                              Alert.alert('Cover Letter Generated', `AI cover letter created for ${selectedJob?.role || 'this role'}.\nCost: ${CREDIT_COSTS.coverLetterGen} credits`)
-                                            } else {
-                                              Alert.alert('Insufficient Credits', `You need ${CREDIT_COSTS.coverLetterGen} credits to generate a cover letter.`)
-                                            }
-                                          }}
-                                        >
-                                          <Feather name="cpu" size={14} color="#0d6cf2" />
-                                          <Text style={styles.aiGenBtnText}>AI Cover ({CREDIT_COSTS.coverLetterGen}cr)</Text>
-                                        </TouchableOpacity>
-                                      </View>
-
-                                      {/* ── Action Area ── */}
-                                      <View style={{marginTop: 28, gap: 16}}>
-                                        <View style={{gap: 8}}>
-                                          <View style={styles.creditCostRow}>
-                                            <View style={{flexDirection: 'row', alignItems: 'center', gap: 6}}>
-                                              <Feather name="zap" size={14} color={creditColor} />
-                                              <Text style={styles.creditBalanceSmall}>{creditBalance} credits</Text>
-                                            </View>
-                                            <Text style={styles.creditEstimate}>{applyCost}cr for AI features</Text>
-                                          </View>
-                                          
-                                          <Pressable
-                                            onPressIn={handleActionPressIn}
-                                            onPressOut={handleActionPressOut}
-                                            style={({ pressed }) => [
-                                              styles.holdBtnContainer,
-                                              { backgroundColor: pressed ? '#1e293b' : '#334155' },
-                                              !canAffordApply && { opacity: 0.8 } // Show as active since tap is free
-                                            ]}
-                                          >
-                                            <Animated.View style={[styles.holdFill, { width: fillWidth }]} />
-                                            <View style={styles.holdContent}>
-                                              <Feather name="send" size={20} color="#fff" style={{marginRight: 8}} />
-                                              <Text style={styles.holdText}>Applying with AI...</Text>
-                                            </View>
-                                            <View style={{position: 'absolute', width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8}}>
-                                              <Text style={[styles.holdText, {opacity: 1}]}>Tap to Apply • Hold for AI</Text>
-                                            </View>
-                                          </Pressable>
-                                          
-                                          <Text style={{fontSize: 12, color: '#64748b', textAlign: 'center', marginTop: 4}}>
-                                            AI application includes tailored resume & cover letter
-                                          </Text>
-                                        </View>
-                                      </View>
-                                    </>
-                                  ) : (
-                                    /* ====== Advanced Tab ====== */
-                                    <View style={{gap: 20}}>
-                                      {/* Job Context Card */}
-                                      {selectedJob && (
-                                        <View style={styles.advJobCard}>
-                                          <View style={[styles.advLogoBox, { backgroundColor: selectedJob.color || '#1e293b' }]}>
-                                            {selectedJob.logo
-                                              ? <Image source={{ uri: selectedJob.logo }} style={styles.advLogoImage} resizeMode='contain' />
-                                              : <Text style={styles.advLogoFallback}>{selectedJob.company.charAt(0)}</Text>
-                                            }
-                                          </View>
-                                          <View style={{flex: 1}}>
-                                            <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
-                                              <Text style={styles.advJobTitle} numberOfLines={1}>{selectedJob.role}</Text>
-                                              <View style={{backgroundColor: 'rgba(16,185,129,0.1)', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4}}>
-                                                <Text style={{color: '#10b981', fontSize: 11, fontWeight: '600'}}>{selectedJob.match ?? '94%'} Match</Text>
-                                              </View>
-                                            </View>
-                                            <Text style={styles.advCompanyLoc}>{selectedJob.company} • {selectedJob.location}</Text>
-                                          </View>
-                                        </View>
-                                      )}
-
-                                      {/* Resume Selector */}
-                                      <View>
-                                        <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8}}>
-                                          <Text style={styles.advSectionTitle}>TAILORED RESUME</Text>
-                                          <TouchableOpacity
-                                            style={styles.aiGenBtnSmall}
-                                            onPress={() => {
-                                              if (canAffordCredit('resumeTailor')) {
-                                                spendCredits('resumeTailor', `Tailored resume for ${selectedJob?.company || 'job'}`)
-                                                Alert.alert('Resume Generated', `AI-tailored resume created.\nCost: ${CREDIT_COSTS.resumeTailor} credits`)
-                                              } else {
-                                                Alert.alert('Insufficient Credits', `Need ${CREDIT_COSTS.resumeTailor} credits.`)
-                                              }
-                                            }}
-                                          >
-                                            <Feather name="cpu" size={12} color="#0d6cf2" />
-                                            <Text style={{color: '#0d6cf2', fontSize: 11, fontWeight: '600'}}>Generate ({CREDIT_COSTS.resumeTailor}cr)</Text>
-                                          </TouchableOpacity>
-                                        </View>
-                                        {renderDocumentSelector('resume', selectedResume, RESUMES, setSelectedResume)}
-                                      </View>
-
-                                      {/* Cover Letter Selector */}
-                                      <View>
-                                        <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8}}>
-                                          <Text style={styles.advSectionTitle}>COVER NOTE</Text>
-                                          <TouchableOpacity
-                                            style={styles.aiGenBtnSmall}
-                                            onPress={() => {
-                                              if (canAffordCredit('coverLetterGen')) {
-                                                spendCredits('coverLetterGen', `Cover letter for ${selectedJob?.company || 'job'}`)
-                                                Alert.alert('Cover Letter Generated', `AI cover letter created.\nCost: ${CREDIT_COSTS.coverLetterGen} credits`)
-                                              } else {
-                                                Alert.alert('Insufficient Credits', `Need ${CREDIT_COSTS.coverLetterGen} credits.`)
-                                              }
-                                            }}
-                                          >
-                                            <Feather name="cpu" size={12} color="#0d6cf2" />
-                                            <Text style={{color: '#0d6cf2', fontSize: 11, fontWeight: '600'}}>Generate ({CREDIT_COSTS.coverLetterGen}cr)</Text>
-                                          </TouchableOpacity>
-                                        </View>
-                                        {renderDocumentSelector('coverLetter', selectedCoverLetter, COVER_LETTERS, setSelectedCoverLetter)}
-                                      </View>
-
-                                      {/* Suggested Answers */}
-                                      <View>
-                                        <Text style={[styles.advSectionTitle, {marginBottom: 10}]}>SUGGESTED ANSWERS</Text>
-                                        {[
-                                          { q: 'Why do you want to work here?', a: selectedJob ? `I've always admired ${selectedJob.company}'s work in this space. My background aligns strongly with this ${selectedJob.role} role.` : '' },
-                                          { q: 'Salary Expectations?', a: '$180k - $210k base salary', mono: true },
-                                          { q: 'Notice Period?', a: 'Available to start immediately.' },
-                                        ].map((item, idx) => (
-                                          <View key={idx} style={[styles.advAnswerCard, {marginBottom: 8}]}>
-                                            <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start'}}>
-                                              <Text style={[styles.advQuestionText, {color: '#60a5fa', flex: 1}]}>{item.q}</Text>
-                                              <TouchableOpacity
-                                                style={{padding: 4}}
-                                                onPress={async () => {
-                                                  await Clipboard.setStringAsync(item.a)
-                                                  Alert.alert('Copied', 'Answer copied to clipboard')
-                                                }}
-                                              >
-                                                <MaterialIcons name='content-copy' size={16} color='#64748b' />
-                                              </TouchableOpacity>
-                                            </View>
-                                            <Text style={[styles.advAnswerText, item.mono && {fontFamily: 'monospace', backgroundColor: 'rgba(0,0,0,0.2)', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, alignSelf: 'flex-start'}]}>{item.a}</Text>
-                                          </View>
-                                        ))}
-                                      </View>
-
-                                      {/* Footer: Info hint + CTA */}
-                                      <View style={{gap: 10}}>
-                                        <View style={styles.creditCostRow}>
-                                          <View style={{flexDirection: 'row', alignItems: 'center', gap: 6}}>
-                                            <Feather name="zap" size={14} color={creditColor} />
-                                            <Text style={styles.creditBalanceSmall}>{creditBalance} credits</Text>
-                                          </View>
-                                          <Text style={styles.creditEstimate}>Est. cost: ~{applyCost} credits</Text>
-                                        </View>
-                                        <View style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginBottom: 4}}>
-                                          <MaterialIcons name='info-outline' size={14} color='#f59e0b' />
-                                          <Text style={{fontSize: 12, color: '#94a3b8'}}>Remember to attach the PDF manually!</Text>
-                                        </View>
-                                        <TouchableOpacity
-                                          style={styles.advCTABtn}
-                                          onPress={() => {
-                                            if (canAffordApply) {
-                                              spendCredits('aiApplicationSubmit', `Applied to ${selectedJob?.company || 'job'} — ${selectedJob?.role || 'role'}`)
-                                              if (selectedJob) updateJobStatus(selectedJob.id, 'Applied')
-                                              setIsApplying(false)
-                                              Alert.alert('Application Logged!', `${selectedJob?.role || 'Job'} at ${selectedJob?.company || 'Company'} marked as Applied.`)
-                                            } else {
-                                              Alert.alert('Insufficient Credits', `You need ${applyCost} credits to submit.`)
-                                            }
-                                          }}
-                                        >
-                                          <MaterialIcons name='check-circle' size={20} color='#fff' />
-                                          <Text style={{color: '#fff', fontSize: 15, fontWeight: '700'}}>Approve & Log Submission</Text>
-                                        </TouchableOpacity>
-                                        {!canAffordApply && <Text style={styles.creditWarning}>Not enough credits</Text>}
-                                      </View>
-                                    </View>
-                                  )}
-
-                                  <TouchableOpacity style={{marginTop: 20, alignItems: 'center'}} onPress={() => setIsApplying(false)}>
-                                    <Text style={{color: CLTheme.text.muted}}>Cancel</Text>
-                                  </TouchableOpacity>
-                              </View>
+                              <ApplicationPrepOptions
+                                  job={selectedJob}
+                                  onClose={() => setIsApplying(false)}
+                                  onApplied={closeJobDetails}
+                              />
                           )}
                       </ScrollView>
                   )}

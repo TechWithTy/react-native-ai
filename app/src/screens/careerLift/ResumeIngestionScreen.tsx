@@ -19,6 +19,8 @@ export function ResumeIngestionScreen({ navigation }: any) {
   const [showLinkedInAuth, setShowLinkedInAuth] = useState(false)
   const [linkedInAuthorized, setLinkedInAuthorized] = useState(false)
 
+  const canProceed = !!selectedFile
+
   const pickResume = useCallback(async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
@@ -31,12 +33,11 @@ export function ResumeIngestionScreen({ navigation }: any) {
       })
       if (!result.canceled && result.assets?.length) {
         setCareerSetup({ sourceResumeName: result.assets[0].name })
-        navigation.navigate('MainTabs')
       }
     } catch {
       Alert.alert('Upload failed', 'Could not open file picker.')
     }
-  }, [navigation, setCareerSetup])
+  }, [setCareerSetup])
 
   const startLinkedInAuth = () => {
     setLinkedInAuthorized(false)
@@ -54,7 +55,7 @@ export function ResumeIngestionScreen({ navigation }: any) {
 
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn} activeOpacity={0.9}>
-          <Feather name='arrow-left' size={18} color='#94a3b8' />
+          <MaterialIcons name="arrow-back" size={24} color="#64748b" />
         </TouchableOpacity>
         <View style={styles.stepWrap}>
           <Text style={styles.stepLabel}>Step 3 of 3</Text>
@@ -79,9 +80,14 @@ export function ResumeIngestionScreen({ navigation }: any) {
           <View style={styles.uploadIconWrap}>
             <MaterialIcons name='cloud-upload' size={38} color='#0d6cf2' />
           </View>
-          <Text style={styles.uploadTitle}>Tap to browse files</Text>
+          <Text style={styles.uploadTitle}>{selectedFile ? 'Change Resume' : 'Tap to browse files'}</Text>
           <Text style={styles.uploadSub}>PDF, DOCX, or TXT up to 5MB</Text>
-          {selectedFile ? <Text style={styles.uploadSelected}>Selected: {selectedFile}</Text> : null}
+          {selectedFile ? (
+            <View style={styles.selectedFileIndicator}>
+               <MaterialIcons name="description" size={16} color="#60a5fa" />
+               <Text style={styles.uploadSelected}>{selectedFile}</Text>
+            </View>
+          ) : null}
         </TouchableOpacity>
 
         <View style={styles.dividerRow}>
@@ -91,7 +97,7 @@ export function ResumeIngestionScreen({ navigation }: any) {
         </View>
 
         <TouchableOpacity onPress={startLinkedInAuth} style={styles.linkedInBtn} activeOpacity={0.9}>
-          <Text style={styles.linkedInBtnText}>Import from LinkedIn</Text>
+          <Text style={styles.linkedInBtnText}>{linkedInAuthorized ? 'LinkedIn Profile Connected' : 'Import from LinkedIn'}</Text>
         </TouchableOpacity>
 
         <View style={styles.securityBadge}>
@@ -101,21 +107,38 @@ export function ResumeIngestionScreen({ navigation }: any) {
       </ScrollView>
 
       <View style={styles.footer}>
-        <TouchableOpacity onPress={pickResume} style={styles.cta} activeOpacity={0.9}>
-          <Text style={styles.ctaText}>Select Resume</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
+        <TouchableOpacity 
           onPress={() => {
-              // TODO: In the future, initiate AI chat
-              Alert.alert('AI Generation', 'This will start an AI chat to generate your resume.', [
-                  { text: 'OK', onPress: () => navigation.navigate('MainTabs') }
-              ])
-          }}
-          style={styles.secondaryBtn}
+            if (canProceed) navigation.navigate('MainTabs')
+          }} 
+          style={[
+            styles.cta,
+            !canProceed && { opacity: 0.5, backgroundColor: '#334155' }
+          ]} 
+          disabled={!canProceed}
           activeOpacity={0.9}
         >
-          <Text style={styles.secondaryBtnText}>Generate with AI</Text>
+          <Text style={[styles.ctaText, !canProceed && { color: '#94a3b8' }]}>Complete Setup</Text>
         </TouchableOpacity>
+        {!selectedFile && (
+          <TouchableOpacity
+            onPress={() => {
+                Alert.alert('AI Generation', 'This will start an AI chat to generate your resume profile.', [
+                    { 
+                      text: 'Start AI Chat', 
+                      onPress: () => {
+                        setCareerSetup({ sourceResumeName: 'AI_Generated_Resume.pdf' })
+                      } 
+                    },
+                    { text: 'Cancel', style: 'cancel' }
+                ])
+            }}
+            style={styles.secondaryBtn}
+            activeOpacity={0.9}
+          >
+            <Text style={styles.secondaryBtnText}>No resume? Generate with AI</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       <Modal
@@ -271,10 +294,20 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   uploadSelected: {
-    marginTop: 10,
+    marginTop: 4,
     color: '#93c5fd',
     fontSize: 12,
     fontWeight: '700',
+  },
+  selectedFileIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 10,
+    backgroundColor: 'rgba(13, 108, 242, 0.15)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
   },
   dividerRow: {
     flexDirection: 'row',

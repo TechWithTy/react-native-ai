@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import * as React from 'react'
 import {
   StyleProp,
   StyleSheet,
@@ -28,7 +28,7 @@ const US_STATE_NAME_BY_CODE = new Map(US_STATE_META.map(item => [item.isoCode, i
 
 const US_LOCATION_OPTIONS = (() => {
   const deduped = new Set<string>(DEFAULT_LOCATION_OPTIONS)
-  City.getCitiesOfCountry('US').forEach(city => {
+  City.getCitiesOfCountry('US')?.forEach(city => {
     if (!city.stateCode) return
     const stateName = US_STATE_NAME_BY_CODE.get(city.stateCode)
     deduped.add(`${city.name}, ${city.stateCode}`)
@@ -71,7 +71,9 @@ export function LocationAutocomplete({
   suggestionRowStyle,
   suggestionTextStyle,
 }: LocationAutocompleteProps) {
-  const suggestions = useMemo(() => {
+  const [isFocused, setIsFocused] = React.useState(false)
+
+  const suggestions = React.useMemo(() => {
     const query = value.trim().toLowerCase()
     const baseOptions = Array.from(new Set(compactLocations([currentLocation, ...US_LOCATION_OPTIONS])))
     if (!query) return baseOptions.slice(0, maxSuggestions)
@@ -85,10 +87,13 @@ export function LocationAutocomplete({
   return (
     <View style={containerStyle}>
       <View style={[styles.inputContainer, inputContainerStyle]}>
+        {!isFocused && !showSearchIcon && <Feather name='edit-3' size={16} color='#94a3b8' />}
         {showSearchIcon ? <Feather name='search' size={16} color='#94a3b8' /> : null}
         <TextInput
           value={value}
           onChangeText={onChangeText}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
           style={[styles.input, inputStyle]}
           placeholder={placeholder}
           placeholderTextColor='#64748b'

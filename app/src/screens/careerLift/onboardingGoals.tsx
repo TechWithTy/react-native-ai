@@ -27,15 +27,30 @@ export function OnboardingGoalsScreen({ navigation }: any) {
       const roleOptions = getRoleOptionsForTrack(nextTrack)
       setCareerSetup({
         roleTrack: nextTrack,
-        targetRole: roleOptions[0],
       })
     },
     [setCareerSetup]
   )
 
+  const resetCareerSetup = useCareerSetupStore(state => state.resetCareerSetup)
+
+  // Force a fresh start when entering the onboarding flow to ensure no pre-selected options.
+  useEffect(() => {
+    resetCareerSetup()
+    setProfile({ currentLocation: '' })
+  }, [])
+
   useEffect(() => {
     setLocationInput(currentLocation || '')
   }, [currentLocation])
+
+  const needsLocation = locationPreference === 'Hybrid' || locationPreference === 'On-site'
+  const isLocationValid = currentLocation && currentLocation.trim().length > 0
+  const isRoleSelected = roleTrack.trim().length > 0
+  const isSenioritySelected = targetSeniority.trim().length > 0
+  const isWorkingStyleSelected = locationPreference.trim().length > 0
+
+  const canProceed = isRoleSelected && isSenioritySelected && isWorkingStyleSelected && (!needsLocation || isLocationValid)
 
   const formatGpsLocation = (
     latitude: number,
@@ -107,9 +122,7 @@ export function OnboardingGoalsScreen({ navigation }: any) {
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
           <MaterialIcons name="arrow-back" size={24} color="#64748b" />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('OnboardingSetTargets')}> 
-            <Text style={styles.skipBtn}>Skip</Text>
-        </TouchableOpacity>
+
       </View>
 
       <View style={styles.progressContainer}>
@@ -220,14 +233,21 @@ export function OnboardingGoalsScreen({ navigation }: any) {
         </View>
       </ScrollView>
 
+
       <View style={styles.bottomDock}>
         <TouchableOpacity
-          onPress={() => navigation.navigate('OnboardingSetTargets')}
-          style={styles.cta}
+          onPress={() => {
+            if (canProceed) navigation.navigate('OnboardingSetTargets')
+          }}
+          style={[
+            styles.cta,
+            { opacity: canProceed ? 1 : 0.5, backgroundColor: canProceed ? '#0d6cf2' : '#334155' }
+          ]}
+          disabled={!canProceed}
           activeOpacity={0.9}
         >
-          <Text style={styles.ctaText}>Next Step</Text>
-          <MaterialIcons name="arrow-forward" size={20} color="#fff" />
+          <Text style={[styles.ctaText, { color: canProceed ? '#fff' : '#94a3b8' }]}>Next Step</Text>
+          {canProceed && <MaterialIcons name="arrow-forward" size={20} color="#fff" />}
         </TouchableOpacity>
       </View>
 
@@ -634,13 +654,8 @@ const styles = StyleSheet.create({
     color: '#f8fafc',
   },
   textInput: {
-    backgroundColor: '#0f172a',
-    borderWidth: 1,
-    borderColor: '#223249',
-    borderRadius: 10,
     color: '#f8fafc',
     fontSize: 14,
-    paddingHorizontal: 12,
     paddingVertical: 10,
   },
   locationInputContainer: {
