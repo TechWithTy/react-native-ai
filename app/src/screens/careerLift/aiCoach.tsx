@@ -19,7 +19,7 @@ type SectionMeta = {
 const SECTION_OPTIONS: SectionMeta[] = [
   { key: 'chat', label: 'Chat', icon: 'chat-bubble-outline', subtitle: 'General chat' },
   { key: 'assistant', label: 'Assistant', icon: 'smart-toy', subtitle: 'File-aware assistant' },
-  { key: 'images', label: 'Images', icon: 'image', subtitle: 'Generate or upload' },
+  { key: 'images', label: 'Documents', icon: 'description', subtitle: 'Create / review resume' },
   { key: 'settings', label: 'Models', icon: 'tune', subtitle: 'Model and theme' },
 ]
 

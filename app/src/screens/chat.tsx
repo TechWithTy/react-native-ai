@@ -11,7 +11,7 @@ import {
   Keyboard
 } from 'react-native'
 import 'react-native-get-random-values'
-import { useContext, useState, useRef } from 'react'
+import { useContext, useMemo, useState, useRef } from 'react'
 import { ThemeContext, AppContext } from '../context'
 import { getEventSource, getFirstNCharsOrLess, getChatType } from '../utils'
 import { v4 as uuid } from 'uuid'
@@ -19,6 +19,8 @@ import Ionicons from '@expo/vector-icons/Ionicons'
 import * as Clipboard from 'expo-clipboard'
 import { useActionSheet } from '@expo/react-native-action-sheet'
 import Markdown from '@ronradtke/react-native-markdown-display'
+import { useNavigation } from '@react-navigation/native'
+import { useAIAgentsStore } from '../store/aiAgentsStore'
 
 type ChatState = {
   messages: Array<{user: string, assistant?: string}>,
@@ -33,6 +35,7 @@ const createEmptyChatState = (): ChatState => ({
 })
 
 export function Chat() {
+  const navigation = useNavigation<any>()
   const [loading, setLoading] = useState<boolean>(false)
   const [input, setInput] = useState<string>('')
   const scrollViewRef = useRef<ScrollView | null>(null)
@@ -56,9 +59,43 @@ export function Chat() {
 
   const { theme } = useContext(ThemeContext)
   const { chatType } = useContext(AppContext)
+  const agents = useAIAgentsStore(state => state.agents)
+  const selectedAgentId = useAIAgentsStore(state => state.selectedAgentId)
+  const setSelectedAgent = useAIAgentsStore(state => state.setSelectedAgent)
+  const voiceModeEnabled = useAIAgentsStore(state => state.voiceModeEnabled)
+  const setVoiceModeEnabled = useAIAgentsStore(state => state.setVoiceModeEnabled)
   const styles = getStyles(theme)
+  const activeAgent = useMemo(
+    () => agents.find(agent => agent.id === selectedAgentId) || agents[0],
+    [agents, selectedAgentId]
+  )
+  const activePrompt = activeAgent?.prompt?.trim() || ''
+
+  const getVoicePracticeQuestion = () => {
+    if (selectedAgentId === 'interview_coach') {
+      return 'Tell me about a time you influenced a key decision without direct authority.'
+    }
+    if (selectedAgentId === 'resume_reviewer') {
+      return 'Walk me through your strongest resume bullet and explain the measurable business impact.'
+    }
+    if (selectedAgentId === 'networking_coach') {
+      return 'How would you open a short networking conversation with a hiring manager you have never met?'
+    }
+    return 'Tell me about a recent career win and why it mattered.'
+  }
+
+  function startVoicePracticeCall() {
+    navigation.navigate('MockInterview', {
+      category: 'AI Practice Call',
+      question: getVoicePracticeQuestion(),
+    })
+  }
 
   async function chat() {
+    if (voiceModeEnabled) {
+      startVoicePracticeCall()
+      return
+    }
     if (!input) return
     Keyboard.dismiss()
     if (chatType.label.includes('claude')) {
@@ -102,10 +139,13 @@ export function Chat() {
       }
       return acc
     }, [])
+    const messagesWithPrompt = activePrompt
+      ? [{ role: 'system', content: activePrompt }, ...messages]
+      : messages
 
     const eventSourceArgs = {
       body: {
-        messages,
+        messages: messagesWithPrompt,
         model: chatType.label
       },
       type: getChatType(chatType)
@@ -158,7 +198,9 @@ export function Chat() {
     let localResponse = ''
     const modelLabel = chatType.label
     const currentState = getChatState(modelLabel)
-    const geminiInput = `${input}`
+    const geminiInput = activePrompt
+      ? `${activePrompt}\n\nUser prompt:\n${input}`
+      : `${input}`
 
     let messageArray = [
       ...currentState.messages, {
@@ -237,7 +279,7 @@ export function Chat() {
     let localResponse = ''
     const modelLabel = chatType.label
     const currentState = getChatState(modelLabel)
-    const claudeInput = `${currentState.apiMessages}\n\nHuman: ${input}\n\nAssistant:`
+    const claudeInput = `${activePrompt ? `System: ${activePrompt}\n\n` : ''}${currentState.apiMessages}\n\nHuman: ${input}\n\nAssistant:`
 
     let messageArray = [
       ...currentState.messages, {
@@ -385,6 +427,48 @@ export function Chat() {
         ref={scrollViewRef}
         contentContainerStyle={!callMade && styles.scrollContentContainer}
       >
+        <View style={styles.agentPanel}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.agentChipScroll}
+          >
+            {agents.map(agent => {
+              const selected = selectedAgentId === agent.id
+              return (
+                <TouchableHighlight
+                  key={agent.id}
+                  onPress={() => setSelectedAgent(agent.id)}
+                  underlayColor='transparent'
+                >
+                  <View style={[styles.agentChip, selected && styles.agentChipActive]}>
+                    <Text style={[styles.agentChipText, selected && styles.agentChipTextActive]}>
+                      {agent.label}
+                    </Text>
+                  </View>
+                </TouchableHighlight>
+              )
+            })}
+          </ScrollView>
+          <View style={styles.modeSwitchRow}>
+            <Text style={styles.modeContextText}>
+              {activeAgent?.description || getFirstNCharsOrLess(activePrompt, 80)}
+            </Text>
+            <TouchableHighlight
+              onPress={() => setVoiceModeEnabled(!voiceModeEnabled)}
+              underlayColor='transparent'
+            >
+              <View style={styles.modeToggleBtn}>
+                <Ionicons
+                  name={voiceModeEnabled ? 'mic-outline' : 'chatbox-ellipses-outline'}
+                  size={16}
+                  color={theme.tintTextColor}
+                />
+                <Text style={styles.modeToggleText}>{voiceModeEnabled ? 'Voice' : 'Text'}</Text>
+              </View>
+            </TouchableHighlight>
+          </View>
+        </View>
         {
           !callMade && (
             <View style={styles.midChatInputWrapper}>
@@ -396,23 +480,26 @@ export function Chat() {
                   placeholder='Message'
                   placeholderTextColor={theme.placeholderTextColor}
                   autoCorrect={true}
+                  value={input}
                 />
                 <TouchableHighlight
-                  onPress={chat}
+                  onPress={voiceModeEnabled ? startVoicePracticeCall : chat}
                   underlayColor={'transparent'}
                 >
                   <View style={styles.midButtonStyle}>
                     <Ionicons
-                      name="chatbox-ellipses-outline"
+                      name={voiceModeEnabled ? 'call-outline' : 'chatbox-ellipses-outline'}
                       size={22} color={theme.tintTextColor}
                     />
                     <Text style={styles.midButtonText}>
-                      Start chat
+                      {voiceModeEnabled ? 'Start voice practice' : 'Start chat'}
                     </Text>
                   </View>
                 </TouchableHighlight>
                 <Text style={styles.chatDescription}>
-                  Chat with a variety of different language models.
+                  {voiceModeEnabled
+                    ? 'Voice mode is enabled. Start an AI practice call with the selected agent.'
+                    : 'Chat with a variety of different language models using the selected agent prompt.'}
                 </Text>
               </View>
             </View>
@@ -438,6 +525,19 @@ export function Chat() {
           <View
               style={styles.chatInputContainer}
             >
+            <TouchableHighlight
+              underlayColor={'transparent'}
+              activeOpacity={0.75}
+              onPress={() => setVoiceModeEnabled(!voiceModeEnabled)}
+            >
+              <View style={styles.modeIconButton}>
+                <Ionicons
+                  name={voiceModeEnabled ? 'mic-outline' : 'chatbox-ellipses-outline'}
+                  size={18}
+                  color={theme.textColor}
+                />
+              </View>
+            </TouchableHighlight>
             <TextInput
               style={styles.input}
               onChangeText={v => setInput(v)}
@@ -448,13 +548,13 @@ export function Chat() {
             <TouchableHighlight
               underlayColor={'transparent'}
               activeOpacity={0.65}
-              onPress={chat}
+              onPress={voiceModeEnabled ? startVoicePracticeCall : chat}
             >
               <View
                 style={styles.chatButton}
               >
                 <Ionicons
-                  name="arrow-up-outline"
+                  name={voiceModeEnabled ? 'call-outline' : 'arrow-up-outline'}
                   size={20} color={theme.tintTextColor}
                 />
               </View>
@@ -467,6 +567,67 @@ export function Chat() {
 }
 
 const getStyles = (theme: any) => StyleSheet.create({
+  agentPanel: {
+    paddingHorizontal: 10,
+    paddingTop: 8,
+    paddingBottom: 4,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.borderColor,
+  },
+  agentChipScroll: {
+    gap: 8,
+    paddingRight: 10,
+  },
+  agentChip: {
+    borderWidth: 1,
+    borderColor: theme.borderColor,
+    backgroundColor: theme.backgroundColor,
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    marginBottom: 8,
+  },
+  agentChipActive: {
+    backgroundColor: theme.tintColor,
+    borderColor: theme.tintColor,
+  },
+  agentChipText: {
+    color: theme.textColor,
+    fontSize: 12,
+    fontFamily: theme.mediumFont,
+  },
+  agentChipTextActive: {
+    color: theme.tintTextColor,
+    fontFamily: theme.boldFont,
+  },
+  modeSwitchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+    marginBottom: 4,
+  },
+  modeContextText: {
+    flex: 1,
+    color: theme.textColor,
+    opacity: 0.72,
+    fontSize: 11,
+    fontFamily: theme.regularFont,
+  },
+  modeToggleBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    borderRadius: 999,
+    backgroundColor: theme.tintColor,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  modeToggleText: {
+    color: theme.tintTextColor,
+    fontSize: 11,
+    fontFamily: theme.boldFont,
+  },
   optionsIconWrapper: {
     padding: 10,
     paddingTop: 9,
@@ -560,6 +721,17 @@ const getStyles = (theme: any) => StyleSheet.create({
     padding: 5,
     borderRadius: 99,
     backgroundColor: theme.tintColor
+  },
+  modeIconButton: {
+    marginLeft: 10,
+    borderWidth: 1,
+    borderColor: theme.borderColor,
+    borderRadius: 99,
+    width: 34,
+    height: 34,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.backgroundColor,
   },
   chatInputContainer: {
     paddingTop: 5,
