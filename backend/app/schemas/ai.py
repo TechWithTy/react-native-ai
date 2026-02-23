@@ -32,3 +32,18 @@ class AtsScanResult(BaseModel):
     keywords_missing: List[str] = []
     fixes: List[AtsFix] = []
     created_at: datetime
+
+class TextGenerationRequest(BaseModel):
+    prompt: str
+    provider: Optional[str] = "openai"
+    model: Optional[str] = "gpt-4o"
+    max_tokens: Optional[int] = 1000
+
+class ImageGenerationRequest(BaseModel):
+    prompt: str
+    provider: Optional[str] = "openai"
+
+class GenerationResponse(BaseModel):
+    status: str
+    result: Optional[str] = None
+    error: Optional[str] = None
