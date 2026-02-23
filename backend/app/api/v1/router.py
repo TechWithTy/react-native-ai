@@ -5,6 +5,7 @@ from .endpoints.ai import router as ai
 from .endpoints.wallet import router as wallet
 from .endpoints.users import router as users
 from .endpoints.analytics import router as analytics
+from .endpoints.documents import router as documents
 
 api_router = APIRouter()
 
@@ -14,3 +15,4 @@ api_router.include_router(ai.router, prefix="/ai", tags=["AI"])
 api_router.include_router(wallet.router, prefix="/wallet", tags=["Wallet"])
 api_router.include_router(users.router, prefix="/users", tags=["Users"])
 api_router.include_router(analytics.router, prefix="/analytics", tags=["Analytics"])
+api_router.include_router(documents, prefix="/documents", tags=["Documents"])

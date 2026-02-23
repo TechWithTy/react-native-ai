@@ -1,5 +1,6 @@
+from typing import Dict
+from pydantic import BaseModel, Field
 from app.schemas.base import BaseSchema
-from pydantic import Field
 
 class CreditBalance(BaseSchema):
     ai_credits: int = Field(alias="balance")
