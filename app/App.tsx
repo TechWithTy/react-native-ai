@@ -21,8 +21,9 @@ import {
   BottomSheetModalProvider,
   BottomSheetView,
 } from '@gorhom/bottom-sheet'
-import { DevSettings, StyleSheet, LogBox } from 'react-native'
+import { StyleSheet, LogBox } from 'react-native'
 import { useAIAgentsStore } from './src/store/aiAgentsStore'
+import { useUserProfileStore } from './src/store/userProfileStore'
 
 LogBox.ignoreLogs([
   'Key "cancelled" in the image picker result is deprecated and will be removed in SDK 48, use "canceled" instead',
@@ -58,6 +59,9 @@ export default function App() {
       const resolvedTheme = _theme && getTheme(_theme) ? _theme : 'dark'
       ;(globalThis as any).__RNAI_THEME_NAME = resolvedTheme
       setTheme(resolvedTheme)
+      if (resolvedTheme === 'light' || resolvedTheme === 'dark') {
+        useUserProfileStore.getState().setAppThemePreference(resolvedTheme)
+      }
       const _chatType = await AsyncStorage.getItem('rnai-chatType')
       let resolvedChatType = MODELS.claudeOpus
       if (_chatType) {
@@ -104,23 +108,6 @@ export default function App() {
     AsyncStorage.setItem('rnai-imageModel', model)
   }
 
-  async function reloadForThemeChange() {
-    const isTestEnv = typeof process !== 'undefined' && Boolean(process.env?.JEST_WORKER_ID)
-    if (isTestEnv) return
-
-    try {
-      const Updates = require('expo-updates')
-      if (typeof Updates?.reloadAsync === 'function') {
-        await Updates.reloadAsync()
-        return
-      }
-    } catch {
-      // Fall back to DevSettings reload in dev.
-    }
-
-    DevSettings.reload()
-  }
-
   function _setTheme(nextThemeAction: SetStateAction<string>) {
     const nextTheme =
       typeof nextThemeAction === 'function'
@@ -130,7 +117,9 @@ export default function App() {
     setTheme(nextTheme)
     ;(globalThis as any).__RNAI_THEME_NAME = nextTheme
     AsyncStorage.setItem('rnai-theme', nextTheme)
-    void reloadForThemeChange()
+    if (nextTheme === 'light' || nextTheme === 'dark') {
+      useUserProfileStore.getState().setAppThemePreference(nextTheme)
+    }
   }
 
   const bottomSheetStyles = getBottomsheetStyles(getTheme(theme))

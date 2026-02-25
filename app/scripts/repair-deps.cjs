@@ -57,6 +57,9 @@ function main() {
     process.exit(1)
   }
 
+  const patchExitCode = run('node', ['./scripts/patch-native-deps.cjs'])
+  if (patchExitCode !== 0) process.exit(patchExitCode)
+
   console.log('[repair:deps] Dependency tree repaired successfully.')
 }
 

@@ -3,6 +3,8 @@ import { ActivityIndicator, Alert, StyleSheet, Text, TouchableOpacity, View } fr
 import { Feather, MaterialIcons } from '@expo/vector-icons'
 import { CLTheme } from '../theme'
 import { useCreditsStore } from '../../../store/creditsStore'
+import { useUserProfileStore } from '../../../store/userProfileStore'
+import { showRewardedAd } from '../../../services/adMob'
 import { ModalContainer } from './modalContainer'
 
 type RewardedAdMode = 'ai_credits' | 'scan_credits'
@@ -29,6 +31,7 @@ export function RewardedAdDrawer({
 }: RewardedAdDrawerProps) {
   const addCredits = useCreditsStore(state => state.addCredits)
   const addScanCredits = useCreditsStore(state => state.addScanCredits)
+  const adsDebugModeEnabled = useUserProfileStore(state => state.adsDebugModeEnabled)
   const [watching, setWatching] = React.useState(false)
   const [progress, setProgress] = React.useState(0)
 
@@ -43,6 +46,53 @@ export function RewardedAdDrawer({
     }
   }, [visible])
 
+  const grantReward = React.useCallback(() => {
+    if (mode === 'ai_credits') {
+      addCredits(reward)
+    } else {
+      addScanCredits(reward, `Rewarded ad bonus: ${reward} scan credits`)
+    }
+    onClose()
+    onRewardGranted?.()
+    Alert.alert('Reward added', `You earned ${rewardLabel}.`)
+  }, [mode, reward, rewardLabel, addCredits, addScanCredits, onClose, onRewardGranted])
+
+  const runSimulatedReward = React.useCallback(() => {
+    setProgress(0)
+    setWatching(true)
+  }, [])
+
+  const handleWatchAd = React.useCallback(async () => {
+    setWatching(true)
+    setProgress(0)
+    const result = await showRewardedAd()
+
+    if (result === 'earned') {
+      setWatching(false)
+      grantReward()
+      return
+    }
+
+    if (result === 'closed_no_reward') {
+      setWatching(false)
+      Alert.alert('Ad not completed', 'Complete the ad to unlock credits.')
+      return
+    }
+
+    if ((result === 'unavailable' || result === 'failed') && adsDebugModeEnabled) {
+      runSimulatedReward()
+      return
+    }
+
+    setWatching(false)
+    Alert.alert(
+      'Ads unavailable',
+      adsDebugModeEnabled
+        ? 'Could not load a rewarded ad right now.'
+        : 'Enable Ads Debug Mode in Settings to test ad fallback behavior.'
+    )
+  }, [adsDebugModeEnabled, grantReward, runSimulatedReward])
+
   React.useEffect(() => {
     if (!watching) return
     const timer = setInterval(() => {
@@ -51,21 +101,14 @@ export function RewardedAdDrawer({
         if (next >= 1) {
           clearInterval(timer)
           setWatching(false)
-          if (mode === 'ai_credits') {
-            addCredits(reward)
-          } else {
-            addScanCredits(reward, `Rewarded ad bonus: ${reward} scan credits`)
-          }
-          onClose()
-          onRewardGranted?.()
-          Alert.alert('Reward added', `You earned ${rewardLabel}.`)
+          grantReward()
         }
         return next
       })
     }, 650)
 
     return () => clearInterval(timer)
-  }, [watching, mode, reward, rewardLabel, addCredits, addScanCredits, onClose, onRewardGranted])
+  }, [watching, grantReward])
 
   return (
     <ModalContainer
@@ -109,10 +152,7 @@ export function RewardedAdDrawer({
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.primaryBtn}
-              onPress={() => {
-                setProgress(0)
-                setWatching(true)
-              }}
+              onPress={handleWatchAd}
               testID={mode === 'ai_credits' ? 'watch-ad-ai-button' : 'watch-ad-scan-button'}
             >
               <MaterialIcons name='play-circle-filled' size={16} color='#fff' />

@@ -13,6 +13,7 @@ export type ProfileNextAction = {
 }
 
 export type NotificationChannel = 'email' | 'sms' | 'push'
+export type AppThemePreference = 'light' | 'dark'
 export type NotificationPreferenceKey =
   | 'newScanReady'
   | 'applicationStatus'
@@ -113,6 +114,9 @@ interface UserProfile {
     claimedAt: string | null
     claimedAmount: number
   }
+  adsDebugModeEnabled: boolean
+  hasPromptedPushPermissionsOnboarding: boolean
+  appThemePreference: AppThemePreference
 }
 
 interface UserProfileStore extends UserProfile {
@@ -132,6 +136,8 @@ interface UserProfileStore extends UserProfile {
   saveCustomInterviewPrep: (prep: CustomInterviewPrepPayload) => void
   setLinkedInKitWins: (wins: UserProfile['linkedInKitWins']) => void
   claimFirstReviewReward: (amount: number) => boolean
+  setHasPromptedPushPermissionsOnboarding: (value: boolean) => void
+  setAppThemePreference: (theme: AppThemePreference) => void
   resetProfile: () => void
 }
 
@@ -338,6 +344,9 @@ const defaultProfile: UserProfile = {
     claimedAt: null,
     claimedAmount: 0,
   },
+  adsDebugModeEnabled: typeof __DEV__ !== 'undefined' ? __DEV__ : true,
+  hasPromptedPushPermissionsOnboarding: false,
+  appThemePreference: 'dark',
 }
 
 const memoryState: Record<string, string> = {}
@@ -352,6 +361,7 @@ const memoryStorage = {
 }
 
 const isTest = typeof process !== 'undefined' && typeof process.env?.JEST_WORKER_ID !== 'undefined'
+const isDevRuntime = typeof __DEV__ !== 'undefined' && __DEV__
 const getPersistStorage = () => {
   if (isTest) return memoryStorage
   return require('@react-native-async-storage/async-storage').default
@@ -514,6 +524,9 @@ export const useUserProfileStore = create<UserProfileStore>()(
 
         return true
       },
+      setHasPromptedPushPermissionsOnboarding: (value) =>
+        set((state) => ({ ...state, hasPromptedPushPermissionsOnboarding: value })),
+      setAppThemePreference: (theme) => set((state) => ({ ...state, appThemePreference: theme })),
       saveCustomInterviewPrep: (prep) =>
         set((state) => {
           const key = `${prep.inferredRole}::${prep.companyName ?? ''}`
@@ -537,6 +550,18 @@ export const useUserProfileStore = create<UserProfileStore>()(
     {
       name: 'rnai-user-profile-zustand',
       storage: createJSONStorage(() => getPersistStorage()),
+      merge: (persistedState, currentState) => {
+        const next = {
+          ...currentState,
+          ...(persistedState as Partial<UserProfileStore>),
+        }
+
+        if (isDevRuntime) {
+          next.adsDebugModeEnabled = true
+        }
+
+        return next
+      },
     }
   )
 )

@@ -6,34 +6,33 @@ pluginManagement {
     }.standardOutput.asText.get().trim()
   ).getParentFile().absolutePath
   includeBuild(reactNativeGradlePlugin)
+  
+  def expoPluginsPath = new File(
+    providers.exec {
+      workingDir(rootDir)
+      commandLine("node", "--print", "require.resolve('expo-modules-autolinking/package.json', { paths: [require.resolve('expo/package.json')] })")
+    }.standardOutput.asText.get().trim(),
+    "../android/expo-gradle-plugin"
+  ).absolutePath
+  includeBuild(expoPluginsPath)
 }
 
 plugins {
   id("com.facebook.react.settings")
+  id("expo-autolinking-settings")
 }
-
-def expoPackageJsonPath = providers.exec {
-  workingDir(rootDir)
-  commandLine("node", "--print", "require.resolve('expo/package.json')")
-}.standardOutput.asText.get().trim()
-
-apply from: new File(expoPackageJsonPath, "../scripts/autolinking.gradle")
-
-useExpoModules()
 
 extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
   ex.autolinkLibrariesFromCommand()
 }
+expoAutolinking.useExpoModules()
 
 rootProject.name = 'app'
 
+expoAutolinking.useExpoVersionCatalog()
+
 include ':app'
-
-def reactNativeGradlePluginPath = new File(
-  providers.exec {
-    workingDir(rootDir)
-    commandLine("node", "--print", "require.resolve('@react-native/gradle-plugin/package.json', { paths: [require.resolve('react-native/package.json')] })")
-  }.standardOutput.asText.get().trim()
-).getParentFile().absolutePath
-
-includeBuild(reactNativeGradlePluginPath)
+include ':react-native-google-mobile-ads'
+project(':react-native-google-mobile-ads').projectDir =
+  new File(rootProject.projectDir, '../node_modules/react-native-google-mobile-ads/android')
+includeBuild(expoAutolinking.reactNativeGradlePlugin)

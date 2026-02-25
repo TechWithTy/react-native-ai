@@ -55,7 +55,17 @@
           "cameraPermission": "Allow Career Lift to access your camera for profile and document capture.",
           "microphonePermission": "Allow Career Lift to use your microphone when recording video content."
         }
-      ]
+      ],
+      [
+        "react-native-google-mobile-ads",
+        {
+          "androidAppId": "ca-app-pub-3940256099942544~3347511713",
+          "iosAppId": "ca-app-pub-3940256099942544~1458002511",
+          "userTrackingUsageDescription": "This identifier will be used to provide better ad relevance.",
+          "delayAppMeasurementInit": true
+        }
+      ],
+      "expo-asset"
     ]
   }
 }

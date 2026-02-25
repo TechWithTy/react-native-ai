@@ -1,5 +1,5 @@
 import React from 'react'
-import { act, fireEvent, render } from '@testing-library/react-native'
+import { act, fireEvent, render, waitFor } from '@testing-library/react-native'
 import { SplashScreen } from '../splash'
 import { OnboardingGoalsScreen } from '../onboardingGoals'
 import { OnboardingSetTargetsScreen } from '../onboardingSetTargets'
@@ -82,7 +82,7 @@ describe('CareerLift flows', () => {
     expect(navigation.navigate).toHaveBeenCalledWith('ResumeIngestion')
   })
 
-  it('resume ingestion actions work', () => {
+  it('resume ingestion actions work', async () => {
     const { getByText } = render(<ResumeIngestionScreen navigation={navigation} />)
     
     // Test LinkedIn Modal Flow
@@ -91,11 +91,13 @@ describe('CareerLift flows', () => {
     
     fireEvent.press(getByText('Authorize LinkedIn'))
     fireEvent.press(getByText('Use Imported Profile'))
-    expect(mockRequestPushNotificationsPermission).toHaveBeenCalledWith('onboarding')
-    expect(navigation.navigate).toHaveBeenCalledWith('MainTabs')
+    await waitFor(() => {
+      expect(mockRequestPushNotificationsPermission).toHaveBeenCalledWith('onboarding')
+      expect(navigation.navigate).toHaveBeenCalledWith('MainTabs')
+    })
   })
 
-  it('prompts push permission when completing onboarding with an uploaded resume', () => {
+  it('prompts push permission when completing onboarding with an uploaded resume', async () => {
     act(() => {
       useCareerSetupStore.getState().setCareerSetup({
         sourceResumeName: 'My_Resume.pdf',
@@ -105,8 +107,27 @@ describe('CareerLift flows', () => {
     const { getByText } = render(<ResumeIngestionScreen navigation={navigation} />)
     fireEvent.press(getByText('Complete Setup'))
 
-    expect(mockRequestPushNotificationsPermission).toHaveBeenCalledWith('onboarding')
-    expect(navigation.navigate).toHaveBeenCalledWith('MainTabs')
+    await waitFor(() => {
+      expect(mockRequestPushNotificationsPermission).toHaveBeenCalledWith('onboarding')
+      expect(navigation.navigate).toHaveBeenCalledWith('MainTabs')
+    })
+  })
+
+  it('prompts push permission only once after onboarding completion', async () => {
+    act(() => {
+      useCareerSetupStore.getState().setCareerSetup({
+        sourceResumeName: 'My_Resume.pdf',
+      })
+    })
+
+    const { getByText } = render(<ResumeIngestionScreen navigation={navigation} />)
+    fireEvent.press(getByText('Complete Setup'))
+    fireEvent.press(getByText('Complete Setup'))
+
+    await waitFor(() => {
+      expect(mockRequestPushNotificationsPermission).toHaveBeenCalledTimes(1)
+      expect(useUserProfileStore.getState().hasPromptedPushPermissionsOnboarding).toBe(true)
+    })
   })
 
   it('step 2 role options and highlighted skills follow selected track', () => {

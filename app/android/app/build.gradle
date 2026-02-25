@@ -3,9 +3,6 @@ apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
 
 def projectRoot = rootDir.getAbsoluteFile().getParentFile().getAbsolutePath()
-def nativeBuildStagingDir = System.properties['os.name'].toLowerCase().contains('windows')
-    ? file("C:/.cxx/rnai")
-    : file("${rootProject.projectDir}/.cxx")
 
 /**
  * This is the configuration block to customize your React Native Android app.
@@ -17,7 +14,7 @@ react {
     hermesCommand = new File(["node", "--print", "require.resolve('react-native/package.json')"].execute(null, rootDir).text.trim()).getParentFile().getAbsolutePath() + "/sdks/hermesc/%OS-BIN%/hermesc"
     codegenDir = new File(["node", "--print", "require.resolve('@react-native/codegen/package.json', { paths: [require.resolve('react-native/package.json')] })"].execute(null, rootDir).text.trim()).getParentFile().getAbsoluteFile()
 
-
+    enableBundleCompression = (findProperty('android.enableBundleCompression') ?: false).toBoolean()
     // Use Expo CLI to bundle the app, this ensures the Metro config
     // works correctly with Expo projects.
     cliFile = new File(["node", "--print", "require.resolve('@expo/cli', { paths: [require.resolve('expo/package.json')] })"].execute(null, rootDir).text.trim())
@@ -90,13 +87,6 @@ android {
     buildToolsVersion = rootProject.ext.buildToolsVersion
     compileSdk = rootProject.ext.compileSdkVersion
 
-    // Keep native build intermediates in a short path to avoid Windows path-length issues.
-    externalNativeBuild {
-        cmake {
-            buildStagingDirectory nativeBuildStagingDir
-        }
-    }
-
     namespace = 'com.anonymous.app'
     defaultConfig {
         applicationId 'com.anonymous.app'
@@ -165,12 +155,12 @@ android {
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
+    implementation(project(':react-native-google-mobile-ads'))
 
     def isGifEnabled = (findProperty('expo.gif.enabled') ?: "") == "true";
     def isWebpEnabled = (findProperty('expo.webp.enabled') ?: "") == "true";
     def isWebpAnimatedEnabled = (findProperty('expo.webp.animated') ?: "") == "true";
 
-    /*
     if (isGifEnabled) {
         // For animated gif support
         implementation("com.facebook.fresco:animated-gif:${expoLibs.versions.fresco.get()}")
@@ -184,7 +174,6 @@ dependencies {
             implementation("com.facebook.fresco:animated-webp:${expoLibs.versions.fresco.get()}")
         }
     }
-    */
 
     if (hermesEnabled.toBoolean()) {
         implementation("com.facebook.react:hermes-android")

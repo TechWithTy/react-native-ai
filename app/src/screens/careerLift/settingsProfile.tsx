@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import React, { useCallback, useContext, useEffect, useRef, useState } from 'react'
 import {
   View,
   Text,
@@ -30,10 +30,12 @@ import { SubscriptionModal } from './subscriptionModal'
 import { ModalContainer } from './components/modalContainer'
 import { LocationAutocomplete } from './components/locationAutocomplete'
 import { CreditPacksDrawer } from './components/creditPacksDrawer'
+import { BannerAdSlot } from './components/bannerAdSlot'
 import { CustomInterviewPrepPayload } from '../../../types'
 import { ROLE_TRACKS_META } from '../../data/roles'
 import { TARGET_SENIORITY_OPTIONS } from '../../data/seniority'
 import { getCurrentDeviceLocation } from '../../native/permissions/location'
+import { ThemeContext } from '../../context'
 
 const PLAN_LABELS: Record<SubscriptionTierId, string> = {
   starter: 'FREE',
@@ -70,6 +72,7 @@ type ProfileSelectionType = 'industry' | 'seniority' | 'role' | 'salary' | 'open
 export function SettingsProfileScreen() {
   const navigation = useNavigation()
   const route = useRoute()
+  const { setTheme: setAppTheme } = useContext(ThemeContext)
   const clTheme = useCLTheme()
   const styles = getStyles(clTheme)
   const [calendarSync, setCalendarSync] = useState(true)
@@ -121,7 +124,10 @@ export function SettingsProfileScreen() {
     isOpenToWork,
     activityLog,
     markActivityLogExported,
+    adsDebugModeEnabled,
+    appThemePreference,
     setProfile,
+    setAppThemePreference,
   } = useUserProfileStore()
 
   const hasRemoteWorkingPreference =
@@ -284,6 +290,23 @@ export function SettingsProfileScreen() {
   const handleOpenMonetizationPrompts = () => {
     ;(navigation as any).navigate('MonetizationPrompts')
   }
+
+  const handleToggleAdsDebugMode = (enabled: boolean) => {
+    setProfile({ adsDebugModeEnabled: enabled })
+    if (!enabled) {
+      Alert.alert('Ads Debug Mode Off', 'Prompt and paywall ad testing tools are now hidden.')
+    }
+  }
+
+  const handleThemePreferenceChange = useCallback((nextTheme: 'light' | 'dark') => {
+    if (nextTheme === appThemePreference) return
+    setAppThemePreference(nextTheme)
+    setAppTheme(nextTheme)
+  }, [appThemePreference, setAppTheme, setAppThemePreference])
+
+  const handleToggleThemePreference = useCallback(() => {
+    handleThemePreferenceChange(appThemePreference === 'dark' ? 'light' : 'dark')
+  }, [appThemePreference, handleThemePreferenceChange])
 
   const openExternalLink = useCallback(async (url: string) => {
     try {
@@ -1127,6 +1150,34 @@ export function SettingsProfileScreen() {
 
             <View style={styles.separator} />
 
+            <TouchableOpacity
+              style={styles.autoApplyRow}
+              onPress={handleToggleThemePreference}
+              activeOpacity={0.8}
+              testID='theme-toggle-row'
+            >
+              <View style={styles.rowLeft}>
+                <View style={[styles.iconBox, { backgroundColor: 'rgba(13, 108, 242, 0.15)' }]}>
+                  <MaterialIcons name='dark-mode' size={20} color={CLTheme.accent} />
+                </View>
+                <View style={styles.autoApplyTextWrap}>
+                  <Text style={styles.rowLabel}>Theme</Text>
+                  <Text style={styles.autoApplySubLabel}>
+                    {appThemePreference === 'dark' ? 'Dark mode enabled' : 'Light mode enabled'}
+                  </Text>
+                </View>
+              </View>
+              <Switch
+                value={appThemePreference === 'dark'}
+                onValueChange={value => handleThemePreferenceChange(value ? 'dark' : 'light')}
+                trackColor={{ false: CLTheme.border, true: 'rgba(13, 108, 242, 0.45)' }}
+                thumbColor={appThemePreference === 'dark' ? CLTheme.accent : '#94a3b8'}
+                testID='theme-toggle-switch'
+              />
+            </TouchableOpacity>
+
+            <View style={styles.separator} />
+
             <TouchableOpacity style={styles.row} onPress={handleOpenAccountSecurity}>
               <View style={styles.rowLeft}>
                 <View style={[styles.iconBox, { backgroundColor: 'rgba(13, 108, 242, 0.15)' }]}>
@@ -1153,15 +1204,43 @@ export function SettingsProfileScreen() {
               <>
                 <View style={styles.separator} />
 
-                <TouchableOpacity style={styles.row} onPress={handleOpenMonetizationPrompts}>
+                <View style={styles.autoApplyRow}>
                   <View style={styles.rowLeft}>
                     <View style={[styles.iconBox, { backgroundColor: 'rgba(168, 85, 247, 0.15)' }]}>
-                      <MaterialIcons name='tune' size={20} color='#a855f7' />
+                      <MaterialIcons name='science' size={20} color='#a855f7' />
                     </View>
-                    <Text style={styles.rowLabel}>Prompts & Paywalls</Text>
+                    <View style={styles.autoApplyTextWrap}>
+                      <Text style={styles.rowLabel}>Ads Debug Mode</Text>
+                      <Text style={styles.autoApplySubLabel}>Enable ad testing in prompts/paywalls</Text>
+                    </View>
                   </View>
-                  <MaterialIcons name='chevron-right' size={20} color={CLTheme.text.secondary} />
-                </TouchableOpacity>
+                  <Switch
+                    value={adsDebugModeEnabled}
+                    onValueChange={handleToggleAdsDebugMode}
+                    trackColor={{ false: CLTheme.border, true: 'rgba(168, 85, 247, 0.45)' }}
+                    thumbColor={adsDebugModeEnabled ? '#a855f7' : '#94a3b8'}
+                  />
+                </View>
+
+                {adsDebugModeEnabled ? (
+                  <>
+                    <View style={styles.separator} />
+
+                    <TouchableOpacity style={styles.row} onPress={handleOpenMonetizationPrompts}>
+                      <View style={styles.rowLeft}>
+                        <View style={[styles.iconBox, { backgroundColor: 'rgba(168, 85, 247, 0.15)' }]}>
+                          <MaterialIcons name='tune' size={20} color='#a855f7' />
+                        </View>
+                        <Text style={styles.rowLabel}>Prompts & Paywalls</Text>
+                      </View>
+                      <MaterialIcons name='chevron-right' size={20} color={CLTheme.text.secondary} />
+                    </TouchableOpacity>
+
+                    <View style={styles.devBannerPreviewWrap}>
+                      <BannerAdSlot placement='settings_profile_debug' enabled />
+                    </View>
+                  </>
+                ) : null}
               </>
             ) : null}
           </View>
@@ -2194,5 +2273,9 @@ const getStyles = (CLTheme: CLThemeTokens) => StyleSheet.create({
     color: CLTheme.text.muted,
     fontWeight: '500',
     marginTop: 2,
+  },
+  devBannerPreviewWrap: {
+    paddingHorizontal: 16,
+    paddingBottom: 14,
   },
 })

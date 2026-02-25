@@ -112,6 +112,13 @@ function ensureDependencies() {
   return 1
 }
 
+function applyDependencyPatches() {
+  const patchScript = path.join(projectRoot, 'scripts', 'patch-native-deps.cjs')
+  if (!fs.existsSync(patchScript)) return 0
+  console.warn('[start-safe] Applying dependency patches...')
+  return run('node', [patchScript])
+}
+
 function hasHostArg(args) {
   return args.some(arg => arg === '--localhost' || arg === '--lan' || arg === '--tunnel' || arg === '--host')
 }
@@ -156,6 +163,10 @@ function main() {
   const dependencyStatus = ensureDependencies()
   if (dependencyStatus !== 0) {
     process.exit(dependencyStatus)
+  }
+  const patchStatus = applyDependencyPatches()
+  if (patchStatus !== 0) {
+    process.exit(patchStatus)
   }
 
   const extraArgs = process.argv.slice(2)
