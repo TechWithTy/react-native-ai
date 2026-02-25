@@ -111,6 +111,24 @@ describe('Account and security flow', () => {
     expect(mockNavigate).toHaveBeenCalledWith('DocumentsInsights')
   })
 
+  it('switches theme preference to light from settings profile', () => {
+    useUserProfileStore.getState().setAppThemePreference('dark')
+    const { getByTestId } = render(<SettingsProfileScreen />)
+
+    fireEvent.press(getByTestId('theme-light-button'))
+
+    expect(useUserProfileStore.getState().appThemePreference).toBe('light')
+  })
+
+  it('switches theme preference to dark from settings profile', () => {
+    useUserProfileStore.getState().setAppThemePreference('light')
+    const { getByTestId } = render(<SettingsProfileScreen />)
+
+    fireEvent.press(getByTestId('theme-dark-button'))
+
+    expect(useUserProfileStore.getState().appThemePreference).toBe('dark')
+  })
+
   it('exports activity log CSV from settings profile', async () => {
     const { getByTestId } = render(<SettingsProfileScreen />)
     fireEvent.press(getByTestId('settings-export-activity-log-button'))

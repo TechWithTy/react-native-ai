@@ -23,6 +23,7 @@ import {
 } from '@gorhom/bottom-sheet'
 import { DevSettings, StyleSheet, LogBox } from 'react-native'
 import { useAIAgentsStore } from './src/store/aiAgentsStore'
+import { useUserProfileStore } from './src/store/userProfileStore'
 
 LogBox.ignoreLogs([
   'Key "cancelled" in the image picker result is deprecated and will be removed in SDK 48, use "canceled" instead',
@@ -58,6 +59,9 @@ export default function App() {
       const resolvedTheme = _theme && getTheme(_theme) ? _theme : 'dark'
       ;(globalThis as any).__RNAI_THEME_NAME = resolvedTheme
       setTheme(resolvedTheme)
+      if (resolvedTheme === 'light' || resolvedTheme === 'dark') {
+        useUserProfileStore.getState().setAppThemePreference(resolvedTheme)
+      }
       const _chatType = await AsyncStorage.getItem('rnai-chatType')
       let resolvedChatType = MODELS.claudeOpus
       if (_chatType) {
@@ -130,6 +134,9 @@ export default function App() {
     setTheme(nextTheme)
     ;(globalThis as any).__RNAI_THEME_NAME = nextTheme
     AsyncStorage.setItem('rnai-theme', nextTheme)
+    if (nextTheme === 'light' || nextTheme === 'dark') {
+      useUserProfileStore.getState().setAppThemePreference(nextTheme)
+    }
     void reloadForThemeChange()
   }
 

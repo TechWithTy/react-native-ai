@@ -13,6 +13,7 @@ export type ProfileNextAction = {
 }
 
 export type NotificationChannel = 'email' | 'sms' | 'push'
+export type AppThemePreference = 'light' | 'dark'
 export type NotificationPreferenceKey =
   | 'newScanReady'
   | 'applicationStatus'
@@ -114,6 +115,8 @@ interface UserProfile {
     claimedAmount: number
   }
   adsDebugModeEnabled: boolean
+  hasPromptedPushPermissionsOnboarding: boolean
+  appThemePreference: AppThemePreference
 }
 
 interface UserProfileStore extends UserProfile {
@@ -133,6 +136,8 @@ interface UserProfileStore extends UserProfile {
   saveCustomInterviewPrep: (prep: CustomInterviewPrepPayload) => void
   setLinkedInKitWins: (wins: UserProfile['linkedInKitWins']) => void
   claimFirstReviewReward: (amount: number) => boolean
+  setHasPromptedPushPermissionsOnboarding: (value: boolean) => void
+  setAppThemePreference: (theme: AppThemePreference) => void
   resetProfile: () => void
 }
 
@@ -340,6 +345,8 @@ const defaultProfile: UserProfile = {
     claimedAmount: 0,
   },
   adsDebugModeEnabled: typeof __DEV__ !== 'undefined' ? __DEV__ : true,
+  hasPromptedPushPermissionsOnboarding: false,
+  appThemePreference: 'dark',
 }
 
 const memoryState: Record<string, string> = {}
@@ -517,6 +524,9 @@ export const useUserProfileStore = create<UserProfileStore>()(
 
         return true
       },
+      setHasPromptedPushPermissionsOnboarding: (value) =>
+        set((state) => ({ ...state, hasPromptedPushPermissionsOnboarding: value })),
+      setAppThemePreference: (theme) => set((state) => ({ ...state, appThemePreference: theme })),
       saveCustomInterviewPrep: (prep) =>
         set((state) => {
           const key = `${prep.inferredRole}::${prep.companyName ?? ''}`

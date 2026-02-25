@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import React, { useCallback, useContext, useEffect, useRef, useState } from 'react'
 import {
   View,
   Text,
@@ -35,6 +35,7 @@ import { CustomInterviewPrepPayload } from '../../../types'
 import { ROLE_TRACKS_META } from '../../data/roles'
 import { TARGET_SENIORITY_OPTIONS } from '../../data/seniority'
 import { getCurrentDeviceLocation } from '../../native/permissions/location'
+import { ThemeContext } from '../../context'
 
 const PLAN_LABELS: Record<SubscriptionTierId, string> = {
   starter: 'FREE',
@@ -71,6 +72,7 @@ type ProfileSelectionType = 'industry' | 'seniority' | 'role' | 'salary' | 'open
 export function SettingsProfileScreen() {
   const navigation = useNavigation()
   const route = useRoute()
+  const { setTheme: setAppTheme } = useContext(ThemeContext)
   const clTheme = useCLTheme()
   const styles = getStyles(clTheme)
   const [calendarSync, setCalendarSync] = useState(true)
@@ -123,7 +125,9 @@ export function SettingsProfileScreen() {
     activityLog,
     markActivityLogExported,
     adsDebugModeEnabled,
+    appThemePreference,
     setProfile,
+    setAppThemePreference,
   } = useUserProfileStore()
 
   const hasRemoteWorkingPreference =
@@ -293,6 +297,12 @@ export function SettingsProfileScreen() {
       Alert.alert('Ads Debug Mode Off', 'Prompt and paywall ad testing tools are now hidden.')
     }
   }
+
+  const handleThemePreferenceChange = useCallback((nextTheme: 'light' | 'dark') => {
+    if (nextTheme === appThemePreference) return
+    setAppThemePreference(nextTheme)
+    setAppTheme(nextTheme)
+  }, [appThemePreference, setAppTheme, setAppThemePreference])
 
   const openExternalLink = useCallback(async (url: string) => {
     try {
@@ -1136,6 +1146,56 @@ export function SettingsProfileScreen() {
 
             <View style={styles.separator} />
 
+            <View style={styles.autoApplyRow}>
+              <View style={styles.rowLeft}>
+                <View style={[styles.iconBox, { backgroundColor: 'rgba(13, 108, 242, 0.15)' }]}>
+                  <MaterialIcons name='dark-mode' size={20} color={CLTheme.accent} />
+                </View>
+                <View style={styles.autoApplyTextWrap}>
+                  <Text style={styles.rowLabel}>Theme</Text>
+                  <Text style={styles.autoApplySubLabel}>Switch between Light and Dark mode</Text>
+                </View>
+              </View>
+              <View style={styles.themeToggleWrap}>
+                <TouchableOpacity
+                  style={[
+                    styles.themePill,
+                    appThemePreference === 'light' && styles.themePillActive,
+                  ]}
+                  onPress={() => handleThemePreferenceChange('light')}
+                  testID='theme-light-button'
+                >
+                  <Text
+                    style={[
+                      styles.themePillText,
+                      appThemePreference === 'light' && styles.themePillTextActive,
+                    ]}
+                  >
+                    Light
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.themePill,
+                    appThemePreference === 'dark' && styles.themePillActive,
+                  ]}
+                  onPress={() => handleThemePreferenceChange('dark')}
+                  testID='theme-dark-button'
+                >
+                  <Text
+                    style={[
+                      styles.themePillText,
+                      appThemePreference === 'dark' && styles.themePillTextActive,
+                    ]}
+                  >
+                    Dark
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            <View style={styles.separator} />
+
             <TouchableOpacity style={styles.row} onPress={handleOpenAccountSecurity}>
               <View style={styles.rowLeft}>
                 <View style={[styles.iconBox, { backgroundColor: 'rgba(13, 108, 242, 0.15)' }]}>
@@ -1629,6 +1689,31 @@ const getStyles = (CLTheme: CLThemeTokens) => StyleSheet.create({
   autoApplySubLabel: {
     fontSize: 12,
     color: CLTheme.text.muted,
+  },
+  themeToggleWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  themePill: {
+    borderWidth: 1,
+    borderColor: CLTheme.border,
+    backgroundColor: CLTheme.background,
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  themePillActive: {
+    borderColor: CLTheme.accent,
+    backgroundColor: 'rgba(13, 108, 242, 0.15)',
+  },
+  themePillText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: CLTheme.text.secondary,
+  },
+  themePillTextActive: {
+    color: CLTheme.accent,
   },
   autoApplyLimitCard: {
     backgroundColor: CLTheme.background,
