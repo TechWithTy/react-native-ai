@@ -130,6 +130,7 @@ function patchManifestAttribute(relativePath, attributePattern) {
   return true
 }
 
+
 function main() {
   const changed = []
 
@@ -167,6 +168,7 @@ function main() {
   ) {
     changed.push('node_modules/expo-image-picker/android/src/main/AndroidManifest.xml')
   }
+
 
   if (changed.length > 0) {
     console.log(`[patch-native-deps] Applied patches:\\n- ${changed.join('\\n- ')}`)
