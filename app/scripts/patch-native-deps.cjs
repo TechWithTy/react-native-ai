@@ -120,6 +120,16 @@ function patchManifestPackageAttribute(relativePath) {
   return true
 }
 
+function patchManifestAttribute(relativePath, attributePattern) {
+  const target = path.join(projectRoot, relativePath)
+  if (!fs.existsSync(target)) return false
+  const current = fs.readFileSync(target, 'utf8')
+  const updated = current.replace(attributePattern, '')
+  if (updated === current) return false
+  fs.writeFileSync(target, updated, 'utf8')
+  return true
+}
+
 function main() {
   const changed = []
 
@@ -138,6 +148,24 @@ function main() {
     if (patchManifestPackageAttribute(manifestPath)) {
       changed.push(manifestPath)
     }
+  }
+
+  if (
+    patchManifestAttribute(
+      'node_modules/expo-file-system/android/src/main/AndroidManifest.xml',
+      /\s+tools:replace=\"android:authorities\"/g
+    )
+  ) {
+    changed.push('node_modules/expo-file-system/android/src/main/AndroidManifest.xml')
+  }
+
+  if (
+    patchManifestAttribute(
+      'node_modules/expo-image-picker/android/src/main/AndroidManifest.xml',
+      /\s+tools:replace=\"android:exported\"/g
+    )
+  ) {
+    changed.push('node_modules/expo-image-picker/android/src/main/AndroidManifest.xml')
   }
 
   if (changed.length > 0) {
