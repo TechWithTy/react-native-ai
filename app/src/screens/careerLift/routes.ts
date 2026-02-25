@@ -1,5 +1,8 @@
 export const careerLiftRoutes = [
   { key: 'Splash', label: 'Career Lift Splash Screen' },
+  { key: 'AuthEntry', label: 'Auth: Sign In and Sign Up' },
+  { key: 'ForgotPassword', label: 'Auth: Forgot Password' },
+  { key: 'ForgotEmail', label: 'Auth: Forgot Email' },
   { key: 'OnboardingGoals', label: 'Onboarding: Career Goals' },
   { key: 'OnboardingSetTargets', label: 'Onboarding: Set Targets' },
   { key: 'ResumeIngestion', label: 'Onboarding: Resume Ingestion' },

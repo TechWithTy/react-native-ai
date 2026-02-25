@@ -27,7 +27,7 @@ export function SplashScreen({ navigation }: any) {
       <View style={styles.bottomArea}>
         <TouchableOpacity
           style={styles.cta}
-          onPress={() => navigation.navigate('OnboardingGoals')}
+          onPress={() => navigation.navigate('AuthEntry')}
           activeOpacity={0.9}
         >
           <Text style={styles.ctaText}>Get Started</Text>

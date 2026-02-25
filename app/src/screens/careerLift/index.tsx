@@ -1,6 +1,9 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { ScreenLibrary } from './screenLibrary'
 import { SplashScreen } from './splash'
+import { AuthEntryScreen } from './authEntry'
+import { ForgotPasswordScreen } from './forgotPassword'
+import { ForgotEmailScreen } from './forgotEmail'
 import { OnboardingGoalsScreen } from './onboardingGoals'
 import { OnboardingSetTargetsScreen } from './onboardingSetTargets'
 import { ResumeIngestionScreen } from './ResumeIngestionScreen'
@@ -41,6 +44,9 @@ export function CareerLift() {
     >
       <Stack.Screen name='ScreenLibrary' component={ScreenLibrary} />
       <Stack.Screen name='Splash' component={SplashScreen} />
+      <Stack.Screen name='AuthEntry' component={AuthEntryScreen} />
+      <Stack.Screen name='ForgotPassword' component={ForgotPasswordScreen} />
+      <Stack.Screen name='ForgotEmail' component={ForgotEmailScreen} />
       <Stack.Screen name='OnboardingGoals' component={OnboardingGoalsScreen} />
       <Stack.Screen name='OnboardingSetTargets' component={OnboardingSetTargetsScreen} />
       <Stack.Screen name='ResumeIngestion' component={ResumeIngestionScreen} />

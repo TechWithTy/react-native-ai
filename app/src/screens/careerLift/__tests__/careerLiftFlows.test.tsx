@@ -53,7 +53,7 @@ describe('CareerLift flows', () => {
   it('moves from splash to onboarding goals', () => {
     const { getByText } = render(<SplashScreen navigation={navigation} />)
     fireEvent.press(getByText('Get Started'))
-    expect(navigation.navigate).toHaveBeenCalledWith('OnboardingGoals')
+    expect(navigation.navigate).toHaveBeenCalledWith('AuthEntry')
   })
 
   it('moves from onboarding goals to step 2', () => {

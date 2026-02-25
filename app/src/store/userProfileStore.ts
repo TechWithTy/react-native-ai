@@ -14,6 +14,7 @@ export type ProfileNextAction = {
 
 export type NotificationChannel = 'email' | 'sms' | 'push'
 export type AppThemePreference = 'light' | 'dark'
+export type AuthMethod = 'email' | 'phone'
 export type NotificationPreferenceKey =
   | 'newScanReady'
   | 'applicationStatus'
@@ -81,6 +82,8 @@ export type ActivityLogEntryInput = Omit<ActivityLogEntry, 'id' | 'timestamp'> &
 }
 
 interface UserProfile {
+  firstName: string
+  lastName: string
   name: string
   email: string
   avatarUrl: string | null
@@ -117,6 +120,11 @@ interface UserProfile {
   adsDebugModeEnabled: boolean
   hasPromptedPushPermissionsOnboarding: boolean
   appThemePreference: AppThemePreference
+  isAuthenticated: boolean
+  authMethod: AuthMethod | null
+  lastAuthenticatedAt: string | null
+  pendingPasswordResetEmail: string | null
+  passwordResetVerifiedAt: string | null
 }
 
 interface UserProfileStore extends UserProfile {
@@ -138,6 +146,9 @@ interface UserProfileStore extends UserProfile {
   claimFirstReviewReward: (amount: number) => boolean
   setHasPromptedPushPermissionsOnboarding: (value: boolean) => void
   setAppThemePreference: (theme: AppThemePreference) => void
+  markAuthenticated: (method: AuthMethod) => void
+  markPasswordResetRequested: (email: string) => void
+  markPasswordResetVerified: () => void
   resetProfile: () => void
 }
 
@@ -299,6 +310,8 @@ const defaultActivityLog: ActivityLogEntry[] = [
 ]
 
 const defaultProfile: UserProfile = {
+  firstName: 'Alex',
+  lastName: 'Mercer',
   name: 'Alex Mercer', // Default placeholder
   email: 'alex.mercer@example.com',
   avatarUrl: 'https://i.pravatar.cc/150?u=alex',
@@ -347,6 +360,11 @@ const defaultProfile: UserProfile = {
   adsDebugModeEnabled: typeof __DEV__ !== 'undefined' ? __DEV__ : true,
   hasPromptedPushPermissionsOnboarding: false,
   appThemePreference: 'dark',
+  isAuthenticated: false,
+  authMethod: null,
+  lastAuthenticatedAt: null,
+  pendingPasswordResetEmail: null,
+  passwordResetVerifiedAt: null,
 }
 
 const memoryState: Record<string, string> = {}
@@ -527,6 +545,24 @@ export const useUserProfileStore = create<UserProfileStore>()(
       setHasPromptedPushPermissionsOnboarding: (value) =>
         set((state) => ({ ...state, hasPromptedPushPermissionsOnboarding: value })),
       setAppThemePreference: (theme) => set((state) => ({ ...state, appThemePreference: theme })),
+      markAuthenticated: (method) =>
+        set((state) => ({
+          ...state,
+          isAuthenticated: true,
+          authMethod: method,
+          lastAuthenticatedAt: new Date().toISOString(),
+        })),
+      markPasswordResetRequested: (email) =>
+        set((state) => ({
+          ...state,
+          pendingPasswordResetEmail: email,
+        })),
+      markPasswordResetVerified: () =>
+        set((state) => ({
+          ...state,
+          passwordResetVerifiedAt: new Date().toISOString(),
+          pendingPasswordResetEmail: null,
+        })),
       saveCustomInterviewPrep: (prep) =>
         set((state) => {
           const key = `${prep.inferredRole}::${prep.companyName ?? ''}`
