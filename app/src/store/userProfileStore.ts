@@ -113,6 +113,7 @@ interface UserProfile {
     claimedAt: string | null
     claimedAmount: number
   }
+  adsDebugModeEnabled: boolean
 }
 
 interface UserProfileStore extends UserProfile {
@@ -338,6 +339,7 @@ const defaultProfile: UserProfile = {
     claimedAt: null,
     claimedAmount: 0,
   },
+  adsDebugModeEnabled: typeof __DEV__ !== 'undefined' ? __DEV__ : true,
 }
 
 const memoryState: Record<string, string> = {}

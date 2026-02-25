@@ -30,6 +30,7 @@ import { SubscriptionModal } from './subscriptionModal'
 import { ModalContainer } from './components/modalContainer'
 import { LocationAutocomplete } from './components/locationAutocomplete'
 import { CreditPacksDrawer } from './components/creditPacksDrawer'
+import { BannerAdSlot } from './components/bannerAdSlot'
 import { CustomInterviewPrepPayload } from '../../../types'
 import { ROLE_TRACKS_META } from '../../data/roles'
 import { TARGET_SENIORITY_OPTIONS } from '../../data/seniority'
@@ -121,6 +122,7 @@ export function SettingsProfileScreen() {
     isOpenToWork,
     activityLog,
     markActivityLogExported,
+    adsDebugModeEnabled,
     setProfile,
   } = useUserProfileStore()
 
@@ -283,6 +285,13 @@ export function SettingsProfileScreen() {
 
   const handleOpenMonetizationPrompts = () => {
     ;(navigation as any).navigate('MonetizationPrompts')
+  }
+
+  const handleToggleAdsDebugMode = (enabled: boolean) => {
+    setProfile({ adsDebugModeEnabled: enabled })
+    if (!enabled) {
+      Alert.alert('Ads Debug Mode Off', 'Prompt and paywall ad testing tools are now hidden.')
+    }
   }
 
   const openExternalLink = useCallback(async (url: string) => {
@@ -1153,15 +1162,43 @@ export function SettingsProfileScreen() {
               <>
                 <View style={styles.separator} />
 
-                <TouchableOpacity style={styles.row} onPress={handleOpenMonetizationPrompts}>
+                <View style={styles.autoApplyRow}>
                   <View style={styles.rowLeft}>
                     <View style={[styles.iconBox, { backgroundColor: 'rgba(168, 85, 247, 0.15)' }]}>
-                      <MaterialIcons name='tune' size={20} color='#a855f7' />
+                      <MaterialIcons name='science' size={20} color='#a855f7' />
                     </View>
-                    <Text style={styles.rowLabel}>Prompts & Paywalls</Text>
+                    <View style={styles.autoApplyTextWrap}>
+                      <Text style={styles.rowLabel}>Ads Debug Mode</Text>
+                      <Text style={styles.autoApplySubLabel}>Enable ad testing in prompts/paywalls</Text>
+                    </View>
                   </View>
-                  <MaterialIcons name='chevron-right' size={20} color={CLTheme.text.secondary} />
-                </TouchableOpacity>
+                  <Switch
+                    value={adsDebugModeEnabled}
+                    onValueChange={handleToggleAdsDebugMode}
+                    trackColor={{ false: CLTheme.border, true: 'rgba(168, 85, 247, 0.45)' }}
+                    thumbColor={adsDebugModeEnabled ? '#a855f7' : '#94a3b8'}
+                  />
+                </View>
+
+                {adsDebugModeEnabled ? (
+                  <>
+                    <View style={styles.separator} />
+
+                    <TouchableOpacity style={styles.row} onPress={handleOpenMonetizationPrompts}>
+                      <View style={styles.rowLeft}>
+                        <View style={[styles.iconBox, { backgroundColor: 'rgba(168, 85, 247, 0.15)' }]}>
+                          <MaterialIcons name='tune' size={20} color='#a855f7' />
+                        </View>
+                        <Text style={styles.rowLabel}>Prompts & Paywalls</Text>
+                      </View>
+                      <MaterialIcons name='chevron-right' size={20} color={CLTheme.text.secondary} />
+                    </TouchableOpacity>
+
+                    <View style={styles.devBannerPreviewWrap}>
+                      <BannerAdSlot placement='settings_profile_debug' enabled />
+                    </View>
+                  </>
+                ) : null}
               </>
             ) : null}
           </View>
@@ -2194,5 +2231,9 @@ const getStyles = (CLTheme: CLThemeTokens) => StyleSheet.create({
     color: CLTheme.text.muted,
     fontWeight: '500',
     marginTop: 2,
+  },
+  devBannerPreviewWrap: {
+    paddingHorizontal: 16,
+    paddingBottom: 14,
   },
 })

@@ -6,9 +6,11 @@ import { MonetizationCopyVariant } from '../../store/monetizationExperimentsStor
 import { SubscriptionModal } from './subscriptionModal'
 import { CreditPacksDrawer } from './components/creditPacksDrawer'
 import { ReviewPromptModal } from './components/reviewPromptModal'
+import { BannerAdSlot } from './components/bannerAdSlot'
 import { useCreditsStore } from '../../store/creditsStore'
 import { useUserProfileStore } from '../../store/userProfileStore'
 import { ModalContainer } from './components/modalContainer'
+import { initializeAdMob, showInterstitialAd, showRewardedAd } from '../../services/adMob'
 
 type ReviewCopyMode = 'post_interview' | 'weekly_progress' | 'offer_milestone'
 type PaywallSurface = 'subscription' | 'ai_credits' | 'scan_credits'
@@ -41,6 +43,9 @@ export function MonetizationPromptsScreen({ navigation }: any) {
   const [showScanCredits, setShowScanCredits] = useState(false)
   const addCredits = useCreditsStore(state => state.addCredits)
   const claimFirstReviewReward = useUserProfileStore(state => state.claimFirstReviewReward)
+  const adsDebugModeEnabled = useUserProfileStore(state => state.adsDebugModeEnabled)
+  const [adStatus, setAdStatus] = useState('Idle')
+  const [adSdkReady, setAdSdkReady] = useState(false)
 
   const reviewCopy = useMemo(() => {
     if (reviewMode === 'post_interview') {
@@ -89,6 +94,42 @@ export function MonetizationPromptsScreen({ navigation }: any) {
     setReviewRewardGranted(true)
     setRewardSuccessAmount(amount)
     setShowRewardSuccessModal(true)
+  }
+
+  const handleInitializeAds = async () => {
+    setAdStatus('Initializing AdMob SDK...')
+    const initialized = await initializeAdMob()
+    if (!initialized) {
+      setAdSdkReady(false)
+      setAdStatus('AdMob SDK unavailable. Install/native-config required.')
+      return
+    }
+    setAdSdkReady(true)
+    setAdStatus('AdMob initialized successfully.')
+  }
+
+  const handleTestInterstitial = async () => {
+    setAdStatus('Loading interstitial...')
+    const result = await showInterstitialAd()
+    if (result === 'shown') {
+      setAdStatus('Interstitial shown successfully.')
+      return
+    }
+    setAdStatus(result === 'unavailable' ? 'Interstitial unavailable on this build.' : 'Interstitial failed to show.')
+  }
+
+  const handleTestRewarded = async () => {
+    setAdStatus('Loading rewarded ad...')
+    const result = await showRewardedAd()
+    if (result === 'earned') {
+      setAdStatus('Rewarded ad completed (earned).')
+      return
+    }
+    if (result === 'closed_no_reward') {
+      setAdStatus('Rewarded ad closed without earning reward.')
+      return
+    }
+    setAdStatus(result === 'unavailable' ? 'Rewarded ad unavailable on this build.' : 'Rewarded ad failed.')
   }
 
   return (
@@ -308,6 +349,36 @@ export function MonetizationPromptsScreen({ navigation }: any) {
             </TouchableOpacity>
           </View>
         </View>
+
+        {__DEV__ && adsDebugModeEnabled ? (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>AD TESTING</Text>
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>AdMob SDK Status</Text>
+              <Text style={styles.previewSubtitle}>{adStatus}</Text>
+
+              <View style={styles.chipsRow}>
+                <TouchableOpacity style={styles.chip} onPress={handleInitializeAds}>
+                  <Text style={styles.chipText}>Initialize SDK</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.chip, !adSdkReady && { opacity: 0.6 }]}
+                  onPress={handleTestInterstitial}
+                >
+                  <Text style={styles.chipText}>Test Interstitial</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.chip, !adSdkReady && { opacity: 0.6 }]}
+                  onPress={handleTestRewarded}
+                >
+                  <Text style={styles.chipText}>Test Rewarded</Text>
+                </TouchableOpacity>
+              </View>
+
+              <BannerAdSlot placement='monetization_prompts_debug' enabled />
+            </View>
+          </View>
+        ) : null}
       </ScrollView>
 
       <SubscriptionModal

@@ -132,9 +132,8 @@ function SwipeableNotificationRow({
   )
 
   return (
-    <View style={styles.notificationRow}>
-      <View style={styles.swipeContainer}>
-        <View style={styles.swipeBackground}>
+    <View style={styles.swipeContainer}>
+      <View style={styles.swipeBackground}>
                 {/* Left Side: Confirm (visible when swiping right) */}
                 {isActionable ? (
                     <Animated.View
@@ -176,19 +175,20 @@ function SwipeableNotificationRow({
                   <MaterialIcons name='delete' size={20} color='#fff' />
                   <Text style={styles.swipeActionText}>Dismiss</Text>
                 </Animated.View>
-        </View>
+      </View>
 
-        <Animated.View
-          style={[styles.swipeCardWrap, { transform: [{ translateX }] }]}
-          {...panResponder.panHandlers}
+      <Animated.View
+        style={[styles.swipeCardWrap, { transform: [{ translateX }] }]}
+        {...panResponder.panHandlers}
+      >
+        <TouchableOpacity
+          style={[styles.itemCard, toneStyles[tone], canNavigate && styles.itemCardPressable]}
+          disabled={!canNavigate}
+          activeOpacity={canNavigate ? 0.9 : 1}
+          onPress={canNavigate ? () => onPressNotification?.(item) : undefined}
+          accessibilityLabel={`Open notification ${item.title}`}
         >
-          <TouchableOpacity
-            style={[styles.itemCard, toneStyles[tone], canNavigate && styles.itemCardPressable]}
-            disabled={!canNavigate}
-            activeOpacity={canNavigate ? 0.9 : 1}
-            onPress={canNavigate ? () => onPressNotification?.(item) : undefined}
-            accessibilityLabel={`Open notification ${item.title}`}
-          >
+          <View style={styles.itemContent}>
             <View style={styles.itemHeader}>
               <Text style={styles.itemTitle} numberOfLines={1}>{item.title}</Text>
               <Text style={styles.itemTime}>{item.time}</Text>
@@ -197,24 +197,24 @@ function SwipeableNotificationRow({
             {canNavigate && (
               <View style={styles.itemActionRow}>
                 <Text style={styles.itemActionText}>
-                  {isActionable ? 'Open / Swipe Right to Confirm' : 'Open'}
+                  {isActionable ? 'Swipe right to confirm' : 'Open'}
                 </Text>
-                <MaterialIcons name='arrow-forward' size={14} color={CLTheme.accent} />
+                <MaterialIcons name='arrow-forward' size={13} color={CLTheme.text.muted} />
               </View>
             )}
-          </TouchableOpacity>
-        </Animated.View>
-      </View>
-
-      {onClearNotification ? (
-        <TouchableOpacity
-          style={styles.clearItemButton}
-          onPress={() => onClearNotification(item.id)}
-          accessibilityLabel={`Clear notification ${item.title}`}
-        >
-          <MaterialIcons name='close' size={16} color={CLTheme.text.secondary} />
+          </View>
         </TouchableOpacity>
-      ) : null}
+
+        {onClearNotification ? (
+          <TouchableOpacity
+            style={styles.clearItemButton}
+            onPress={() => onClearNotification(item.id)}
+            accessibilityLabel={`Clear notification ${item.title}`}
+          >
+            <MaterialIcons name='close' size={15} color={CLTheme.text.secondary} />
+          </TouchableOpacity>
+        ) : null}
+      </Animated.View>
     </View>
   )
 }
@@ -341,13 +341,7 @@ const styles = StyleSheet.create({
     color: CLTheme.text.secondary,
     paddingVertical: 6,
   },
-  notificationRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 8,
-  },
   swipeContainer: {
-    flex: 1,
     overflow: 'hidden',
     borderRadius: 12,
     marginVertical: 4,
@@ -355,6 +349,7 @@ const styles = StyleSheet.create({
   swipeCardWrap: {
     borderRadius: 12,
     backgroundColor: CLTheme.card,
+    position: 'relative',
   },
   swipeBackground: {
     ...StyleSheet.absoluteFillObject,
@@ -389,9 +384,9 @@ const styles = StyleSheet.create({
   },
   itemCard: {
     borderRadius: 12,
-    padding: 12,
-    gap: 4,
     backgroundColor: CLTheme.card,
+    borderWidth: 1,
+    borderColor: CLTheme.border,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.12,
@@ -400,7 +395,11 @@ const styles = StyleSheet.create({
   },
   itemCardPressable: {
     borderColor: `${CLTheme.accent}33`,
-    borderWidth: 1,
+  },
+  itemContent: {
+    padding: 12,
+    paddingRight: 42,
+    gap: 4,
   },
   itemHeader: {
     flexDirection: 'row',
@@ -437,36 +436,34 @@ const styles = StyleSheet.create({
     paddingTop: 6,
   },
   itemActionText: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: CLTheme.accent,
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
+    fontSize: 11,
+    fontWeight: '600',
+    color: CLTheme.text.muted,
   },
   clearItemButton: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: CLTheme.border,
     backgroundColor: CLTheme.card,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 12,
+    zIndex: 5,
   },
 })
 
 const toneStyles = StyleSheet.create({
   urgent: {
-    borderColor: 'rgba(239, 68, 68, 0.55)',
-    backgroundColor: 'rgba(239, 68, 68, 0.08)',
+    borderColor: 'rgba(239, 68, 68, 0.45)',
   },
   'non-emergent': {
-    borderColor: 'rgba(245, 158, 11, 0.45)',
-    backgroundColor: 'rgba(245, 158, 11, 0.08)',
+    borderColor: 'rgba(245, 158, 11, 0.4)',
   },
   system: {
-    borderColor: 'rgba(13, 108, 242, 0.55)',
-    backgroundColor: 'rgba(13, 108, 242, 0.10)',
+    borderColor: 'rgba(13, 108, 242, 0.4)',
   },
 })
