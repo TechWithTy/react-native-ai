@@ -304,6 +304,10 @@ export function SettingsProfileScreen() {
     setAppTheme(nextTheme)
   }, [appThemePreference, setAppTheme, setAppThemePreference])
 
+  const handleToggleThemePreference = useCallback(() => {
+    handleThemePreferenceChange(appThemePreference === 'dark' ? 'light' : 'dark')
+  }, [appThemePreference, handleThemePreferenceChange])
+
   const openExternalLink = useCallback(async (url: string) => {
     try {
       const canOpen = await Linking.canOpenURL(url)
@@ -1146,53 +1150,31 @@ export function SettingsProfileScreen() {
 
             <View style={styles.separator} />
 
-            <View style={styles.autoApplyRow}>
+            <TouchableOpacity
+              style={styles.autoApplyRow}
+              onPress={handleToggleThemePreference}
+              activeOpacity={0.8}
+              testID='theme-toggle-row'
+            >
               <View style={styles.rowLeft}>
                 <View style={[styles.iconBox, { backgroundColor: 'rgba(13, 108, 242, 0.15)' }]}>
                   <MaterialIcons name='dark-mode' size={20} color={CLTheme.accent} />
                 </View>
                 <View style={styles.autoApplyTextWrap}>
                   <Text style={styles.rowLabel}>Theme</Text>
-                  <Text style={styles.autoApplySubLabel}>Switch between Light and Dark mode</Text>
+                  <Text style={styles.autoApplySubLabel}>
+                    {appThemePreference === 'dark' ? 'Dark mode enabled' : 'Light mode enabled'}
+                  </Text>
                 </View>
               </View>
-              <View style={styles.themeToggleWrap}>
-                <TouchableOpacity
-                  style={[
-                    styles.themePill,
-                    appThemePreference === 'light' && styles.themePillActive,
-                  ]}
-                  onPress={() => handleThemePreferenceChange('light')}
-                  testID='theme-light-button'
-                >
-                  <Text
-                    style={[
-                      styles.themePillText,
-                      appThemePreference === 'light' && styles.themePillTextActive,
-                    ]}
-                  >
-                    Light
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[
-                    styles.themePill,
-                    appThemePreference === 'dark' && styles.themePillActive,
-                  ]}
-                  onPress={() => handleThemePreferenceChange('dark')}
-                  testID='theme-dark-button'
-                >
-                  <Text
-                    style={[
-                      styles.themePillText,
-                      appThemePreference === 'dark' && styles.themePillTextActive,
-                    ]}
-                  >
-                    Dark
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
+              <Switch
+                value={appThemePreference === 'dark'}
+                onValueChange={value => handleThemePreferenceChange(value ? 'dark' : 'light')}
+                trackColor={{ false: CLTheme.border, true: 'rgba(13, 108, 242, 0.45)' }}
+                thumbColor={appThemePreference === 'dark' ? CLTheme.accent : '#94a3b8'}
+                testID='theme-toggle-switch'
+              />
+            </TouchableOpacity>
 
             <View style={styles.separator} />
 
@@ -1689,31 +1671,6 @@ const getStyles = (CLTheme: CLThemeTokens) => StyleSheet.create({
   autoApplySubLabel: {
     fontSize: 12,
     color: CLTheme.text.muted,
-  },
-  themeToggleWrap: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  themePill: {
-    borderWidth: 1,
-    borderColor: CLTheme.border,
-    backgroundColor: CLTheme.background,
-    borderRadius: 999,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-  },
-  themePillActive: {
-    borderColor: CLTheme.accent,
-    backgroundColor: 'rgba(13, 108, 242, 0.15)',
-  },
-  themePillText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: CLTheme.text.secondary,
-  },
-  themePillTextActive: {
-    color: CLTheme.accent,
   },
   autoApplyLimitCard: {
     backgroundColor: CLTheme.background,

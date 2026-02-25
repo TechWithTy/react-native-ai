@@ -111,20 +111,20 @@ describe('Account and security flow', () => {
     expect(mockNavigate).toHaveBeenCalledWith('DocumentsInsights')
   })
 
-  it('switches theme preference to light from settings profile', () => {
+  it('switches theme preference to light from settings profile row tap', () => {
     useUserProfileStore.getState().setAppThemePreference('dark')
     const { getByTestId } = render(<SettingsProfileScreen />)
 
-    fireEvent.press(getByTestId('theme-light-button'))
+    fireEvent.press(getByTestId('theme-toggle-row'))
 
     expect(useUserProfileStore.getState().appThemePreference).toBe('light')
   })
 
-  it('switches theme preference to dark from settings profile', () => {
+  it('switches theme preference to dark from settings profile switch', () => {
     useUserProfileStore.getState().setAppThemePreference('light')
     const { getByTestId } = render(<SettingsProfileScreen />)
 
-    fireEvent.press(getByTestId('theme-dark-button'))
+    fireEvent(getByTestId('theme-toggle-switch'), 'valueChange', true)
 
     expect(useUserProfileStore.getState().appThemePreference).toBe('dark')
   })
