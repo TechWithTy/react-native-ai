@@ -39,6 +39,8 @@ export function Chat() {
   const navigation = useNavigation<any>()
   const [loading, setLoading] = useState<boolean>(false)
   const [input, setInput] = useState<string>('')
+  const [voiceTranscriptIndex, setVoiceTranscriptIndex] = useState(0)
+  const [voiceBars, setVoiceBars] = useState<number[]>(() => Array.from({ length: 18 }, () => 6))
   const scrollViewRef = useRef<ScrollView | null>(null)
   const { showActionSheetWithOptions } = useActionSheet()
 
@@ -102,19 +104,45 @@ export function Chat() {
     }
     return 'Tell me about a recent career win and why it mattered.'
   }
+  const voicePreviewText = getVoicePracticeQuestion()
+
+  useEffect(() => {
+    if (!voiceModeEnabled) return
+    setVoiceTranscriptIndex(0)
+    const transcriptTimer = setInterval(() => {
+      setVoiceTranscriptIndex(prev =>
+        prev >= voicePreviewText.length ? voicePreviewText.length : prev + 1
+      )
+    }, 26)
+    const barsTimer = setInterval(() => {
+      setVoiceBars(Array.from({ length: 18 }, (_, index) => 6 + ((index * 13 + Date.now()) % 22)))
+    }, 180)
+    return () => {
+      clearInterval(transcriptTimer)
+      clearInterval(barsTimer)
+    }
+  }, [voiceModeEnabled, voicePreviewText])
 
   function startVoicePracticeCall() {
+    const voiceCategory = `${activeAgent?.label || 'General'} Voice`
+    const isInterviewPrompt = selectedAgentId === 'interview_coach'
+    if (isInterviewPrompt) {
+      navigation.navigate('InterviewPrep', {
+        aiCoachVoiceMode: true,
+        aiCoachSection: 'chat',
+        voiceSeedQuestion: getVoicePracticeQuestion(),
+      })
+      return
+    }
+
     navigation.navigate('MockInterview', {
-      category: 'AI Practice Call',
+      aiVoiceMode: true,
+      category: voiceCategory,
       question: getVoicePracticeQuestion(),
     })
   }
 
   async function chat() {
-    if (voiceModeEnabled) {
-      startVoicePracticeCall()
-      return
-    }
     if (!input) return
     Keyboard.dismiss()
     if (chatType.label.includes('claude')) {
@@ -124,6 +152,14 @@ export function Chat() {
     } else if (chatType.label.includes('gemini')) {
       generateGeminiResponse()
     }
+  }
+
+  function handlePrimaryAction() {
+    if (voiceModeEnabled && !input.trim()) {
+      startVoicePracticeCall()
+      return
+    }
+    chat()
   }
   async function generateGptResponse() {
     if (!input) return
@@ -434,6 +470,7 @@ export function Chat() {
 
   const currentChatState = getChatState(chatType.label)
   const callMade = currentChatState.messages.length > 0
+  const hasInput = input.trim().length > 0
 
   return (
     <KeyboardAvoidingView
@@ -479,11 +516,11 @@ export function Chat() {
             >
               <View style={styles.modeToggleBtn}>
                 <Ionicons
-                  name={voiceModeEnabled ? 'mic-outline' : 'chatbox-ellipses-outline'}
+                  name={voiceModeEnabled ? 'chatbox-ellipses-outline' : 'mic-outline'}
                   size={16}
                   color={theme.tintTextColor}
                 />
-                <Text style={styles.modeToggleText}>{voiceModeEnabled ? 'Voice' : 'Text'}</Text>
+                <Text style={styles.modeToggleText}>{voiceModeEnabled ? 'Switch to Text' : 'Switch to Voice'}</Text>
               </View>
             </TouchableHighlight>
           </View>
@@ -510,7 +547,42 @@ export function Chat() {
             ))}
           </View>
         </View>
-        {
+        {voiceModeEnabled ? (
+          <View style={styles.voiceModeContainer}>
+            <View style={styles.voiceModeCard}>
+              <View style={styles.voiceModeHeader}>
+                <Ionicons name='mic-outline' size={18} color={theme.tintTextColor} />
+                <Text style={styles.voiceModeTitle}>Voice Mode Active</Text>
+              </View>
+              <Text style={styles.voiceModeSubtitle}>
+                Start a live voice practice session. Your existing text chat is preserved when you switch back.
+              </Text>
+              <View style={styles.voiceTranscriptContainer}>
+                <Text style={styles.voiceTranscriptText}>
+                  "{voicePreviewText.substring(0, voiceTranscriptIndex)}
+                  <Text style={styles.voiceTranscriptCursor}>|</Text>"
+                </Text>
+              </View>
+              <View style={styles.voiceBarsRow}>
+                {voiceBars.map((bar, index) => (
+                  <View key={`voice-bar-${index}`} style={[styles.voiceBar, { height: bar }]} />
+                ))}
+              </View>
+              <TouchableHighlight onPress={startVoicePracticeCall} underlayColor='transparent'>
+                <View style={styles.voiceStartButton}>
+                  <Ionicons name='call-outline' size={20} color={theme.tintTextColor} />
+                  <Text style={styles.voiceStartButtonText}>Start Voice Practice</Text>
+                </View>
+              </TouchableHighlight>
+              <TouchableHighlight onPress={() => setVoiceModeEnabled(false)} underlayColor='transparent'>
+                <View style={styles.voiceSwitchButton}>
+                  <Ionicons name='chatbox-ellipses-outline' size={18} color={theme.textColor} />
+                  <Text style={styles.voiceSwitchButtonText}>Switch to Text Mode</Text>
+                </View>
+              </TouchableHighlight>
+            </View>
+          </View>
+        ) : (
           !callMade && (
             <View style={styles.midChatInputWrapper}>
               <View style={styles.midChatInputContainer}>
@@ -524,30 +596,32 @@ export function Chat() {
                   value={input}
                 />
                 <TouchableHighlight
-                  onPress={voiceModeEnabled ? startVoicePracticeCall : chat}
+                  onPress={handlePrimaryAction}
                   underlayColor={'transparent'}
                 >
                   <View style={styles.midButtonStyle}>
                     <Ionicons
-                      name={voiceModeEnabled ? 'call-outline' : 'chatbox-ellipses-outline'}
+                      name={voiceModeEnabled && !hasInput ? 'call-outline' : 'chatbox-ellipses-outline'}
                       size={22} color={theme.tintTextColor}
                     />
                     <Text style={styles.midButtonText}>
-                      {voiceModeEnabled ? 'Start voice practice' : 'Start chat'}
+                      {voiceModeEnabled && !hasInput ? 'Start voice practice' : 'Start chat'}
                     </Text>
                   </View>
                 </TouchableHighlight>
                 <Text style={styles.chatDescription}>
                   {voiceModeEnabled
-                    ? 'Voice mode is enabled. Start an AI practice call with the selected agent.'
+                    ? hasInput
+                      ? 'Voice mode is on. Your draft is preserved. Tap send to continue in text, or clear input to start voice.'
+                      : 'Voice mode is on. Tap send to start an AI practice call with the selected agent.'
                     : 'Chat with a variety of different language models using the selected agent prompt.'}
                 </Text>
               </View>
             </View>
           )
-        }
+        )}
         {
-          callMade && (
+          callMade && !voiceModeEnabled && (
             <FlatList
               data={currentChatState.messages}
               renderItem={renderItem}
@@ -562,7 +636,7 @@ export function Chat() {
         }
       </ScrollView>
       {
-        callMade && (
+        callMade && !voiceModeEnabled && (
           <View
               style={styles.chatInputContainer}
             >
@@ -573,7 +647,7 @@ export function Chat() {
             >
               <View style={styles.modeIconButton}>
                 <Ionicons
-                  name={voiceModeEnabled ? 'mic-outline' : 'chatbox-ellipses-outline'}
+                  name={voiceModeEnabled ? 'chatbox-ellipses-outline' : 'mic-outline'}
                   size={18}
                   color={theme.textColor}
                 />
@@ -589,13 +663,13 @@ export function Chat() {
             <TouchableHighlight
               underlayColor={'transparent'}
               activeOpacity={0.65}
-              onPress={voiceModeEnabled ? startVoicePracticeCall : chat}
+              onPress={handlePrimaryAction}
             >
               <View
                 style={styles.chatButton}
               >
                 <Ionicons
-                  name={voiceModeEnabled ? 'call-outline' : 'arrow-up-outline'}
+                  name={voiceModeEnabled && !hasInput ? 'call-outline' : 'arrow-up-outline'}
                   size={20} color={theme.tintTextColor}
                 />
               </View>
@@ -668,6 +742,98 @@ const getStyles = (theme: any) => StyleSheet.create({
     color: theme.tintTextColor,
     fontSize: 11,
     fontFamily: theme.boldFont,
+  },
+  voiceModeContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 18,
+  },
+  voiceModeCard: {
+    borderWidth: 1,
+    borderColor: theme.borderColor,
+    borderRadius: 16,
+    backgroundColor: theme.backgroundColor,
+    padding: 14,
+    gap: 10,
+  },
+  voiceModeHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  voiceModeTitle: {
+    color: theme.textColor,
+    fontSize: 14,
+    fontFamily: theme.boldFont,
+  },
+  voiceModeSubtitle: {
+    color: theme.textColor,
+    opacity: 0.78,
+    fontSize: 12,
+    fontFamily: theme.regularFont,
+    lineHeight: 18,
+  },
+  voiceTranscriptContainer: {
+    borderWidth: 1,
+    borderColor: theme.borderColor,
+    borderRadius: 10,
+    padding: 10,
+  },
+  voiceTranscriptText: {
+    color: theme.textColor,
+    fontSize: 13,
+    lineHeight: 20,
+    fontFamily: theme.mediumFont,
+  },
+  voiceTranscriptCursor: {
+    color: theme.tintColor,
+    fontFamily: theme.boldFont,
+  },
+  voiceBarsRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+    gap: 4,
+    height: 34,
+    marginTop: 2,
+  },
+  voiceBar: {
+    width: 4,
+    borderRadius: 2,
+    backgroundColor: theme.tintColor,
+  },
+  voiceStartButton: {
+    marginTop: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: theme.tintColor,
+    borderRadius: 12,
+    paddingVertical: 12,
+  },
+  voiceStartButtonText: {
+    color: theme.tintTextColor,
+    fontSize: 14,
+    fontFamily: theme.boldFont,
+  },
+  voiceSwitchButton: {
+    marginTop: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: theme.borderColor,
+    paddingVertical: 11,
+    backgroundColor: theme.backgroundColor,
+  },
+  voiceSwitchButtonText: {
+    color: theme.textColor,
+    fontSize: 13,
+    fontFamily: theme.mediumFont,
   },
   metaBadgeRow: {
     flexDirection: 'row',

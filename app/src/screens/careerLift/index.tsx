@@ -21,8 +21,10 @@ import { UpdatePasswordScreen } from './updatePassword'
 import { UpdateEmailScreen } from './updateEmail'
 import { NotificationsPreferencesScreen } from './notificationPreferences'
 import { DocumentsInsightsScreen } from './documentsInsights'
+import { MonetizationPromptsScreen } from './monetizationPrompts'
 import { careerLiftRoutes } from './routes'
 import { CareerLiftTabs } from './tabs'
+import { CLTheme } from './theme'
 
 const Stack = createNativeStackNavigator()
 
@@ -34,7 +36,7 @@ export function CareerLift() {
       initialRouteName='Splash'
       screenOptions={{
         headerShown: false,
-        contentStyle: { backgroundColor: '#101722' },
+        contentStyle: { backgroundColor: CLTheme.background },
       }}
     >
       <Stack.Screen name='ScreenLibrary' component={ScreenLibrary} />
@@ -55,6 +57,7 @@ export function CareerLift() {
       <Stack.Screen name='AccountSecurity' component={AccountSecurityScreen} />
       <Stack.Screen name='NotificationsPreferences' component={NotificationsPreferencesScreen} />
       <Stack.Screen name='DocumentsInsights' component={DocumentsInsightsScreen} />
+      {__DEV__ ? <Stack.Screen name='MonetizationPrompts' component={MonetizationPromptsScreen} /> : null}
       <Stack.Screen name='UpdateEmail' component={UpdateEmailScreen} />
       <Stack.Screen name='UpdatePassword' component={UpdatePasswordScreen} />
       <Stack.Screen name='MainTabs' component={CareerLiftTabs} />

@@ -11,12 +11,13 @@ import {
   Alert,
   TextInput,
   ActivityIndicator,
+  Linking,
 } from 'react-native'
 import { MaterialIcons, FontAwesome5, Ionicons, Feather } from '@expo/vector-icons'
 import { useNavigation, useRoute } from '@react-navigation/native'
 import * as DocumentPicker from 'expo-document-picker'
 import * as Clipboard from 'expo-clipboard'
-import { CLTheme } from './theme'
+import { CLTheme, useCLTheme, CLThemeTokens } from './theme'
 import { getRoleOptionsForTrack, getSalaryRangesForRole, useCareerSetupStore } from '../../store/careerSetup'
 import { useUserProfileStore } from '../../store/userProfileStore'
 import { SubscriptionTierId, useCreditsStore } from '../../store/creditsStore'
@@ -35,9 +36,20 @@ import { TARGET_SENIORITY_OPTIONS } from '../../data/seniority'
 import { getCurrentDeviceLocation } from '../../native/permissions/location'
 
 const PLAN_LABELS: Record<SubscriptionTierId, string> = {
-  starter: 'STARTER',
+  starter: 'FREE',
   pro: 'PRO',
   unlimited: 'UNLIMITED',
+}
+
+const AUTO_APPLY_LIMITS = {
+  starter: 0,
+  pro: 25,
+  unlimited: 100,
+} as const
+
+const clampAutoApplyLimit = (value: number, max: number) => {
+  const safeValue = Number.isFinite(value) ? value : 1
+  return Math.min(Math.max(Math.trunc(safeValue), 1), max)
 }
 
 const ROLE_UPDATE_STEPS = [
@@ -47,11 +59,19 @@ const ROLE_UPDATE_STEPS = [
   'Building your custom interview prep flow',
 ]
 
+const INTERVIEW_ASSISTANT_LINKS = {
+  windows: 'https://careerlift.ai/interview-assistant/windows',
+  mac: 'https://careerlift.ai/interview-assistant/mac',
+  browser: 'https://careerlift.ai/interview-assistant/web',
+}
+
 type ProfileSelectionType = 'industry' | 'seniority' | 'role' | 'salary' | 'openToWork' | null
 
 export function SettingsProfileScreen() {
   const navigation = useNavigation()
   const route = useRoute()
+  const clTheme = useCLTheme()
+  const styles = getStyles(clTheme)
   const [calendarSync, setCalendarSync] = useState(true)
   const [showRoleUpdateModal, setShowRoleUpdateModal] = useState(false)
   const [showRoleUpdateProgress, setShowRoleUpdateProgress] = useState(false)
@@ -87,6 +107,8 @@ export function SettingsProfileScreen() {
     desiredSalaryRange,
     locationPreference,
     locationPreferences,
+    autoApplyEnabled,
+    autoApplyDailyLimit,
     setCareerSetup,
   } = useCareerSetupStore()
   
@@ -95,6 +117,7 @@ export function SettingsProfileScreen() {
     email,
     avatarUrl, 
     currentLocation, 
+    subscriptionTierId,
     isOpenToWork,
     activityLog,
     markActivityLogExported,
@@ -105,6 +128,19 @@ export function SettingsProfileScreen() {
     locationPreferences.includes('Remote') || locationPreference.trim().toLowerCase() === 'remote'
   const profileLocationLabel =
     currentLocation.trim().length > 0 ? currentLocation : hasRemoteWorkingPreference ? 'Remote' : 'No location'
+  const isAutoApplyTierEligible = subscriptionTier === 'pro' || subscriptionTier === 'unlimited'
+  const isInterviewAssistantEligible = subscriptionTier === 'unlimited'
+  const profileTier = subscriptionTierId || subscriptionTier
+  const profileTierLabel = PLAN_LABELS[profileTier]
+  const autoApplyMaxPerDay =
+    subscriptionTier === 'pro'
+      ? AUTO_APPLY_LIMITS.pro
+      : subscriptionTier === 'unlimited'
+        ? AUTO_APPLY_LIMITS.unlimited
+        : 0
+  const safeAutoApplyDailyLimit = isAutoApplyTierEligible
+    ? clampAutoApplyLimit(autoApplyDailyLimit, autoApplyMaxPerDay)
+    : 0
 
   const handleRefresh = useCallback(() => {
     if (isRefreshing) return
@@ -121,6 +157,62 @@ export function SettingsProfileScreen() {
       refreshTimeoutRef.current = null
     }, 850)
   }, [isRefreshing, profileLocationLabel])
+
+  useEffect(() => {
+    if (subscriptionTierId !== subscriptionTier) {
+      setProfile({ subscriptionTierId: subscriptionTier })
+    }
+  }, [setProfile, subscriptionTier, subscriptionTierId])
+
+  useEffect(() => {
+    if (!isAutoApplyTierEligible) {
+      if (autoApplyEnabled) {
+        setCareerSetup({ autoApplyEnabled: false })
+      }
+      return
+    }
+
+    if (safeAutoApplyDailyLimit !== autoApplyDailyLimit) {
+      setCareerSetup({ autoApplyDailyLimit: safeAutoApplyDailyLimit })
+    }
+  }, [
+    autoApplyDailyLimit,
+    autoApplyEnabled,
+    isAutoApplyTierEligible,
+    safeAutoApplyDailyLimit,
+    setCareerSetup,
+  ])
+
+  const handleToggleAutoApply = useCallback(
+    (nextValue: boolean) => {
+      if (!isAutoApplyTierEligible) {
+        Alert.alert(
+          'Auto Apply unavailable',
+          'Auto Apply is available on Starter and Pro plans only.'
+        )
+        return
+      }
+
+      setCareerSetup({
+        autoApplyEnabled: nextValue,
+        autoApplyDailyLimit: safeAutoApplyDailyLimit,
+      })
+    },
+    [isAutoApplyTierEligible, safeAutoApplyDailyLimit, setCareerSetup]
+  )
+
+  const handleAutoApplyLimitChange = useCallback(
+    (value: string) => {
+      if (!isAutoApplyTierEligible) return
+
+      const parsed = Number.parseInt(value.replace(/[^0-9]/g, ''), 10)
+      const nextValue = Number.isFinite(parsed) ? parsed : 1
+      setCareerSetup({
+        autoApplyDailyLimit: clampAutoApplyLimit(nextValue, autoApplyMaxPerDay),
+      })
+    },
+    [autoApplyMaxPerDay, isAutoApplyTierEligible, setCareerSetup]
+  )
 
   const handleEditProfile = async () => {
     try {
@@ -189,6 +281,23 @@ export function SettingsProfileScreen() {
     ;(navigation as any).navigate('DocumentsInsights')
   }
 
+  const handleOpenMonetizationPrompts = () => {
+    ;(navigation as any).navigate('MonetizationPrompts')
+  }
+
+  const openExternalLink = useCallback(async (url: string) => {
+    try {
+      const canOpen = await Linking.canOpenURL(url)
+      if (!canOpen) {
+        Alert.alert('Link unavailable', 'This link is not available on your device right now.')
+        return
+      }
+      await Linking.openURL(url)
+    } catch {
+      Alert.alert('Unable to open link', 'Please try again in a moment.')
+    }
+  }, [])
+
   const openMonetizationPlacement = (placement: MonetizationPlacement) => {
     const decision = evaluatePlacement({
       placement,
@@ -215,6 +324,21 @@ export function SettingsProfileScreen() {
     setScanCopyVariant(decision.copyVariant)
     setShowScanPackages(true)
   }
+
+  const handleInterviewAssistantPress = useCallback((url: string) => {
+    if (!isInterviewAssistantEligible) {
+      Alert.alert(
+        'Pro Feature',
+        'The Live Interview Assistant is a Pro feature. Upgrade your plan to get real-time help during your interviews.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'View Plans', onPress: () => openMonetizationPlacement('settings_upgrade_plan') }
+        ]
+      )
+      return
+    }
+    openExternalLink(url)
+  }, [isInterviewAssistantEligible, openExternalLink, openMonetizationPlacement])
 
   const inferTargetRole = (source: string) => {
     const roleOptions = getRoleOptionsForTrack(roleTrack || 'Engineering')
@@ -540,6 +664,9 @@ export function SettingsProfileScreen() {
             <TouchableOpacity style={[styles.pill, styles.pillGray]} onPress={() => setShowLocationModal(true)}>
               <Text style={styles.pillTextGray}>{profileLocationLabel}</Text>
             </TouchableOpacity>
+            <TouchableOpacity style={[styles.pill, styles.pillBlue]} onPress={() => setShowSubscription(true)}>
+              <Text style={styles.pillTextBlue}>{`${profileTierLabel} Plan`}</Text>
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -604,6 +731,47 @@ export function SettingsProfileScreen() {
                 <MaterialIcons name="chevron-right" size={20} color={CLTheme.text.secondary} />
               </View>
             </TouchableOpacity>
+
+            <View style={styles.separator} />
+
+            <View style={styles.autoApplyRow}>
+              <View style={styles.autoApplyRowLeft}>
+                <View style={styles.iconBox}>
+                  <MaterialIcons name='rocket-launch' size={20} color={CLTheme.accent} />
+                </View>
+                <View style={styles.autoApplyTextWrap}>
+                  <Text style={styles.rowLabel}>Auto Apply</Text>
+                  <Text style={styles.autoApplySubLabel}>
+                    {isAutoApplyTierEligible
+                      ? `${PLAN_LABELS[subscriptionTier]} plan: up to ${autoApplyMaxPerDay}/day`
+                      : 'Available on Pro and Unlimited plans only'}
+                  </Text>
+                </View>
+              </View>
+              <Switch
+                value={isAutoApplyTierEligible && autoApplyEnabled}
+                onValueChange={handleToggleAutoApply}
+                disabled={!isAutoApplyTierEligible}
+                testID='auto-apply-switch'
+              />
+            </View>
+
+            {isAutoApplyTierEligible && autoApplyEnabled ? (
+              <View style={styles.autoApplyLimitCard}>
+                <Text style={styles.autoApplyLimitLabel}>Daily apply target</Text>
+                <View style={styles.autoApplyLimitInputWrap}>
+                  <TextInput
+                    style={styles.autoApplyLimitInput}
+                    value={`${safeAutoApplyDailyLimit}`}
+                    onChangeText={handleAutoApplyLimitChange}
+                    keyboardType='number-pad'
+                    maxLength={3}
+                    testID='auto-apply-limit-input'
+                  />
+                  <Text style={styles.autoApplyLimitHint}>Max {autoApplyMaxPerDay} per day</Text>
+                </View>
+              </View>
+            ) : null}
 
             <View style={styles.separator} />
 
@@ -696,6 +864,80 @@ export function SettingsProfileScreen() {
           <Text style={styles.helperText}>
             Syncing allows Career Lift to detect interview invites automatically.
           </Text>
+        </View>
+
+        {/* Section: Interview Assistant */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>INTERVIEW ASSISTANT</Text>
+          <View style={styles.featuredCard}>
+            <View style={styles.featuredHeader}>
+              <View style={styles.featuredIconWrap}>
+                <MaterialIcons name='support-agent' size={18} color={CLTheme.accent} />
+              </View>
+              <View style={styles.featuredTextWrap}>
+                <View style={styles.featuredTitleRow}>
+                  <Text style={styles.featuredTitle}>Live Interview Help</Text>
+                  <View style={styles.featuredBadge}>
+                    <Text style={styles.featuredBadgeText}>HIGHLIGHT</Text>
+                  </View>
+                </View>
+                <Text style={styles.featuredSubtitle}>
+                  Download Interview Assistant for desktop or launch in browser.
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.platformButtonsRow}>
+              <TouchableOpacity
+                style={[styles.platformButton, !isInterviewAssistantEligible && styles.lockedFeature]}
+                onPress={() => handleInterviewAssistantPress(INTERVIEW_ASSISTANT_LINKS.windows)}
+                testID='settings-interview-assistant-windows'
+                activeOpacity={0.9}
+              >
+                <MaterialIcons name='desktop-windows' size={16} color={CLTheme.text.primary} />
+                <Text style={styles.platformButtonText}>Windows</Text>
+                {!isInterviewAssistantEligible ? (
+                  <Feather name='lock' size={12} color={CLTheme.text.muted} />
+                ) : (
+                  <MaterialIcons name='open-in-new' size={14} color={CLTheme.text.muted} />
+                )}
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.platformButton, !isInterviewAssistantEligible && styles.lockedFeature]}
+                onPress={() => handleInterviewAssistantPress(INTERVIEW_ASSISTANT_LINKS.mac)}
+                testID='settings-interview-assistant-mac'
+                activeOpacity={0.9}
+              >
+                <MaterialIcons name='laptop-mac' size={16} color={CLTheme.text.primary} />
+                <Text style={styles.platformButtonText}>Mac</Text>
+                {!isInterviewAssistantEligible ? (
+                  <Feather name='lock' size={12} color={CLTheme.text.muted} />
+                ) : (
+                  <MaterialIcons name='open-in-new' size={14} color={CLTheme.text.muted} />
+                )}
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity
+              style={[styles.browserButton, !isInterviewAssistantEligible && styles.lockedFeature]}
+              onPress={() => handleInterviewAssistantPress(INTERVIEW_ASSISTANT_LINKS.browser)}
+              testID='settings-interview-assistant-browser'
+              activeOpacity={0.9}
+            >
+              <View style={styles.browserButtonLeft}>
+                <MaterialIcons name='language' size={16} color={isInterviewAssistantEligible ? CLTheme.accent : CLTheme.text.muted} />
+                <Text style={[styles.browserButtonText, !isInterviewAssistantEligible && { color: CLTheme.text.muted }]}>
+                  Open in Browser
+                </Text>
+              </View>
+              {!isInterviewAssistantEligible ? (
+                <Feather name='lock' size={14} color={CLTheme.text.muted} />
+              ) : (
+                <MaterialIcons name='open-in-new' size={16} color={CLTheme.accent} />
+              )}
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Section: AI Credits & Plans */}
@@ -906,6 +1148,22 @@ export function SettingsProfileScreen() {
               </View>
               <MaterialIcons name='chevron-right' size={20} color={CLTheme.text.secondary} />
             </TouchableOpacity>
+
+            {__DEV__ ? (
+              <>
+                <View style={styles.separator} />
+
+                <TouchableOpacity style={styles.row} onPress={handleOpenMonetizationPrompts}>
+                  <View style={styles.rowLeft}>
+                    <View style={[styles.iconBox, { backgroundColor: 'rgba(168, 85, 247, 0.15)' }]}>
+                      <MaterialIcons name='tune' size={20} color='#a855f7' />
+                    </View>
+                    <Text style={styles.rowLabel}>Prompts & Paywalls</Text>
+                  </View>
+                  <MaterialIcons name='chevron-right' size={20} color={CLTheme.text.secondary} />
+                </TouchableOpacity>
+              </>
+            ) : null}
           </View>
         </View>
 
@@ -1174,7 +1432,7 @@ export function SettingsProfileScreen() {
   )
 }
 
-const styles = StyleSheet.create({
+const getStyles = (CLTheme: CLThemeTokens) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: CLTheme.background,
@@ -1228,7 +1486,9 @@ const styles = StyleSheet.create({
   },
   pillRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 12,
+    justifyContent: 'center',
   },
   pill: {
     paddingHorizontal: 12,
@@ -1311,6 +1571,67 @@ const styles = StyleSheet.create({
     backgroundColor: CLTheme.border,
     marginLeft: 60, // visual offset
   },
+  autoApplyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  },
+  autoApplyRowLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    gap: 12,
+  },
+  autoApplyTextWrap: {
+    flex: 1,
+    gap: 2,
+  },
+  autoApplySubLabel: {
+    fontSize: 12,
+    color: CLTheme.text.muted,
+  },
+  autoApplyLimitCard: {
+    backgroundColor: CLTheme.background,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: CLTheme.border,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    gap: 8,
+  },
+  autoApplyLimitLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: CLTheme.text.muted,
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+  },
+  autoApplyLimitInputWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  autoApplyLimitInput: {
+    minWidth: 72,
+    borderWidth: 1,
+    borderColor: CLTheme.border,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    color: CLTheme.text.primary,
+    backgroundColor: CLTheme.card,
+    fontSize: 15,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+  autoApplyLimitHint: {
+    fontSize: 12,
+    color: CLTheme.text.secondary,
+    fontWeight: '500',
+  },
   statusBadge: {
     paddingHorizontal: 8,
     paddingVertical: 2,
@@ -1340,6 +1661,108 @@ const styles = StyleSheet.create({
     color: CLTheme.text.muted,
     marginTop: 8,
     paddingHorizontal: 4,
+  },
+  featuredCard: {
+    backgroundColor: CLTheme.card,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: CLTheme.accent,
+    padding: 14,
+    gap: 12,
+  },
+  featuredHeader: {
+    flexDirection: 'row',
+    gap: 10,
+    alignItems: 'flex-start',
+  },
+  featuredIconWrap: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: 'rgba(13, 108, 242, 0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 1,
+  },
+  featuredTextWrap: {
+    flex: 1,
+    gap: 4,
+  },
+  featuredTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  featuredTitle: {
+    color: CLTheme.text.primary,
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  featuredBadge: {
+    backgroundColor: 'rgba(13, 108, 242, 0.2)',
+    borderColor: 'rgba(13, 108, 242, 0.4)',
+    borderWidth: 1,
+    borderRadius: 999,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  featuredBadgeText: {
+    color: CLTheme.accent,
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+  },
+  featuredSubtitle: {
+    color: CLTheme.text.secondary,
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  platformButtonsRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  platformButton: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: CLTheme.border,
+    backgroundColor: CLTheme.background,
+    borderRadius: 10,
+    minHeight: 44,
+    paddingHorizontal: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  platformButtonText: {
+    color: CLTheme.text.primary,
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  browserButton: {
+    borderWidth: 1,
+    borderColor: 'rgba(13, 108, 242, 0.35)',
+    backgroundColor: 'rgba(13, 108, 242, 0.12)',
+    borderRadius: 10,
+    minHeight: 44,
+    paddingHorizontal: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  browserButtonLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  browserButtonText: {
+    color: CLTheme.accent,
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  lockedFeature: {
+    opacity: 0.6,
+    borderColor: CLTheme.border,
   },
   planRow: {
     flexDirection: 'row',

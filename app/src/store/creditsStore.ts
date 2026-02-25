@@ -113,6 +113,15 @@ const getPersistStorage = () => {
   return require('@react-native-async-storage/async-storage').default
 }
 
+const syncProfileSubscriptionTier = (tier: SubscriptionTierId) => {
+  try {
+    const { useUserProfileStore } = require('./userProfileStore')
+    useUserProfileStore.getState().setProfile({ subscriptionTierId: tier })
+  } catch {
+    // Profile store may not be initialized yet; ignore and keep credits state source of truth.
+  }
+}
+
 export const useCreditsStore = create<CreditsState>()(
   persist(
     (set, get) => ({
@@ -195,7 +204,7 @@ export const useCreditsStore = create<CreditsState>()(
           }
         }),
 
-      setSubscriptionTier: (tier) =>
+      setSubscriptionTier: (tier) => {
         set((state) => {
           const included = TIER_SCAN_CREDITS[tier]
           const tx: ScanTransaction = {
@@ -210,13 +219,19 @@ export const useCreditsStore = create<CreditsState>()(
             scanCreditsRemaining: included,
             scanHistory: [tx, ...state.scanHistory].slice(0, 30),
           }
-        }),
+        })
+        syncProfileSubscriptionTier(tier)
+      },
 
       resetCredits: () => set(defaultState),
     }),
     {
       name: 'rnai-credits-zustand',
       storage: createJSONStorage(() => getPersistStorage()),
+      onRehydrateStorage: () => (state) => {
+        if (!state?.subscriptionTier) return
+        syncProfileSubscriptionTier(state.subscriptionTier)
+      },
     }
   )
 )

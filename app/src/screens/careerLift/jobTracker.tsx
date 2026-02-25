@@ -701,6 +701,7 @@ export function JobTrackerScreen({ route }: JobTrackerProps = {}) {
         jobInputMode === 'url'
           ? `Imported from: ${source}`
           : `Imported from pasted JD (${source.length} chars)`,
+      applicationUrl: jobInputMode === 'url' ? source : undefined,
       color: 'rgba(13, 108, 242, 0.12)',
     }
 

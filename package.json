@@ -1,0 +1,19 @@
+{
+    "name": "react-native-ai-root",
+    "private": true,
+    "scripts": {
+        "start": "pnpm -C app start",
+        "start:lan": "pnpm -C app start:lan",
+        "start:local": "pnpm -C app start:local",
+        "android": "pnpm -C app android",
+        "android:lan": "pnpm -C app android:lan",
+        "android:local": "pnpm -C app android:local",
+        "android:clear": "pnpm -C app android:clear",
+        "ios": "pnpm -C app ios",
+        "ios:lan": "pnpm -C app ios:lan",
+        "ios:local": "pnpm -C app ios:local",
+        "ios:clear": "pnpm -C app ios:clear",
+        "server": "pnpm -C server dev",
+        "backend": "cd backend && python -m uvicorn app.main:app --reload --port 8000"
+    }
+}

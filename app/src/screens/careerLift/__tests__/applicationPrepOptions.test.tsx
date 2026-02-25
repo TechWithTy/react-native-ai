@@ -1,6 +1,7 @@
 import React from 'react'
-import { fireEvent, render } from '@testing-library/react-native'
-import { Alert } from 'react-native'
+import { fireEvent, render, waitFor } from '@testing-library/react-native'
+import { Alert, Linking } from 'react-native'
+import { act } from 'react-test-renderer'
 import { ApplicationPrepOptions } from '../components/applicationPrepOptions'
 import { useCreditsStore } from '../../../store/creditsStore'
 import { useJobTrackerStore } from '../../../store/jobTrackerStore'
@@ -10,6 +11,8 @@ describe('ApplicationPrepOptions', () => {
     jest.clearAllMocks()
     useCreditsStore.getState().resetCredits()
     useJobTrackerStore.getState().resetJobTrackerStore()
+    jest.spyOn(Linking, 'canOpenURL').mockResolvedValue(true)
+    jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined)
   })
 
   it('shows quick apply click label on quick tab', () => {
@@ -132,5 +135,46 @@ describe('ApplicationPrepOptions', () => {
       'Application Logged!',
       expect.stringContaining('marked as Applied.')
     )
+  })
+
+  it('opens job application link and marks applied via callback decision', async () => {
+    const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(jest.fn())
+    const onExternalApplyResult = jest.fn()
+    const onApplied = jest.fn()
+    const job = useJobTrackerStore.getState().nextUp.find(entry => entry.id === '3')!
+    const jobWithLink = { ...job, applicationUrl: 'https://example.com/jobs/3' }
+
+    const { getByTestId } = render(
+      <ApplicationPrepOptions
+        job={jobWithLink}
+        showHeader={false}
+        showCancel={false}
+        initialTab='simple'
+        onApplied={onApplied}
+        onExternalApplyResult={onExternalApplyResult}
+      />
+    )
+
+    fireEvent.press(getByTestId('open-job-application-button'))
+
+    await waitFor(() => {
+      expect(Linking.openURL).toHaveBeenCalledWith('https://example.com/jobs/3')
+      expect(alertSpy).toHaveBeenCalledWith(
+        'Application status',
+        'Did you submit the application?',
+        expect.any(Array)
+      )
+    })
+
+    const promptButtons = (alertSpy.mock.calls.at(-1)?.[2] || []) as Array<{ text: string; onPress?: () => void }>
+    const submitButton = promptButtons.find(button => button.text === 'Yes, submitted')
+    expect(submitButton?.onPress).toBeTruthy()
+    act(() => {
+      submitButton?.onPress?.()
+    })
+
+    expect(useJobTrackerStore.getState().nextUp.find(entry => entry.id === '3')?.status).toBe('Applied')
+    expect(onExternalApplyResult).toHaveBeenCalledWith('applied', expect.objectContaining({ id: '3' }))
+    expect(onApplied).toHaveBeenCalled()
   })
 })

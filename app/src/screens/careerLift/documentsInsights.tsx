@@ -15,7 +15,8 @@ import { MaterialIcons } from '@expo/vector-icons'
 import { useNavigation } from '@react-navigation/native'
 import * as DocumentPicker from 'expo-document-picker'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { CLTheme } from './theme'
+import { CLTheme, useCLTheme, CLThemeTokens } from './theme'
+import { ResumeTemplateDrawer } from './components/resumeTemplateDrawer'
 import {
   CareerDocument,
   CareerDocumentStatus,
@@ -83,10 +84,13 @@ type SortMode = 'date' | 'conversion'
 
 export function DocumentsInsightsScreen() {
   const navigation = useNavigation<any>()
+  const clTheme = useCLTheme()
+  const styles = getStyles(clTheme)
   const [searchQuery, setSearchQuery] = useState('')
   const [filterType, setFilterType] = useState<DocumentFilterType>('all')
   const [sortMode, setSortMode] = useState<SortMode>('date')
   const [showAddModal, setShowAddModal] = useState(false)
+  const [templateDrawerMode, setTemplateDrawerMode] = useState<'resume' | 'coverLetter' | null>(null)
 
   const { roleTrack, targetRole, setCareerSetup } = useCareerSetupStore()
   const {
@@ -410,17 +414,58 @@ export function DocumentsInsightsScreen() {
               <MaterialIcons name='article' size={18} color={CLTheme.accent} />
               <Text style={styles.modalActionText}>Upload Cover Letter (PDF, DOC, DOCX)</Text>
             </TouchableOpacity>
+
+            {/* Divider */}
+            <View style={styles.modalDivider} />
+            <Text style={styles.modalDividerLabel}>Or generate with AI</Text>
+
+            <TouchableOpacity
+              style={styles.modalActionAI}
+              onPress={() => {
+                setShowAddModal(false)
+                setTemplateDrawerMode('resume')
+              }}
+              testID='documents-generate-resume'
+            >
+              <MaterialIcons name='auto-awesome' size={18} color='#f59e0b' />
+              <Text style={styles.modalActionTextAI}>Generate AI Resume</Text>
+              <View style={styles.modalCreditPill}>
+                <Text style={styles.modalCreditPillText}>4 cr</Text>
+              </View>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.modalActionAI}
+              onPress={() => {
+                setShowAddModal(false)
+                setTemplateDrawerMode('coverLetter')
+              }}
+              testID='documents-generate-coverLetter'
+            >
+              <MaterialIcons name='auto-awesome' size={18} color='#f59e0b' />
+              <Text style={styles.modalActionTextAI}>Generate AI Cover Letter</Text>
+              <View style={styles.modalCreditPill}>
+                <Text style={styles.modalCreditPillText}>4 cr</Text>
+              </View>
+            </TouchableOpacity>
+
             <TouchableOpacity style={styles.modalCancel} onPress={() => setShowAddModal(false)}>
               <Text style={styles.modalCancelText}>Cancel</Text>
             </TouchableOpacity>
           </Pressable>
         </Pressable>
       </Modal>
+
+      <ResumeTemplateDrawer
+        visible={!!templateDrawerMode}
+        onClose={() => setTemplateDrawerMode(null)}
+        mode={templateDrawerMode || 'resume'}
+        onGenerated={() => setTemplateDrawerMode(null)}
+      />
     </SafeAreaView>
   )
 }
 
-const styles = StyleSheet.create({
+const getStyles = (CLTheme: CLThemeTokens) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: CLTheme.background,
@@ -776,5 +821,48 @@ const styles = StyleSheet.create({
     color: CLTheme.text.secondary,
     fontSize: 13,
     fontWeight: '700',
+  },
+  modalDivider: {
+    height: 1,
+    backgroundColor: CLTheme.border,
+    marginVertical: 4,
+  },
+  modalDividerLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: CLTheme.text.muted,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 8,
+    marginTop: 4,
+  },
+  modalActionAI: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    gap: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(245,158,11,0.3)',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 11,
+    backgroundColor: 'rgba(245,158,11,0.06)',
+    marginBottom: 8,
+  },
+  modalActionTextAI: {
+    flex: 1,
+    color: CLTheme.text.primary,
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  modalCreditPill: {
+    backgroundColor: 'rgba(13,108,242,0.12)',
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  modalCreditPillText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#0d6cf2',
   },
 })

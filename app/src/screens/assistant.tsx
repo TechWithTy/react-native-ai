@@ -1,4 +1,4 @@
-import { useMemo, useState, useContext, useRef } from 'react'
+import { useMemo, useState, useContext, useRef, useEffect } from 'react'
 import {
   View,
   Text,
@@ -30,6 +30,8 @@ export function Assistant() {
   const [loading, setLoading] = useState(false)
   const scrollViewRef = useRef<ScrollView | null>(null)
   const [input, setInput] = useState<string>("")
+  const [voiceTranscriptIndex, setVoiceTranscriptIndex] = useState(0)
+  const [voiceBars, setVoiceBars] = useState<number[]>(() => Array.from({ length: 18 }, () => 6))
   const [instructionBadgeDraft, setInstructionBadgeDraft] = useState<string>("")
   const [file, setFile] = useState<any>(null)
   const [assistantId, setAssistantId] = useState<string>('')
@@ -76,10 +78,40 @@ export function Assistant() {
     }
     return 'What career goal are you targeting this quarter, and what is your execution plan?'
   }
+  const voicePreviewText = getVoicePracticeQuestion()
+
+  useEffect(() => {
+    if (!voiceModeEnabled) return
+    setVoiceTranscriptIndex(0)
+    const transcriptTimer = setInterval(() => {
+      setVoiceTranscriptIndex(prev =>
+        prev >= voicePreviewText.length ? voicePreviewText.length : prev + 1
+      )
+    }, 26)
+    const barsTimer = setInterval(() => {
+      setVoiceBars(Array.from({ length: 18 }, (_, index) => 6 + ((index * 17 + Date.now()) % 22)))
+    }, 180)
+    return () => {
+      clearInterval(transcriptTimer)
+      clearInterval(barsTimer)
+    }
+  }, [voiceModeEnabled, voicePreviewText])
 
   function startVoicePracticeCall() {
+    const voiceCategory = `${activeAgent?.label || 'General'} Voice`
+    const isInterviewPrompt = selectedAgentId === 'interview_coach'
+    if (isInterviewPrompt) {
+      navigation.navigate('InterviewPrep', {
+        aiCoachVoiceMode: true,
+        aiCoachSection: 'assistant',
+        voiceSeedQuestion: getVoicePracticeQuestion(),
+      })
+      return
+    }
+
     navigation.navigate('MockInterview', {
-      category: 'AI Practice Call',
+      aiVoiceMode: true,
+      category: voiceCategory,
       question: getVoicePracticeQuestion(),
     })
   }
@@ -129,11 +161,11 @@ export function Assistant() {
   }
 
   async function createThread() {
-    if (voiceModeEnabled) {
+    if (voiceModeEnabled && !input.trim()) {
       startVoicePracticeCall()
       return
     }
-    if (!input) return
+    if (!input.trim()) return
     generateAssistantResponse()
   }
 
@@ -270,11 +302,11 @@ export function Assistant() {
 
   async function addMessageToThread() {
     try {
-      if (voiceModeEnabled) {
+      if (voiceModeEnabled && !input.trim()) {
         startVoicePracticeCall()
         return
       }
-      if (!input) return
+      if (!input.trim()) return
       Keyboard.dismiss()
       const fileCopy = file
 
@@ -350,6 +382,7 @@ export function Assistant() {
 
   const styles = getStyleSheet(theme)
   const isStarted = openaiResponse.length 
+  const hasInput = input.trim().length > 0
 
   function renderItem({ item, index }) {
     return (
@@ -433,11 +466,11 @@ export function Assistant() {
             >
               <View style={styles.modeToggleBtn}>
                 <Ionicons
-                  name={voiceModeEnabled ? 'mic-outline' : 'chatbox-ellipses-outline'}
+                  name={voiceModeEnabled ? 'chatbox-ellipses-outline' : 'mic-outline'}
                   size={16}
                   color={theme.tintTextColor}
                 />
-                <Text style={styles.modeToggleText}>{voiceModeEnabled ? 'Voice' : 'Text'}</Text>
+                <Text style={styles.modeToggleText}>{voiceModeEnabled ? 'Switch to Text' : 'Switch to Voice'}</Text>
               </View>
             </TouchableHighlight>
           </View>
@@ -465,6 +498,42 @@ export function Assistant() {
           </View>
         </View>
         {
+          voiceModeEnabled ? (
+            <View style={styles.voiceModeContainer}>
+              <View style={styles.voiceModeCard}>
+                <View style={styles.voiceModeHeader}>
+                  <Ionicons name='mic-outline' size={18} color={theme.tintTextColor} />
+                  <Text style={styles.voiceModeTitle}>Voice Mode Active</Text>
+                </View>
+                <Text style={styles.voiceModeSubtitle}>
+                  Start a live AI voice session. Your assistant thread and drafts are preserved for text mode.
+                </Text>
+                <View style={styles.voiceTranscriptContainer}>
+                  <Text style={styles.voiceTranscriptText}>
+                    "{voicePreviewText.substring(0, voiceTranscriptIndex)}
+                    <Text style={styles.voiceTranscriptCursor}>|</Text>"
+                  </Text>
+                </View>
+                <View style={styles.voiceBarsRow}>
+                  {voiceBars.map((bar, index) => (
+                    <View key={`assistant-voice-bar-${index}`} style={[styles.voiceBar, { height: bar }]} />
+                  ))}
+                </View>
+                <TouchableHighlight onPress={startVoicePracticeCall} underlayColor='transparent'>
+                  <View style={styles.voiceStartButton}>
+                    <Ionicons name='call-outline' size={20} color={theme.tintTextColor} />
+                    <Text style={styles.voiceStartButtonText}>Start Voice Practice</Text>
+                  </View>
+                </TouchableHighlight>
+                <TouchableHighlight onPress={() => setVoiceModeEnabled(false)} underlayColor='transparent'>
+                  <View style={styles.voiceSwitchButton}>
+                    <Ionicons name='chatbox-ellipses-outline' size={18} color={theme.textColor} />
+                    <Text style={styles.voiceSwitchButtonText}>Switch to Text Mode</Text>
+                  </View>
+                </TouchableHighlight>
+              </View>
+            </View>
+          ) : (
           (!isStarted) && (
             <View style={styles.midChatInputWrapper}>
               <View style={styles.midChatInputContainer}>
@@ -515,11 +584,11 @@ export function Assistant() {
                 >
                   <View style={styles.midButtonStyle}>
                     <Ionicons
-                      name={voiceModeEnabled ? 'call-outline' : 'chatbox-ellipses-outline'}
+                      name={voiceModeEnabled && !hasInput ? 'call-outline' : 'chatbox-ellipses-outline'}
                       size={22} color={theme.tintTextColor}
                     />
                     <Text style={styles.midButtonText}>
-                      {voiceModeEnabled ? 'Start voice practice' : 'Chat'}
+                      {voiceModeEnabled && !hasInput ? 'Start voice practice' : 'Chat'}
                     </Text>
                   </View>
                 </TouchableHighlight>
@@ -546,15 +615,17 @@ export function Assistant() {
                   }
                   <Text style={styles.chatDescription}>
                     {voiceModeEnabled
-                      ? 'Voice mode is enabled. Start an AI practice call from this assistant.'
+                      ? hasInput
+                        ? 'Voice mode is on. Your draft is preserved. Tap send to continue in text, or clear input to start voice.'
+                        : 'Voice mode is on. Tap send to start an AI practice call from this assistant.'
                       : 'Chat with an assistant. Selected prompt and instruction badges are applied without exposing internal prompt text.'}
                   </Text>
               </View>
             </View>
-          )
+          ))
         }
         {
-          Boolean(isStarted) && (
+          Boolean(isStarted) && !voiceModeEnabled && (
             <FlatList
               data={openaiResponse}
               renderItem={renderItem}
@@ -592,7 +663,7 @@ export function Assistant() {
         )
       }
       {
-        (Boolean(isStarted)) && (
+        (Boolean(isStarted) && !voiceModeEnabled) && (
           <View style={styles.chatInputContainer}>
             <TouchableHighlight
               underlayColor={'transparent'}
@@ -600,7 +671,7 @@ export function Assistant() {
             >
               <View style={styles.modeIconButton}>
                 <Ionicons
-                  name={voiceModeEnabled ? 'mic-outline' : 'chatbox-ellipses-outline'}
+                  name={voiceModeEnabled ? 'chatbox-ellipses-outline' : 'mic-outline'}
                   color={theme.textColor}
                   size={18}
                 />
@@ -635,7 +706,7 @@ export function Assistant() {
             >
               <View style={styles.chatButton}>
                 <Ionicons
-                  name={voiceModeEnabled ? 'call-outline' : 'arrow-up'}
+                  name={voiceModeEnabled && !hasInput ? 'call-outline' : 'arrow-up'}
                   size={20} color={theme.tintTextColor}
                 />
               </View>
@@ -708,6 +779,98 @@ const getStyleSheet = theme => StyleSheet.create({
     color: theme.tintTextColor,
     fontSize: 11,
     fontFamily: theme.boldFont,
+  },
+  voiceModeContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 18,
+  },
+  voiceModeCard: {
+    borderWidth: 1,
+    borderColor: theme.borderColor,
+    borderRadius: 16,
+    backgroundColor: theme.backgroundColor,
+    padding: 14,
+    gap: 10,
+  },
+  voiceModeHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  voiceModeTitle: {
+    color: theme.textColor,
+    fontSize: 14,
+    fontFamily: theme.boldFont,
+  },
+  voiceModeSubtitle: {
+    color: theme.textColor,
+    opacity: 0.78,
+    fontSize: 12,
+    fontFamily: theme.regularFont,
+    lineHeight: 18,
+  },
+  voiceTranscriptContainer: {
+    borderWidth: 1,
+    borderColor: theme.borderColor,
+    borderRadius: 10,
+    padding: 10,
+  },
+  voiceTranscriptText: {
+    color: theme.textColor,
+    fontSize: 13,
+    lineHeight: 20,
+    fontFamily: theme.mediumFont,
+  },
+  voiceTranscriptCursor: {
+    color: theme.tintColor,
+    fontFamily: theme.boldFont,
+  },
+  voiceBarsRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+    gap: 4,
+    height: 34,
+    marginTop: 2,
+  },
+  voiceBar: {
+    width: 4,
+    borderRadius: 2,
+    backgroundColor: theme.tintColor,
+  },
+  voiceStartButton: {
+    marginTop: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: theme.tintColor,
+    borderRadius: 12,
+    paddingVertical: 12,
+  },
+  voiceStartButtonText: {
+    color: theme.tintTextColor,
+    fontSize: 14,
+    fontFamily: theme.boldFont,
+  },
+  voiceSwitchButton: {
+    marginTop: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: theme.borderColor,
+    paddingVertical: 11,
+    backgroundColor: theme.backgroundColor,
+  },
+  voiceSwitchButtonText: {
+    color: theme.textColor,
+    fontSize: 13,
+    fontFamily: theme.mediumFont,
   },
   metaBadgeRow: {
     flexDirection: 'row',

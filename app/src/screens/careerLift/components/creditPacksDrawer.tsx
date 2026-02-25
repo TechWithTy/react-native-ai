@@ -5,6 +5,7 @@ import { CLTheme } from '../theme'
 import { useCreditsStore } from '../../../store/creditsStore'
 import { ModalContainer } from './modalContainer'
 import { MonetizationCopyVariant } from '../../../store/monetizationExperimentsStore'
+import { RewardedAdDrawer } from './rewardedAdDrawer'
 
 type CreditDrawerMode = 'ai_credits' | 'scan_credits'
 
@@ -70,6 +71,8 @@ interface CreditPacksDrawerProps {
   mode: CreditDrawerMode
   onSeePlansInstead: () => void
   copyVariant?: MonetizationCopyVariant
+  hardWall?: boolean
+  requiredAmount?: number
 }
 
 export function CreditPacksDrawer({
@@ -78,15 +81,25 @@ export function CreditPacksDrawer({
   mode,
   onSeePlansInstead,
   copyVariant = 'classic',
+  hardWall = false,
+  requiredAmount = 0,
 }: CreditPacksDrawerProps) {
   const addCredits = useCreditsStore(state => state.addCredits)
   const addScanCredits = useCreditsStore(state => state.addScanCredits)
+  const [showRewardedAd, setShowRewardedAd] = React.useState(false)
 
   const packs = mode === 'ai_credits' ? AI_CREDIT_PACKS : SCAN_CREDIT_PACKS
+  const autoSelectedPackId =
+    requiredAmount > 0 ? packs.find(pack => pack.amount >= requiredAmount)?.id ?? null : null
   const copy = resolveCopy(mode, copyVariant)
   const backdropTestID = mode === 'ai_credits' ? 'credit-packages-modal-backdrop' : 'scan-packages-modal-backdrop'
 
   const handlePurchase = (pack: AiCreditPack) => {
+    if (requiredAmount > 0 && pack.amount < requiredAmount) {
+      const unit = mode === 'ai_credits' ? 'credits' : 'scans'
+      Alert.alert('Requirement not met', `This feature requires at least ${requiredAmount} ${unit}.`)
+      return
+    }
     const labelNoun = mode === 'ai_credits' ? 'credits' : 'scans'
     const confirmationTitle = mode === 'ai_credits' ? 'Purchase Credits' : 'Purchase Scan Credits'
     const successTitle = mode === 'ai_credits' ? 'Credits Added!' : 'Scan Credits Added!'
@@ -115,29 +128,53 @@ export function CreditPacksDrawer({
       visible={visible}
       onClose={onClose}
       animationType='slide'
+      closeOnBackdropPress={!hardWall}
+      isHardWall={hardWall}
       backdropTestID={backdropTestID}
     >
       <View style={styles.modalCard}>
         <View style={styles.modalHeader}>
           <Text style={styles.modalTitle}>{copy.title}</Text>
-          <TouchableOpacity onPress={onClose}>
-            <MaterialIcons name='close' size={22} color={CLTheme.text.secondary} />
-          </TouchableOpacity>
+          {!hardWall ? (
+            <TouchableOpacity onPress={onClose}>
+              <MaterialIcons name='close' size={22} color={CLTheme.text.secondary} />
+            </TouchableOpacity>
+          ) : (
+            <View style={{ width: 22, height: 22 }} />
+          )}
         </View>
 
         <Text style={styles.modalSubtitle}>{copy.subtitle}</Text>
 
         <View style={styles.packagesContainer}>
           {packs.map(pack => (
+            (() => {
+              const isAutoSelected = autoSelectedPackId === pack.id
+              const isBelowRequirement = requiredAmount > 0 && pack.amount < requiredAmount
+              const meetsRequirement = requiredAmount > 0 && pack.amount >= requiredAmount
+              return (
             <TouchableOpacity
               key={pack.id}
-              style={[styles.packageCard, pack.popular && styles.packageCardPopular]}
+              style={[
+                styles.packageCard,
+                pack.popular && styles.packageCardPopular,
+                isBelowRequirement && styles.packageCardLocked,
+                meetsRequirement && styles.packageCardRequired,
+                isAutoSelected && styles.packageCardAutoSelected,
+              ]}
               activeOpacity={0.8}
               onPress={() => handlePurchase(pack)}
             >
               {pack.popular && (
                 <View style={styles.packageBadge}>
                   <Text style={styles.packageBadgeText}>BEST VALUE</Text>
+                </View>
+              )}
+              {requiredAmount > 0 && pack.amount >= requiredAmount && (
+                <View style={[styles.requiredBadge, isAutoSelected && styles.autoSelectedBadge]}>
+                  <Text style={styles.requiredBadgeText}>
+                    {isAutoSelected ? 'AUTO-SELECTED' : 'MEETS REQUIREMENT'}
+                  </Text>
                 </View>
               )}
               <View style={styles.packageCreditsRow}>
@@ -154,15 +191,29 @@ export function CreditPacksDrawer({
                 {pack.perUnit}/{mode === 'ai_credits' ? 'credit' : 'scan'}
               </Text>
             </TouchableOpacity>
+              )
+            })()
           ))}
         </View>
 
         <View style={styles.modalActions}>
-          <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
-            <Text style={styles.cancelButtonText}>Close</Text>
+          {!hardWall ? (
+            <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
+              <Text style={styles.cancelButtonText}>Close</Text>
+            </TouchableOpacity>
+          ) : null}
+          <TouchableOpacity
+            style={[styles.primaryButton, { backgroundColor: '#16a34a' }]}
+            onPress={() => setShowRewardedAd(true)}
+          >
+            <Text style={styles.primaryButtonText}>Watch Ad</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.primaryButton, { backgroundColor: '#a855f7' }]}
+            style={[
+              styles.primaryButton,
+              { backgroundColor: '#a855f7' },
+              hardWall && { flex: 1 },
+            ]}
             onPress={() => {
               onClose()
               onSeePlansInstead()
@@ -172,6 +223,12 @@ export function CreditPacksDrawer({
           </TouchableOpacity>
         </View>
       </View>
+      <RewardedAdDrawer
+        visible={showRewardedAd}
+        onClose={() => setShowRewardedAd(false)}
+        mode={mode}
+        rewardAmount={mode === 'ai_credits' ? 12 : 2}
+      />
     </ModalContainer>
   )
 }
@@ -221,6 +278,16 @@ const styles = StyleSheet.create({
     borderColor: '#fbbf24',
     backgroundColor: 'rgba(251, 191, 36, 0.06)',
   },
+  packageCardLocked: {
+    opacity: 0.55,
+  },
+  packageCardRequired: {
+    borderColor: CLTheme.accent,
+  },
+  packageCardAutoSelected: {
+    borderColor: '#fbbf24',
+    backgroundColor: 'rgba(251, 191, 36, 0.1)',
+  },
   packageBadge: {
     backgroundColor: '#fbbf24',
     paddingHorizontal: 8,
@@ -233,6 +300,25 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: '#1a1a2e',
     letterSpacing: 0.6,
+  },
+  requiredBadge: {
+    backgroundColor: 'rgba(13, 108, 242, 0.18)',
+    borderColor: 'rgba(13, 108, 242, 0.35)',
+    borderWidth: 1,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 8,
+    marginBottom: 6,
+  },
+  requiredBadgeText: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: CLTheme.accent,
+    letterSpacing: 0.5,
+  },
+  autoSelectedBadge: {
+    backgroundColor: 'rgba(251, 191, 36, 0.18)',
+    borderColor: 'rgba(251, 191, 36, 0.45)',
   },
   packageCreditsRow: {
     flexDirection: 'row',

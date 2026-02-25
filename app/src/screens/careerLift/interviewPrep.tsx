@@ -17,9 +17,11 @@ import { CLTheme } from './theme'
 import Animated, { FadeInDown } from 'react-native-reanimated'
 import { useCreditsStore, CREDIT_COSTS } from '../../store/creditsStore'
 import { CreditPacksDrawer } from './components/creditPacksDrawer'
+import { RewardedAdDrawer } from './components/rewardedAdDrawer'
 import { SubscriptionModal } from './subscriptionModal'
 import { MonetizationCopyVariant, useMonetizationExperimentsStore } from '../../store/monetizationExperimentsStore'
 import { useUserProfileStore } from '../../store/userProfileStore'
+import { useAIAgentsStore } from '../../store/aiAgentsStore'
 import { CustomInterviewPrepPayload } from '../../../types'
 
 const { width } = Dimensions.get('window')
@@ -97,6 +99,7 @@ export function InterviewPrepScreen() {
   const [showMenu, setShowMenu] = useState(false)
   const [showSubscription, setShowSubscription] = useState(false)
   const [showCreditPackages, setShowCreditPackages] = useState(false)
+  const [showRewardedAd, setShowRewardedAd] = useState(false)
   const [subscriptionCopyVariant, setSubscriptionCopyVariant] = useState<MonetizationCopyVariant>('classic')
   const [creditsCopyVariant, setCreditsCopyVariant] = useState<MonetizationCopyVariant>('classic')
   const [customFlowStep, setCustomFlowStep] = useState(0)
@@ -104,12 +107,16 @@ export function InterviewPrepScreen() {
 
   const { balance, canAfford, subscriptionTier, setSubscriptionTier } = useCreditsStore()
   const { saveCustomInterviewPrep, email } = useUserProfileStore()
+  const setVoiceModeEnabled = useAIAgentsStore(state => state.setVoiceModeEnabled)
   const evaluatePlacement = useMonetizationExperimentsStore(state => state.evaluatePlacement)
   const interviewCost = CREDIT_COSTS.mockInterview
   const hasEnoughCredits = canAfford('mockInterview')
   const routeParams = (route as any)?.params ?? {}
   const customPrep = routeParams?.customPrep as CustomInterviewPrepPayload | undefined
   const routeJob = routeParams?.job as { id?: string; role?: string; company?: string } | undefined
+  const aiCoachVoiceMode = Boolean(routeParams?.aiCoachVoiceMode)
+  const aiCoachSection = (routeParams?.aiCoachSection as 'chat' | 'assistant' | 'images' | 'settings' | undefined) || 'chat'
+  const voiceSeedQuestion = routeParams?.voiceSeedQuestion as string | undefined
   const isCustomFlow = Boolean(customPrep)
 
   const handleOpenGetMore = () => {
@@ -167,8 +174,23 @@ export function InterviewPrepScreen() {
       return
     }
 
-    ;(navigation as any).navigate('MockInterview', {
-      jobId: routeJob?.id,
+    if (aiCoachVoiceMode || routeJob?.id || voiceSeedQuestion) {
+      ;(navigation as any).navigate('MockInterview', {
+        jobId: routeJob?.id,
+        category: aiCoachVoiceMode ? 'AI Voice Practice' : undefined,
+        question: voiceSeedQuestion,
+      })
+      return
+    }
+
+    ;(navigation as any).navigate('MockInterview')
+  }
+
+  const handleBackToAICoach = () => {
+    setVoiceModeEnabled(false)
+    ;(navigation as any).navigate('MainTabs', {
+      screen: 'AICoach',
+      params: { aiCoachSection },
     })
   }
 
@@ -254,7 +276,12 @@ export function InterviewPrepScreen() {
             <Text style={styles.questionsBottomButtonDuration}>30 min</Text>
           </TouchableOpacity>
           {!hasEnoughCredits && (
-            <Text style={styles.questionsInsufficientText}>Insufficient credits for this action</Text>
+            <View style={styles.insufficientActionWrap}>
+              <Text style={styles.questionsInsufficientText}>Insufficient credits for this action</Text>
+              <TouchableOpacity style={styles.watchAdButton} onPress={() => setShowRewardedAd(true)}>
+                <Text style={styles.watchAdButtonText}>Watch ad for +12 credits</Text>
+              </TouchableOpacity>
+            </View>
           )}
         </View>
 
@@ -322,6 +349,18 @@ export function InterviewPrepScreen() {
             </TouchableOpacity>
         </View>
 
+        {aiCoachVoiceMode ? (
+          <View style={styles.voiceModeBanner}>
+            <View style={styles.voiceModeBadge}>
+              <Feather name='mic' size={14} color='#fff' />
+              <Text style={styles.voiceModeBadgeText}>Voice-only mode</Text>
+            </View>
+            <TouchableOpacity style={styles.voiceModeExitBtn} onPress={handleBackToAICoach}>
+              <Text style={styles.voiceModeExitText}>Back to AI Coach</Text>
+            </TouchableOpacity>
+          </View>
+        ) : null}
+
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
             {/* Value Proposition / Readiness */}
             <Animated.View entering={FadeInDown.delay(100).duration(500)} style={styles.heroCard}>
@@ -372,12 +411,18 @@ export function InterviewPrepScreen() {
                     </View>
                     <View style={{flex: 1}}>
                         <Text style={styles.actionTitle}>
-                          {isCustomFlow ? 'Start Custom Mock Interview' : 'Start Mock Interview'}
+                          {isCustomFlow
+                            ? 'Start Custom Mock Interview'
+                            : aiCoachVoiceMode
+                              ? 'Start Voice Interview Session'
+                              : 'Start Mock Interview'}
                         </Text>
                         <Text style={styles.actionSubtitle}>
                           {isCustomFlow
                             ? 'Practice with questions generated from this job description'
-                            : 'Simulate a 30-min behavioral session'}
+                            : aiCoachVoiceMode
+                              ? 'Launch from AI Coach with your current chat context'
+                              : 'Simulate a 30-min behavioral session'}
                         </Text>
                     </View>
                     <View style={{alignItems: 'flex-end'}}>
@@ -386,7 +431,12 @@ export function InterviewPrepScreen() {
                     </View>
                 </TouchableOpacity>
                 {!hasEnoughCredits && (
-                    <Text style={styles.insufficientText}>Insufficient credits for this action</Text>
+                    <View style={styles.insufficientActionWrap}>
+                      <Text style={styles.insufficientText}>Insufficient credits for this action</Text>
+                      <TouchableOpacity style={styles.watchAdButton} onPress={() => setShowRewardedAd(true)}>
+                        <Text style={styles.watchAdButtonText}>Watch ad for +12 credits</Text>
+                      </TouchableOpacity>
+                    </View>
                 )}
             </Animated.View>
 
@@ -552,6 +602,12 @@ export function InterviewPrepScreen() {
             setShowCreditPackages(false)
             setShowSubscription(true)
           }}
+        />
+        <RewardedAdDrawer
+          visible={showRewardedAd}
+          onClose={() => setShowRewardedAd(false)}
+          mode='ai_credits'
+          rewardAmount={12}
         />
 
         {/* Subscription / Get More Credits Modal */}
@@ -1789,5 +1845,62 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: -20,
     marginBottom: 16,
+  },
+  insufficientActionWrap: {
+    alignItems: 'center',
+    marginTop: -20,
+    marginBottom: 16,
+  },
+  watchAdButton: {
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: `${CLTheme.accent}77`,
+    borderRadius: 999,
+    backgroundColor: `${CLTheme.accent}22`,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  watchAdButtonText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: CLTheme.accent,
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+  },
+  voiceModeBanner: {
+    marginHorizontal: 24,
+    marginTop: 12,
+    marginBottom: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
+  },
+  voiceModeBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#0d6cf2',
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  voiceModeBadgeText: {
+    color: '#fff',
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  voiceModeExitBtn: {
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: CLTheme.border,
+    backgroundColor: CLTheme.card,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  voiceModeExitText: {
+    color: CLTheme.text.secondary,
+    fontSize: 11,
+    fontWeight: '700',
   },
 })

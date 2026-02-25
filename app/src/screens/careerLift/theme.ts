@@ -1,3 +1,5 @@
+import { createContext, useContext } from 'react'
+
 export type CLThemeTokens = {
   background: string
   card: string
@@ -87,4 +89,59 @@ export function resolveCLTheme(themeNameInput?: string): CLThemeTokens {
   }
 }
 
-export const CLTheme = resolveCLTheme()
+/**
+ * CLTheme is a **Proxy** that lazily resolves theme tokens at access time.
+ * 
+ * Every property access (e.g. `CLTheme.text.primary`) reads the current
+ * runtime theme name from `globalThis.__RNAI_THEME_NAME`, so even static
+ * `StyleSheet.create(...)` blocks produce correct colours — **provided**
+ * the stylesheet is created *after* the theme name has been set.
+ *
+ * For components that need fully reactive styles (created at render time),
+ * use the `useCLTheme()` hook instead.
+ */
+function createLazyCLTheme(): CLThemeTokens {
+  const handler: ProxyHandler<CLThemeTokens> = {
+    get(_target, prop, receiver) {
+      // Resolve a fresh theme each time a top-level key is accessed
+      const resolved = resolveCLTheme()
+      const value = (resolved as any)[prop]
+      // If the value is an object (e.g. `text`, `status`), also wrap it
+      if (value && typeof value === 'object') {
+        return new Proxy(value, {
+          get(innerTarget, innerProp) {
+            // Re-resolve to ensure absolute freshness
+            const freshResolved = resolveCLTheme()
+            return (freshResolved as any)[prop]?.[innerProp]
+          },
+        })
+      }
+      return value
+    },
+  }
+  return new Proxy({} as CLThemeTokens, handler)
+}
+
+export const CLTheme: CLThemeTokens = createLazyCLTheme()
+
+// ── React hook – use this in components for reactive light/dark support ──
+
+/**
+ * Returns a CLThemeTokens object that responds to the current app theme.
+ * This causes a re-render whenever the React context's theme changes.
+ *
+ * Prefer this over the raw `CLTheme` import when your component
+ * creates styles at render time or needs inline colour values.
+ */
+let _ThemeContext: React.Context<any> | null = null
+const FALLBACK_THEME_CONTEXT = createContext<any>(null)
+
+export function _injectThemeContext(ctx: React.Context<any>) {
+  _ThemeContext = ctx
+}
+
+export function useCLTheme(): CLThemeTokens {
+  const ctx = useContext(_ThemeContext ?? FALLBACK_THEME_CONTEXT)
+  const themeName: string = ctx?.themeName || ctx?.theme?.label || 'dark'
+  return resolveCLTheme(themeName)
+}

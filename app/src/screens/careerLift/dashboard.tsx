@@ -16,7 +16,7 @@ import {
 import { MaterialIcons } from '@expo/vector-icons'
 import * as DocumentPicker from 'expo-document-picker'
 import { JobEntry, useJobTrackerStore } from '../../store/jobTrackerStore'
-import { CLTheme } from './theme'
+import { CLTheme, useCLTheme, CLThemeTokens } from './theme'
 import { useUserProfileStore } from '../../store/userProfileStore'
 import { NotificationsPanel } from './components/notificationsPanel'
 import { ModalContainer } from './components/modalContainer'
@@ -27,6 +27,7 @@ import { ActionDecisionDrawer } from './components/actionDecisionDrawer'
 import { TaskChecklistList } from './components/taskChecklistList'
 import { useTaskChecklistFlow } from './components/useTaskChecklistFlow'
 import { useNotificationsPanelState } from './components/useNotificationsPanelState'
+import { RewardedAdDrawer } from './components/rewardedAdDrawer'
 
 type DashboardProps = {
   navigation?: {
@@ -166,6 +167,7 @@ export function DashboardScreen({ navigation, route }: DashboardProps = {}) {
   const [jobDescriptionText, setJobDescriptionText] = useState('')
   const [showResumeScanProgress, setShowResumeScanProgress] = useState(false)
   const [showJobScanProgress, setShowJobScanProgress] = useState(false)
+  const [showScanRewardedAd, setShowScanRewardedAd] = useState(false)
   const [resumeScanStep, setResumeScanStep] = useState(0)
   const [resumeScanComplete, setResumeScanComplete] = useState(false)
   const [activeResumeScanName, setActiveResumeScanName] = useState('')
@@ -420,10 +422,7 @@ export function DashboardScreen({ navigation, route }: DashboardProps = {}) {
   const startJobScanFlow = () => {
     const charged = spendScanCredit('Job market scan')
     if (!charged) {
-      Alert.alert(
-        'No scan credits left',
-        'You have reached your scan limit. Purchase scan credits or upgrade to Unlimited in Settings.'
-      )
+      setShowScanRewardedAd(true)
       return false
     }
 
@@ -445,10 +444,7 @@ export function DashboardScreen({ navigation, route }: DashboardProps = {}) {
   const startResumeScanFlow = (resumeName: string) => {
     const charged = spendScanCredit('ATS resume scan')
     if (!charged) {
-      Alert.alert(
-        'No scan credits left',
-        'You have reached your scan limit. Purchase scan credits or upgrade to Unlimited in Settings.'
-      )
+      setShowScanRewardedAd(true)
       return false
     }
 
@@ -585,6 +581,9 @@ export function DashboardScreen({ navigation, route }: DashboardProps = {}) {
     ],
     [appliedCount, navigation]
   )
+
+  const clTheme = useCLTheme()
+  const styles = getStyles(clTheme)
 
   return (
     <View style={styles.container}>
@@ -1068,11 +1067,21 @@ export function DashboardScreen({ navigation, route }: DashboardProps = {}) {
         onClearNotification={handleClearNotification}
         onClearAll={handleClearAllNotifications}
       />
+
+      <RewardedAdDrawer
+        visible={showScanRewardedAd}
+        onClose={() => setShowScanRewardedAd(false)}
+        mode='scan_credits'
+        rewardAmount={2}
+        onRewardGranted={() => {
+          Alert.alert('Scan credits added', 'You earned bonus scan credits. You can start your scan now.')
+        }}
+      />
     </View>
   )
 }
 
-const styles = StyleSheet.create({
+const getStyles = (CLTheme: CLThemeTokens) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: CLTheme.background,

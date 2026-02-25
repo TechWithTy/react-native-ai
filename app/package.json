@@ -6,6 +6,8 @@
   "scripts": {
     "preinstall": "node ./scripts/enforce-pnpm.cjs",
     "start": "node ./scripts/start-safe.cjs",
+    "start:lan": "node ./scripts/start-safe.cjs --lan",
+    "start:local": "node ./scripts/start-safe.cjs --localhost",
     "start:raw": "expo start",
     "start:clear": "expo start --clear",
     "start:device": "node ./scripts/start-safe.cjs --go --lan --port 8081 --no-adb",
@@ -13,7 +15,13 @@
     "repair:deps": "node ./scripts/repair-deps.cjs",
     "native:doctor": "node ./scripts/native-capabilities-check.cjs",
     "android": "expo run:android",
+    "android:lan": "expo run:android",
+    "android:local": "expo run:android",
+    "android:clear": "expo run:android --clear",
     "ios": "expo run:ios",
+    "ios:lan": "expo run:ios",
+    "ios:local": "expo run:ios",
+    "ios:clear": "expo run:ios --clear",
     "web": "expo start --web",
     "test": "jest",
     "test:watch": "jest --watch"

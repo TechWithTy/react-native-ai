@@ -15,6 +15,7 @@ export type JobEntry = {
   tags?: string[]
   salary?: string
   notes?: string
+  applicationUrl?: string
   savedFromRecommended?: boolean
 }
 
@@ -148,6 +149,7 @@ const initialRecommendedJobs: JobEntry[] = [
     nextActionDate: 'Today',
     match: '96%',
     tags: ['Remote', 'Full-time', '$160k - $210k'],
+    applicationUrl: 'https://www.stellar.ai/careers/senior-product-designer',
     logo: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDUxNKyiqVhqbAIrrFGWSqfqK-mM8xisy4pXPmHLjPVsFYDpy089SKojXPoycHHbkKnZkLVUDNtFmsrt34NPbTH_AzyDoXVO9czN5ECp_iJB8qlJmNgau1X-7UfskmTzQXSov-JUC_rAnBDZmIa41g1Zn8kd-ICjX7cZMhgQDiJHOc5_TxUmgIaTD_xU3lJjcMay1706ITKASvXQVWngHGhJuz6bkk2RItbijEspibZwiFt3mDhBcFvVrEfbWpSNOmLLyNxNj_pc3P0',
     color: '#f5f7f8',
   },
@@ -161,6 +163,7 @@ const initialRecommendedJobs: JobEntry[] = [
     nextActionDate: 'Today',
     match: '92%',
     tags: ['Hybrid', 'Full-time', '$145k - $185k'],
+    applicationUrl: 'https://www.finflow.com/careers/lead-ux-researcher',
     logo: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCCnaOER00RRzpV7nUIlJCot9nxvhix0tGudFiGlfewQE7gEy8J4k5HyK7UDX8A3wG3xQScwPnlY9UXObx9D0Zfk5sMywOnLA5U8BTa8KnONyoyNaSx2rUgjdG9Jsx5JjZITnmsBYjUOoJ_u0zlfY1dDAFgsUTZrxoVb7-2KuTYwFxfSP4owvnWidwhnLz2TLor6mKuGh1EqDebriMvO14inWSLm9irlkSx_bSlYFVV51BUw_ajt16sJ-f6TorPL5EKqzxcSML_5ZuO',
     color: '#f5f7f8',
   },
@@ -174,6 +177,7 @@ const initialRecommendedJobs: JobEntry[] = [
     nextActionDate: 'Today',
     match: '88%',
     tags: ['Remote', 'Full-time', '$180k+'],
+    applicationUrl: 'https://www.nexussystems.com/careers/staff-product-manager',
     logo: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB367XkOeJ6oOxMITxcDH82YG0DVu0PxYpfMh236Z-v8Yx5o614ZkSkXumatMzamies-FyTABrErta_PVJIrGydD-vO76qHqCAnULrfT5ps_0cA3k9GqQpaoKlckMpfkiXstALEGxC6PWc9AtziSLLpPFBvHPn9AUXYIFHaWAsTNefs6CweJuqP3c6NTqRZy_V_sQwS_HkHmHsKZ2Dac52IAPgvVNUHjVzpB1uHlATmt45ZYdnHRA8MP4Ie3VXYFPTrTViB4uZvTUvm',
     color: '#f5f7f8',
   },
@@ -187,6 +191,7 @@ const initialRecommendedJobs: JobEntry[] = [
     nextActionDate: 'Today',
     match: '85%',
     tags: ['Remote', 'Contract', '$90 - $120 / hr'],
+    applicationUrl: 'https://www.loomly.com/careers/interaction-designer',
     logo: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCKsKb4auaJiDMg9u1UP4E6RaR09AUgvxiTohTdLNGPE6_rIAcdT8GGpUItIxx5mbG-j9_YRZNxdXEs7OVyUnQXXPrYEUL5fqNmmooNz6zKdmE5rFjFbFrzILbzbrslDhCOH-HpFN73SqsP-egRElKKIglC9PAEVdMuV8KsB44gEdM05vpIJqQztfzVDRFAUf8WLVTp5syHr3tUO23fp7Zkinp0vO8K1zo-USHzWVtKbWNHqSu8779gaiHTpLiN64NM67Uf3pdZFiZO',
     color: '#f5f7f8',
   },

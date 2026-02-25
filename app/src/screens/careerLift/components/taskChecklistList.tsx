@@ -1,7 +1,7 @@
 import React from 'react'
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { MaterialIcons } from '@expo/vector-icons'
-import { CLTheme } from '../theme'
+import { useCLTheme, CLThemeTokens } from '../theme'
 import { WeeklyActionItem } from './useTaskChecklistFlow'
 
 type TaskChecklistListProps = {
@@ -19,6 +19,9 @@ export function TaskChecklistList({
   onCheckAction,
   onUncheckAction,
 }: TaskChecklistListProps) {
+  const theme = useCLTheme()
+  const styles = getStyles(theme)
+
   return (
     <View style={styles.planList}>
       {activeActions.map(action => (
@@ -40,7 +43,7 @@ export function TaskChecklistList({
             <Text style={styles.planTitle}>{action.title}</Text>
             <Text style={styles.planSubtitle}>{action.subtitle}</Text>
           </View>
-          <MaterialIcons name='arrow-forward-ios' size={14} color={CLTheme.text.muted} />
+          <MaterialIcons name='arrow-forward-ios' size={14} color={theme.text.muted} />
         </TouchableOpacity>
       ))}
 
@@ -70,62 +73,64 @@ export function TaskChecklistList({
   )
 }
 
-const styles = StyleSheet.create({
-  planList: {
-    gap: 12,
-  },
-  planItem: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 12,
-    padding: 12,
-    backgroundColor: CLTheme.card,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: CLTheme.border,
-  },
-  checkboxWrapper: {
-    marginTop: 2,
-  },
-  checkbox: {
-    width: 20,
-    height: 20,
-    borderRadius: 5,
-    borderWidth: 2,
-    borderColor: 'rgba(13, 108, 242, 0.4)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  checkedCheckbox: {
-    backgroundColor: CLTheme.accent,
-    borderColor: CLTheme.accent,
-  },
-  planContent: {
-    flex: 1,
-  },
-  planTitle: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  completedPlanTitle: {
-    textDecorationLine: 'line-through',
-    color: CLTheme.text.muted,
-  },
-  planSubtitle: {
-    color: CLTheme.text.secondary,
-    fontSize: 12,
-    marginTop: 2,
-  },
-  completedSection: {
-    marginTop: 12,
-  },
-  completedTitle: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: CLTheme.text.secondary,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-    marginBottom: 12,
-  },
-})
+const getStyles = (t: CLThemeTokens) =>
+  StyleSheet.create({
+    planList: {
+      gap: 12,
+    },
+    planItem: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      gap: 12,
+      padding: 12,
+      backgroundColor: t.card,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: t.border,
+    },
+    checkboxWrapper: {
+      marginTop: 2,
+    },
+    checkbox: {
+      width: 20,
+      height: 20,
+      borderRadius: 5,
+      borderWidth: 2,
+      borderColor: 'rgba(13, 108, 242, 0.4)',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    checkedCheckbox: {
+      backgroundColor: t.accent,
+      borderColor: t.accent,
+    },
+    planContent: {
+      flex: 1,
+    },
+    planTitle: {
+      color: t.text.primary,
+      fontSize: 14,
+      fontWeight: '500',
+    },
+    completedPlanTitle: {
+      textDecorationLine: 'line-through',
+      color: t.text.muted,
+    },
+    planSubtitle: {
+      color: t.text.secondary,
+      fontSize: 12,
+      marginTop: 2,
+    },
+    completedSection: {
+      marginTop: 12,
+    },
+    completedTitle: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: t.text.secondary,
+      textTransform: 'uppercase',
+      letterSpacing: 1,
+      marginBottom: 12,
+    },
+  })
+

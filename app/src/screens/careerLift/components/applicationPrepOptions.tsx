@@ -4,6 +4,7 @@ import {
   Animated,
   Easing,
   Image,
+  Linking,
   Modal,
   Pressable,
   StyleSheet,
@@ -16,6 +17,8 @@ import * as Clipboard from 'expo-clipboard'
 import { CREDIT_COSTS, useCreditsStore } from '../../../store/creditsStore'
 import { JobEntry, useJobTrackerStore } from '../../../store/jobTrackerStore'
 import { CLTheme } from '../theme'
+import { ResumeTemplateDrawer } from './resumeTemplateDrawer'
+import { RewardedAdDrawer } from './rewardedAdDrawer'
 
 const RESUMES = [
   {
@@ -62,6 +65,7 @@ type ApplicationPrepOptionsProps = {
   job: JobEntry | null
   onClose?: () => void
   onApplied?: () => void
+  onExternalApplyResult?: (result: 'applied' | 'not_applied', job: JobEntry) => void
   showHeader?: boolean
   showCancel?: boolean
   initialTab?: 'simple' | 'advanced'
@@ -71,11 +75,12 @@ export function ApplicationPrepOptions({
   job,
   onClose,
   onApplied,
+  onExternalApplyResult,
   showHeader = true,
   showCancel = true,
   initialTab = 'simple',
 }: ApplicationPrepOptionsProps) {
-  const { updateJobStatus, updateJobAction } = useJobTrackerStore(state => state)
+  const { thisWeek, nextUp, updateJobStatus, updateJobAction, addJob } = useJobTrackerStore(state => state)
   const { balance: creditBalance, canAfford, spendCredits } = useCreditsStore()
   const applyCost = CREDIT_COSTS.aiApplicationSubmit
   const canAffordApply = canAfford('aiApplicationSubmit')
@@ -86,6 +91,8 @@ export function ApplicationPrepOptions({
   const [selectedCoverLetter, setSelectedCoverLetter] = React.useState<DocumentOption>(COVER_LETTERS[0])
   const [activeDropdown, setActiveDropdown] = React.useState<'resume' | 'coverLetter' | null>(null)
   const [previewDoc, setPreviewDoc] = React.useState<DocumentOption | null>(null)
+  const [templateDrawerMode, setTemplateDrawerMode] = React.useState<'resume' | 'coverLetter' | null>(null)
+  const [showRewardedAd, setShowRewardedAd] = React.useState(false)
 
   const fillAnim = React.useRef(new Animated.Value(0)).current
   const holdTimerRef = React.useRef<NodeJS.Timeout | null>(null)
@@ -111,8 +118,20 @@ export function ApplicationPrepOptions({
 
   const markJobAppliedAndQueueNextTask = () => {
     if (!job) return
-    updateJobStatus(job.id, 'Applied')
-    updateJobAction(job.id, 'Follow up', 'in 3 days')
+    const existsInTracker = [...thisWeek, ...nextUp].some(entry => entry.id === job.id)
+    if (existsInTracker) {
+      updateJobStatus(job.id, 'Applied')
+      updateJobAction(job.id, 'Follow up', 'in 3 days')
+      return
+    }
+
+    addJob({
+      ...job,
+      status: 'Applied',
+      nextAction: 'Follow up',
+      nextActionDate: 'in 3 days',
+      savedFromRecommended: false,
+    })
   }
 
   const handleStandardApply = () => {
@@ -125,7 +144,7 @@ export function ApplicationPrepOptions({
 
   const handleHoldStart = () => {
     if (!canAffordApply) {
-      Alert.alert('Insufficient Credits', `You need ${applyCost} credits for an AI application.`)
+      setShowRewardedAd(true)
       return
     }
 
@@ -181,30 +200,11 @@ export function ApplicationPrepOptions({
   }
 
   const handleGenerateResume = () => {
-    if (!canAfford('resumeTailor')) {
-      Alert.alert('Insufficient Credits', `You need ${CREDIT_COSTS.resumeTailor} credits to generate a resume.`)
-      return
-    }
-    spendCredits('resumeTailor', `Tailored resume for ${job?.company || 'job'}`)
-    Alert.alert(
-      'Resume Generated',
-      `AI-tailored resume created for ${job?.role || 'this role'}.\nCost: ${CREDIT_COSTS.resumeTailor} credits`
-    )
+    setTemplateDrawerMode('resume')
   }
 
   const handleGenerateCover = () => {
-    if (!canAfford('coverLetterGen')) {
-      Alert.alert(
-        'Insufficient Credits',
-        `You need ${CREDIT_COSTS.coverLetterGen} credits to generate a cover letter.`
-      )
-      return
-    }
-    spendCredits('coverLetterGen', `Cover letter for ${job?.company || 'job'}`)
-    Alert.alert(
-      'Cover Letter Generated',
-      `AI cover letter created for ${job?.role || 'this role'}.\nCost: ${CREDIT_COSTS.coverLetterGen} credits`
-    )
+    setTemplateDrawerMode('coverLetter')
   }
 
   const handleAdvancedSubmit = () => {
@@ -217,6 +217,56 @@ export function ApplicationPrepOptions({
 
   const handleAdvancedPress = () => {
     handleAdvancedSubmit()
+  }
+
+  const buildFallbackApplicationUrl = (targetJob: JobEntry) => {
+    const query = encodeURIComponent(`${targetJob.company} ${targetJob.role} job application`)
+    return `https://www.google.com/search?q=${query}`
+  }
+
+  const markAsNotApplied = (targetJob: JobEntry) => {
+    updateJobStatus(targetJob.id, 'Target')
+    updateJobAction(targetJob.id, 'Submit Application', 'Pending')
+  }
+
+  const handleOpenJobApplication = async () => {
+    if (!job) return
+    const targetUrl = job.applicationUrl || buildFallbackApplicationUrl(job)
+
+    try {
+      const canOpen = await Linking.canOpenURL(targetUrl)
+      if (!canOpen) {
+        Alert.alert('Unable to open link', 'This application link is not available on your device.')
+        return
+      }
+
+      await Linking.openURL(targetUrl)
+
+      Alert.alert(
+        'Application status',
+        'Did you submit the application?',
+        [
+          {
+            text: 'Not yet',
+            style: 'cancel',
+            onPress: () => {
+              markAsNotApplied(job)
+              onExternalApplyResult?.('not_applied', job)
+            },
+          },
+          {
+            text: 'Yes, submitted',
+            onPress: () => {
+              markJobAppliedAndQueueNextTask()
+              onExternalApplyResult?.('applied', job)
+              onApplied?.()
+            },
+          },
+        ]
+      )
+    } catch {
+      Alert.alert('Open failed', 'Could not open the application link. Please try again.')
+    }
   }
 
   const renderDocumentSelector = (
@@ -357,6 +407,19 @@ export function ApplicationPrepOptions({
               <Text style={styles.aiGenBtnText}>AI Cover ({CREDIT_COSTS.coverLetterGen}cr)</Text>
             </TouchableOpacity>
           </View>
+
+          <TouchableOpacity
+            style={styles.externalApplyButton}
+            onPress={handleOpenJobApplication}
+            activeOpacity={0.85}
+            disabled={!job}
+            testID='open-job-application-button'
+          >
+            <Feather name='external-link' size={15} color={job ? CLTheme.accent : CLTheme.text.muted} />
+            <Text style={[styles.externalApplyButtonText, !job && styles.externalApplyButtonTextDisabled]}>
+              Open Job Application
+            </Text>
+          </TouchableOpacity>
 
           <View style={styles.actionArea}>
             <View style={styles.creditCostRow}>
@@ -507,6 +570,24 @@ export function ApplicationPrepOptions({
           </View>
         </View>
       </Modal>
+
+      <ResumeTemplateDrawer
+        visible={!!templateDrawerMode}
+        onClose={() => setTemplateDrawerMode(null)}
+        mode={templateDrawerMode || 'resume'}
+        jobContext={job ? `${job.role} at ${job.company}` : undefined}
+        onGenerated={() => setTemplateDrawerMode(null)}
+      />
+
+      <RewardedAdDrawer
+        visible={showRewardedAd}
+        onClose={() => setShowRewardedAd(false)}
+        mode='ai_credits'
+        rewardAmount={12}
+        onRewardGranted={() => {
+          Alert.alert('Credits added', 'You can now continue with AI quick apply.')
+        }}
+      />
     </View>
   )
 }
@@ -661,6 +742,28 @@ const styles = StyleSheet.create({
     color: '#0d6cf2',
     fontSize: 12,
     fontWeight: '600',
+  },
+  externalApplyButton: {
+    marginTop: 10,
+    borderWidth: 1,
+    borderColor: CLTheme.border,
+    borderRadius: 10,
+    backgroundColor: CLTheme.background,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 10,
+  },
+  externalApplyButtonText: {
+    color: CLTheme.accent,
+    fontSize: 12,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+  },
+  externalApplyButtonTextDisabled: {
+    color: CLTheme.text.muted,
   },
   actionArea: {
     marginTop: 28,

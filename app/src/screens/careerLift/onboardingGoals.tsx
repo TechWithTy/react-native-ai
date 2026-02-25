@@ -10,7 +10,7 @@ import { USER_WORKING_STYLES } from '../../data/workingStyle'
 import { ModalContainer } from './components/modalContainer'
 import { LocationAutocomplete } from './components/locationAutocomplete'
 import { getCurrentDeviceLocation } from '../../native/permissions/location'
-import { CLTheme } from './theme'
+import { CLTheme, useCLTheme, CLThemeTokens } from './theme'
 
 const LOCATION_REQUIRED_WORKING_STYLES = new Set(['Hybrid', 'On-site'])
 const LEGACY_BY_WORKING_STYLE = USER_WORKING_STYLES.reduce<Record<string, string>>((acc, option) => {
@@ -29,6 +29,8 @@ export function OnboardingGoalsScreen({ navigation }: any) {
   const [showLocationModal, setShowLocationModal] = useState(false)
   const [locationInput, setLocationInput] = useState('')
   const [isLocating, setIsLocating] = useState(false)
+  const clTheme = useCLTheme()
+  const styles = getStyles(clTheme)
 
   const selectRoleTrack = useCallback(
     (nextTrack: string) => {
@@ -165,9 +167,7 @@ export function OnboardingGoalsScreen({ navigation }: any) {
                           <MaterialIcons name="check-circle" size={20} color="#0d6cf2" />
                       </View>
                   )}
-                  <View style={[styles.roleIconWrap, { backgroundColor: item.bgColor ? '#1e293b' : '#334155' } ]}> 
-                      {/* Note: In dark mode, we might simply stick to dark icon backgrounds rather than pastel colors unless we want a colorful dark mode. 
-                          The HTML design used pastels. For dark mode consistency here, I'll use dark grays but color the icon. */}
+                  <View style={[styles.roleIconWrap, { backgroundColor: item.bgColor || CLTheme.border }]}> 
                       <MaterialIcons name={item.icon as any} size={28} color={item.color} />
                   </View>
                   <Text style={[styles.gridCardText, selected && styles.gridCardTextSelected]}>{item.label}</Text>
@@ -345,7 +345,7 @@ export function OnboardingGoalsScreen({ navigation }: any) {
   )
 }
 
-const styles = StyleSheet.create({
+const getStyles = (CLTheme: CLThemeTokens) => StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: CLTheme.background,
@@ -492,7 +492,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   gridCardTextSelected: {
-    color: '#fff',
+    color: CLTheme.accent,
     fontWeight: '600',
   },
 
@@ -563,7 +563,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   locationLabelSelected: {
-      color: '#fff',
+      color: CLTheme.accent,
   },
   locationSubtitle: {
       color: CLTheme.text.muted,

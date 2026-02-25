@@ -13,6 +13,7 @@ type ModalContainerProps = {
   children: React.ReactNode
   backdropTestID?: string
   closeOnBackdropPress?: boolean
+  isHardWall?: boolean
   animationType?: ModalProps['animationType']
 }
 
@@ -22,15 +23,24 @@ export function ModalContainer({
   children,
   backdropTestID,
   closeOnBackdropPress = true,
+  isHardWall = false,
   animationType = 'fade',
 }: ModalContainerProps) {
   const handleBackdropPress = () => {
-    if (!closeOnBackdropPress) return
+    if (!closeOnBackdropPress || isHardWall) return
     onClose()
   }
 
   return (
-    <Modal visible={visible} animationType={animationType} transparent onRequestClose={onClose}>
+    <Modal
+      visible={visible}
+      animationType={animationType}
+      transparent
+      onRequestClose={() => {
+        if (isHardWall) return
+        onClose()
+      }}
+    >
       <TouchableWithoutFeedback onPress={handleBackdropPress}>
         <View style={styles.overlay} testID={backdropTestID}>
           <TouchableWithoutFeedback onPress={() => {}}>

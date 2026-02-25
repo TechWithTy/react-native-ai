@@ -21,6 +21,7 @@ import { InterviewPrepScreen } from '../interviewPrep'
 import { AccountSecurityScreen } from '../accountSecurity'
 import { NotificationsPreferencesScreen } from '../notificationPreferences'
 import { DocumentsInsightsScreen } from '../documentsInsights'
+import { MonetizationPromptsScreen } from '../monetizationPrompts'
 import { UpdateEmailScreen } from '../updateEmail'
 import { UpdatePasswordScreen } from '../updatePassword'
 import { useCareerSetupStore } from '../../../store/careerSetup'
@@ -69,8 +70,7 @@ jest.mock('@react-navigation/native', () => {
 
 describe('careerLiftRoutes', () => {
   it('contains all required screen routes', () => {
-    expect(careerLiftRoutes).toHaveLength(22)
-    expect(careerLiftRoutes.map(route => route.key)).toEqual([
+    const expectedKeys = [
       'Splash',
       'OnboardingGoals',
       'OnboardingSetTargets',
@@ -89,11 +89,15 @@ describe('careerLiftRoutes', () => {
       'NotificationsPreferences',
       'AccountSecurity',
       'DocumentsInsights',
+      ...(__DEV__ ? ['MonetizationPrompts'] : []),
       'UpdateEmail',
       'UpdatePassword',
       'ApplyPack',
       'InterviewPrep',
-    ])
+    ]
+
+    expect(careerLiftRoutes).toHaveLength(expectedKeys.length)
+    expect(careerLiftRoutes.map(route => route.key)).toEqual(expectedKeys)
   })
 })
 
@@ -149,6 +153,9 @@ describe('CareerLift screens', () => {
     { name: 'NotificationsPreferences', component: NotificationsPreferencesScreen, heading: 'Notification Preferences' },
     { name: 'AccountSecurity', component: AccountSecurityScreen, heading: 'Account & Security' },
     { name: 'DocumentsInsights', component: DocumentsInsightsScreen, heading: 'Documents & Insights' },
+    ...(__DEV__
+      ? [{ name: 'MonetizationPrompts', component: MonetizationPromptsScreen, heading: 'Prompts & Paywalls' }]
+      : []),
     { name: 'UpdateEmail', component: UpdateEmailScreen, heading: 'Update Email' },
     { name: 'UpdatePassword', component: UpdatePasswordScreen, heading: 'Update Password' },
     { name: 'ApplyPack', component: ApplyPackScreen, heading: 'Review Package' },

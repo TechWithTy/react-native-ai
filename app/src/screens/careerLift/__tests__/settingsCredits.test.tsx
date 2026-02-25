@@ -87,6 +87,7 @@ function resetStores() {
   useCreditsStore.getState().resetCredits()
   useUserProfileStore.getState().resetProfile()
   useMonetizationExperimentsStore.getState().resetExperiments()
+  useCareerSetupStore.getState().resetCareerSetup()
 }
 
 // --- Tests ---
@@ -637,5 +638,52 @@ describe('SettingsProfileScreen — Editable Target Role & Profile Badges', () =
         multiple: false,
       })
     )
+  })
+})
+
+describe('SettingsProfileScreen — Auto Apply Controls', () => {
+  beforeEach(() => {
+    jest.clearAllMocks()
+    resetStores()
+    act(() => {
+      useCreditsStore.getState().setSubscriptionTier('starter')
+    })
+  })
+
+  it('shows auto apply controls for Starter and saves daily limit within the tier cap', () => {
+    const { getByText, getByTestId } = render(<SettingsProfileScreen />)
+    expect(getByText('Auto Apply')).toBeTruthy()
+    expect(getByText('STARTER plan: up to 25/day')).toBeTruthy()
+
+    fireEvent(getByTestId('auto-apply-switch'), 'valueChange', true)
+
+    const limitInput = getByTestId('auto-apply-limit-input')
+    fireEvent.changeText(limitInput, '40')
+
+    const state = useCareerSetupStore.getState()
+    expect(state.autoApplyEnabled).toBe(true)
+    expect(state.autoApplyDailyLimit).toBe(25)
+  })
+
+  it('blocks auto apply on unsupported tiers', () => {
+    act(() => {
+      useCreditsStore.getState().setSubscriptionTier('unlimited')
+      useCareerSetupStore.getState().setCareerSetup({
+        autoApplyEnabled: true,
+        autoApplyDailyLimit: 70,
+      })
+    })
+
+    const { getByText, getByTestId, queryByTestId } = render(<SettingsProfileScreen />)
+    expect(getByText('Available on Starter and Pro plans only')).toBeTruthy()
+
+    fireEvent(getByTestId('auto-apply-switch'), 'valueChange', true)
+
+    expect(Alert.alert).toHaveBeenCalledWith(
+      'Auto Apply unavailable',
+      'Auto Apply is available on Starter and Pro plans only.'
+    )
+    expect(useCareerSetupStore.getState().autoApplyEnabled).toBe(false)
+    expect(queryByTestId('auto-apply-limit-input')).toBeNull()
   })
 })

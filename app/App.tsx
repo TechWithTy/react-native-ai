@@ -4,6 +4,11 @@ import { NavigationContainer } from '@react-navigation/native'
 import { useFonts } from 'expo-font'
 import { ThemeContext, AppContext } from './src/context'
 import * as themes from './src/theme'
+import { _injectThemeContext } from './src/screens/careerLift/theme'
+
+// Wire up the shared ThemeContext so useCLTheme() reads the correct theme name
+_injectThemeContext(ThemeContext)
+
 import { IMAGE_MODELS, MODELS } from './constants'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { ChatModelModal } from './src/components/index'

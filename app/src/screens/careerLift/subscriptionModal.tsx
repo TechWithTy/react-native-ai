@@ -33,21 +33,21 @@ export interface SubscriptionTier {
 export const TIERS: SubscriptionTier[] = [
   {
     id: 'starter',
-    name: 'Starter',
+    name: 'Free',
     price: '$0',
     period: '/month',
-    credits: '50 credits/mo',
-    scans: '10 scans/mo',
+    credits: '0 credits/mo',
+    scans: '0 scans/mo',
     highlight: false,
     features: [
-      { text: '50 AI credits per month', icon: 'zap', included: true },
-      { text: '10 job/resume scans per month', icon: 'radar', included: true },
       { text: 'Basic interview prep', icon: 'mic', included: true },
-      { text: 'Job tracking (up to 25)', icon: 'briefcase', included: true },
+      { text: 'Job tracking', icon: 'briefcase', included: true },
       { text: 'Manual job applications', icon: 'send', included: true },
+      { text: 'AI credits', icon: 'zap', included: false },
+      { text: 'Job/resume scans', icon: 'radar', included: false },
+      { text: 'AI auto-applies', icon: 'repeat', included: false },
+      { text: 'Live interview assistant', icon: 'mic', included: false },
       { text: 'AI resume tailoring', icon: 'file-text', included: false },
-      { text: 'Automated apply', icon: 'repeat', included: false },
-      { text: 'Priority AI models', icon: 'cpu', included: false },
     ],
   },
   {
@@ -62,12 +62,12 @@ export const TIERS: SubscriptionTier[] = [
     features: [
       { text: '300 AI credits per month', icon: 'zap', included: true },
       { text: '50 job/resume scans per month', icon: 'radar', included: true },
+      { text: '25 AI auto-applies per day', icon: 'repeat', included: true },
       { text: 'Advanced interview coaching', icon: 'mic', included: true },
       { text: 'Unlimited job tracking', icon: 'briefcase', included: true },
-      { text: 'AI-powered auto-apply (30/mo)', icon: 'repeat', included: true },
       { text: 'AI resume tailoring', icon: 'file-text', included: true },
       { text: 'Cover letter generation', icon: 'edit-3', included: true },
-      { text: 'Priority AI models', icon: 'cpu', included: false },
+      { text: 'Live interview assistant', icon: 'mic', included: false },
     ],
   },
   {
@@ -82,11 +82,11 @@ export const TIERS: SubscriptionTier[] = [
     features: [
       { text: 'Unlimited AI credits', icon: 'zap', included: true },
       { text: 'Unlimited job/resume scans', icon: 'radar', included: true },
+      { text: '100 AI auto-applies per day', icon: 'repeat', included: true },
+      { text: 'Live interview assistant', icon: 'mic', included: true },
       { text: 'Priority AI models (GPT-4o)', icon: 'cpu', included: true },
       { text: 'Unlimited job tracking', icon: 'briefcase', included: true },
-      { text: 'Unlimited auto-apply', icon: 'repeat', included: true },
       { text: 'AI resume tailoring', icon: 'file-text', included: true },
-      { text: 'Cover letter generation', icon: 'edit-3', included: true },
       { text: 'Dedicated support', icon: 'headphones', included: true },
     ],
   },
@@ -100,6 +100,8 @@ interface SubscriptionModalProps {
   selectedTierId?: SubscriptionTierId
   onSubscribeTier?: (tier: SubscriptionTierId) => void
   copyVariant?: MonetizationCopyVariant
+  hardWall?: boolean
+  requiredTierId?: SubscriptionTierId | null
 }
 
 // ─── Component ────────────────────────────────────────────────────
@@ -110,15 +112,35 @@ export function SubscriptionModal({
   selectedTierId = 'pro',
   onSubscribeTier,
   copyVariant = 'classic',
+  hardWall = false,
+  requiredTierId = null,
 }: SubscriptionModalProps) {
   const [selectedTier, setSelectedTier] = useState<SubscriptionTierId>(selectedTierId)
 
+  const tierRank: Record<SubscriptionTierId, number> = {
+    starter: 0,
+    pro: 1,
+    unlimited: 2,
+  }
+
+  const requiredRank = requiredTierId ? tierRank[requiredTierId] : 0
+  const selectedRank = tierRank[selectedTier]
+  const isSelectedTierEligible = selectedRank >= requiredRank
+
   React.useEffect(() => {
     if (!visible) return
+    if (requiredTierId && tierRank[selectedTierId] < tierRank[requiredTierId]) {
+      setSelectedTier(requiredTierId)
+      return
+    }
     setSelectedTier(selectedTierId)
-  }, [visible, selectedTierId])
+  }, [visible, selectedTierId, requiredTierId])
 
   const handleSubscribe = () => {
+    if (!isSelectedTierEligible) {
+      alert(`This feature requires ${requiredTierId?.toUpperCase()} or higher.`)
+      return
+    }
     onSubscribeTier?.(selectedTier)
     // Placeholder — would integrate with payment SDK
     alert(`Subscribing to ${TIERS.find(t => t.id === selectedTier)?.name} plan!`)
@@ -145,7 +167,15 @@ export function SubscriptionModal({
           }
 
   return (
-    <Modal visible={visible} animationType="slide" transparent>
+    <Modal
+      visible={visible}
+      animationType="slide"
+      transparent
+      onRequestClose={() => {
+        if (hardWall) return
+        onClose()
+      }}
+    >
       <View style={styles.overlay}>
         <View style={styles.container}>
           {/* Handle bar */}
@@ -157,9 +187,13 @@ export function SubscriptionModal({
               <Text style={styles.title}>{copy.title}</Text>
               <Text style={styles.subtitle}>{copy.subtitle}</Text>
             </View>
-            <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-              <Feather name="x" size={22} color={CLTheme.text.secondary} />
-            </TouchableOpacity>
+            {!hardWall ? (
+              <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
+                <Feather name="x" size={22} color={CLTheme.text.secondary} />
+              </TouchableOpacity>
+            ) : (
+              <View style={styles.closeBtn} />
+            )}
           </View>
 
           {/* Low balance nudge */}
@@ -176,6 +210,7 @@ export function SubscriptionModal({
             {/* Tier Cards */}
             {TIERS.map((tier, index) => {
               const isSelected = selectedTier === tier.id
+              const isTierEligible = tierRank[tier.id] >= requiredRank
               return (
                 <Animated.View
                   key={tier.id}
@@ -186,9 +221,14 @@ export function SubscriptionModal({
                       styles.tierCard,
                       tier.highlight && styles.tierCardHighlight,
                       isSelected && styles.tierCardSelected,
+                      !isTierEligible && styles.tierCardDisabled,
                     ]}
-                    onPress={() => setSelectedTier(tier.id)}
+                    onPress={() => {
+                      if (!isTierEligible) return
+                      setSelectedTier(tier.id)
+                    }}
                     activeOpacity={0.8}
+                    disabled={!isTierEligible}
                   >
                     {/* Badge */}
                     {tier.badge && (
@@ -196,6 +236,11 @@ export function SubscriptionModal({
                         <Text style={styles.badgeText}>{tier.badge}</Text>
                       </View>
                     )}
+                    {!isTierEligible && requiredTierId ? (
+                      <View style={styles.lockedBadge}>
+                        <Text style={styles.lockedBadgeText}>REQUIRES {requiredTierId.toUpperCase()}+</Text>
+                      </View>
+                    ) : null}
 
                     {/* Tier Header */}
                     <View style={styles.tierHeader}>
@@ -258,13 +303,18 @@ export function SubscriptionModal({
 
           {/* CTA Button */}
           <View style={styles.ctaContainer}>
-            <TouchableOpacity
-              style={[styles.ctaButton, selectedTier === 'starter' && styles.ctaButtonFree]}
-              onPress={handleSubscribe}
-              activeOpacity={0.85}
-            >
-              <Text style={styles.ctaText}>
-                {selectedTier === 'starter' ? 'Continue with Free' : `Subscribe to ${TIERS.find(t => t.id === selectedTier)?.name}`}
+              <TouchableOpacity
+                style={[styles.ctaButton, selectedTier === 'starter' && styles.ctaButtonFree]}
+                onPress={handleSubscribe}
+                activeOpacity={0.85}
+                disabled={!isSelectedTierEligible}
+              >
+              <Text style={[styles.ctaText, selectedTier === 'starter' && styles.ctaTextFree]}>
+                {!isSelectedTierEligible
+                  ? `Requires ${requiredTierId?.toUpperCase()}+`
+                  : selectedTier === 'starter'
+                    ? 'Continue with Free'
+                    : `Subscribe to ${TIERS.find(t => t.id === selectedTier)?.name}`}
               </Text>
               {selectedTier !== 'starter' && (
                 <Text style={styles.ctaSubtext}>{copy.ctaSubtext}</Text>
@@ -364,6 +414,9 @@ const styles = StyleSheet.create({
     borderColor: CLTheme.accent,
     backgroundColor: 'rgba(13, 108, 242, 0.06)',
   },
+  tierCardDisabled: {
+    opacity: 0.45,
+  },
   badge: {
     position: 'absolute',
     top: -10,
@@ -378,6 +431,21 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     fontSize: 10,
+    fontWeight: '800',
+    color: '#fff',
+    letterSpacing: 0.5,
+  },
+  lockedBadge: {
+    position: 'absolute',
+    top: -10,
+    left: 16,
+    backgroundColor: 'rgba(239, 68, 68, 0.9)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 20,
+  },
+  lockedBadgeText: {
+    fontSize: 9,
     fontWeight: '800',
     color: '#fff',
     letterSpacing: 0.5,
@@ -496,6 +564,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     color: '#fff',
+  },
+  ctaTextFree: {
+    color: CLTheme.text.primary,
   },
   ctaSubtext: {
     fontSize: 11,

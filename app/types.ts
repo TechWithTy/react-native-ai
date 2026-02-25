@@ -26,6 +26,8 @@ export interface CareerSetupState {
   desiredSalaryRange: string
   targetSeniority: string
   locationPreference: string
+  autoApplyEnabled: boolean
+  autoApplyDailyLimit: number
   selectedGoals: string[]
   selectedSkills: string[]
   sourceResumeName: string | null

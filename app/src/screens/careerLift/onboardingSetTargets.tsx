@@ -10,7 +10,7 @@ import {
 } from '../../store/careerSetup'
 import { HorizontalScrollableSection } from './components/horizontalScrollableSection'
 import { SearchableInput } from './components/searchableInput'
-import { CLTheme } from './theme'
+import { CLTheme, useCLTheme, CLThemeTokens } from './theme'
 
 const MAX_BADGES_PER_ROW = 4
 const MAX_BADGE_ROWS = 4
@@ -32,6 +32,8 @@ export function OnboardingSetTargetsScreen({ navigation }: any) {
   const selectedSkills = useCareerSetupStore(state => state.selectedSkills)
   const setCareerSetup = useCareerSetupStore(state => state.setCareerSetup)
   const [roleSearchQuery, setRoleSearchQuery] = useState('')
+  const clTheme = useCLTheme()
+  const styles = getStyles(clTheme)
 
   const roleSuggestions = useMemo(() => getRoleOptionsForTrack(selectedTrack), [selectedTrack])
   const filteredRoleSuggestions = useMemo(() => {
@@ -232,7 +234,7 @@ export function OnboardingSetTargetsScreen({ navigation }: any) {
   )
 }
 
-const styles = StyleSheet.create({
+const getStyles = (CLTheme: CLThemeTokens) => StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: CLTheme.background,
@@ -368,7 +370,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   goalBadgeTextSelected: {
-    color: '#dbeafe',
+    color: CLTheme.accent,
   },
   chipsRow: {
     flexDirection: 'row',
@@ -412,7 +414,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#0d6cf2',
   },
   skillChipText: {
-    color: '#93c5fd',
+    color: CLTheme.accent,
     fontSize: 12,
     fontWeight: '700',
     textAlign: 'center',

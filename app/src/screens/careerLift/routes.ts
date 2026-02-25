@@ -17,6 +17,7 @@ export const careerLiftRoutes = [
   { key: 'NotificationsPreferences', label: 'Notification Preferences' },
   { key: 'AccountSecurity', label: 'Account and Security Settings' },
   { key: 'DocumentsInsights', label: 'Documents and Insights' },
+  ...(__DEV__ ? [{ key: 'MonetizationPrompts', label: 'Prompts and Paywalls' }] : []),
   { key: 'UpdateEmail', label: 'Update Account Email' },
   { key: 'UpdatePassword', label: 'Update Secure Password' },
   { key: 'ApplyPack', label: 'Apply Pack Review' },

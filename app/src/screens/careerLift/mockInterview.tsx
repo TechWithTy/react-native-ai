@@ -32,6 +32,7 @@ import {
 import * as Speech from 'expo-speech'
 import { CLTheme } from './theme'
 import { useJobTrackerStore } from '../../store/jobTrackerStore'
+import { useAIAgentsStore } from '../../store/aiAgentsStore'
 
 
 const { width } = Dimensions.get('window')
@@ -39,12 +40,14 @@ const { width } = Dimensions.get('window')
 export function MockInterviewScreen() {
   const navigation = useNavigation()
   const route = useRoute()
-  const params = route.params as { question?: string; category?: string; jobId?: string } | undefined
+  const params = route.params as { question?: string; category?: string; jobId?: string; aiVoiceMode?: boolean } | undefined
   const { updateJobAction, updateJobStatus } = useJobTrackerStore()
+  const setVoiceModeEnabled = useAIAgentsStore(state => state.setVoiceModeEnabled)
   
   const questionText = params?.question || "Describe a situation where you had to manage a difficult stakeholder. How did you handle it?"
-  const sessionCategory = params?.category || "Behavioral"
+  const sessionCategory = params?.category || (params?.aiVoiceMode ? 'Voice Session' : 'Behavioral')
   const jobId = params?.jobId
+  const aiVoiceMode = Boolean(params?.aiVoiceMode)
 
   const [isRecording, setIsRecording] = useState(false)
   const audioRecorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY)
@@ -203,6 +206,13 @@ export function MockInterviewScreen() {
     navigation.goBack()
   }
 
+  const handleSwitchToTextMode = async () => {
+    Speech.stop()
+    if (isRecording) await stopRecording()
+    setVoiceModeEnabled(false)
+    navigation.goBack()
+  }
+
   // Transcript Simulation (Mocking the "live" aspect for now as we don't have real-time STT backend connected)
   const fullTranscript = "So, in my previous role, I encountered a situation where the client's expectations were not aligned with our delivery timeline. I realized this early on during the sprint planning..."
   useEffect(() => {
@@ -234,26 +244,40 @@ export function MockInterviewScreen() {
           }}
         >
           <MaterialIcons name="close" size={24} color={CLTheme.text.secondary} />
-        </TouchableOpacity>
+          </TouchableOpacity>
 
         <View style={styles.headerCenter}>
-          <Text style={styles.headerTitle}>{sessionCategory.toUpperCase()}</Text>
-          <View style={styles.progressDots}>
-            <View style={[styles.dot, styles.dotActive]} />
-            <View style={[styles.dot, styles.dotActive]} />
-            <View style={styles.dot} />
-            <View style={styles.dot} />
-            <View style={styles.dot} />
-          </View>
+          <Text style={styles.headerTitle}>{aiVoiceMode ? sessionCategory : sessionCategory.toUpperCase()}</Text>
+          {!aiVoiceMode ? (
+            <View style={styles.progressDots}>
+              <View style={[styles.dot, styles.dotActive]} />
+              <View style={[styles.dot, styles.dotActive]} />
+              <View style={styles.dot} />
+              <View style={styles.dot} />
+              <View style={styles.dot} />
+            </View>
+          ) : (
+            <Text style={styles.voiceModeLabel}>Live voice mode</Text>
+          )}
         </View>
 
         <TouchableOpacity 
             style={styles.iconButton}
             testID="header-menu"
-            onPress={() => setShowMenu(true)}
+            onPress={() => {
+              if (aiVoiceMode) {
+                void handleSwitchToTextMode()
+                return
+              }
+              setShowMenu(true)
+            }}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
-          <MaterialIcons name="more-horiz" size={24} color={CLTheme.text.secondary} />
+          <MaterialIcons
+            name={aiVoiceMode ? 'chat-bubble-outline' : 'more-horiz'}
+            size={24}
+            color={CLTheme.text.secondary}
+          />
         </TouchableOpacity>
       </View>
 
@@ -333,22 +357,38 @@ export function MockInterviewScreen() {
       {/* Bottom Controls */}
       <View style={styles.controlsContainer}>
         <View style={styles.controlsRow}>
-          {/* Reset Button */}
-          <TouchableOpacity 
-            style={styles.controlBtnSecondary}
-            onPress={async () => {
-              Speech.stop()
-              setTranscriptIndex(0)
-              setIsRecording(false)
-              if (isRecording) await stopRecording()
-              setTimeLeft(105)
-            }}
-          >
-            <View style={styles.circleBtnSmall}>
-              <MaterialIcons name="restart-alt" size={24} color={CLTheme.text.secondary} />
-            </View>
-            <Text style={styles.btnLabel}>Reset</Text>
-          </TouchableOpacity>
+          {/* Left Button */}
+          {aiVoiceMode ? (
+            <TouchableOpacity
+              style={styles.controlBtnSecondary}
+              onPress={async () => {
+                Speech.stop()
+                if (isRecording) await stopRecording()
+                navigation.goBack()
+              }}
+            >
+              <View style={styles.circleBtnSmall}>
+                <MaterialIcons name="call-end" size={22} color="#ef4444" />
+              </View>
+              <Text style={styles.btnLabel}>End</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity 
+              style={styles.controlBtnSecondary}
+              onPress={async () => {
+                Speech.stop()
+                setTranscriptIndex(0)
+                setIsRecording(false)
+                if (isRecording) await stopRecording()
+                setTimeLeft(105)
+              }}
+            >
+              <View style={styles.circleBtnSmall}>
+                <MaterialIcons name="restart-alt" size={24} color={CLTheme.text.secondary} />
+              </View>
+              <Text style={styles.btnLabel}>Reset</Text>
+            </TouchableOpacity>
+          )}
 
           {/* Record Button */}
           <View style={styles.recordBtnWrapper}>
@@ -367,16 +407,28 @@ export function MockInterviewScreen() {
              </TouchableOpacity>
           </View>
 
-          {/* Done Button */}
-          <TouchableOpacity 
-            style={styles.controlBtnSecondary}
-            onPress={handleDone}
-          >
-            <View style={styles.circleBtnSmall}>
-              <MaterialIcons name="check" size={24} color={CLTheme.text.secondary} />
-            </View>
-            <Text style={styles.btnLabel}>Done</Text>
-          </TouchableOpacity>
+          {/* Right Button */}
+          {aiVoiceMode ? (
+            <TouchableOpacity
+              style={styles.controlBtnSecondary}
+              onPress={() => setShowRubric(prev => !prev)}
+            >
+              <View style={styles.circleBtnSmall}>
+                <MaterialIcons name={showRubric ? 'visibility-off' : 'visibility'} size={22} color={CLTheme.text.secondary} />
+              </View>
+              <Text style={styles.btnLabel}>{showRubric ? 'Hide' : 'Rubric'}</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity 
+              style={styles.controlBtnSecondary}
+              onPress={handleDone}
+            >
+              <View style={styles.circleBtnSmall}>
+                <MaterialIcons name="check" size={24} color={CLTheme.text.secondary} />
+              </View>
+              <Text style={styles.btnLabel}>Done</Text>
+            </TouchableOpacity>
+          )}
         </View>
         
         {/* iOS Home Indicator Spacer */}
@@ -495,6 +547,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     letterSpacing: 1,
     textTransform: 'uppercase',
+  },
+  voiceModeLabel: {
+    marginTop: 4,
+    color: CLTheme.text.secondary,
+    fontSize: 11,
+    fontWeight: '600',
   },
   progressDots: {
     flexDirection: 'row',

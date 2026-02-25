@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 import { CustomInterviewPrepPayload, CustomInterviewPrepRecord } from '../../types'
+import type { SubscriptionTierId } from './creditsStore'
 
 export type ProfileNextAction = {
   id: string
@@ -83,6 +84,7 @@ interface UserProfile {
   email: string
   avatarUrl: string | null
   currentLocation: string
+  subscriptionTierId: SubscriptionTierId
   isOpenToWork: boolean
   linkedInConnected: boolean
   bio: string
@@ -106,6 +108,11 @@ interface UserProfile {
     openToWork: boolean
     banner: boolean
   }
+  reviewRewards: {
+    firstReviewCreditsClaimed: boolean
+    claimedAt: string | null
+    claimedAmount: number
+  }
 }
 
 interface UserProfileStore extends UserProfile {
@@ -124,6 +131,7 @@ interface UserProfileStore extends UserProfile {
   toggleNextAction: (id: string) => void
   saveCustomInterviewPrep: (prep: CustomInterviewPrepPayload) => void
   setLinkedInKitWins: (wins: UserProfile['linkedInKitWins']) => void
+  claimFirstReviewReward: (amount: number) => boolean
   resetProfile: () => void
 }
 
@@ -289,6 +297,7 @@ const defaultProfile: UserProfile = {
   email: 'alex.mercer@example.com',
   avatarUrl: 'https://i.pravatar.cc/150?u=alex',
   currentLocation: 'San Francisco, CA',
+  subscriptionTierId: 'pro',
   isOpenToWork: true,
   linkedInConnected: false,
   bio: 'Senior Product Manager with a passion for user-centric design.',
@@ -324,6 +333,11 @@ const defaultProfile: UserProfile = {
     openToWork: false,
     banner: false,
   },
+  reviewRewards: {
+    firstReviewCreditsClaimed: false,
+    claimedAt: null,
+    claimedAmount: 0,
+  },
 }
 
 const memoryState: Record<string, string> = {}
@@ -345,7 +359,7 @@ const getPersistStorage = () => {
 
 export const useUserProfileStore = create<UserProfileStore>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       ...defaultProfile,
       setProfile: (updates) => set((state) => ({ ...state, ...updates })),
       setNotificationChannel: (key, channel, value) =>
@@ -477,6 +491,29 @@ export const useUserProfileStore = create<UserProfileStore>()(
           ),
         })),
       setLinkedInKitWins: (wins) => set((state) => ({ ...state, linkedInKitWins: wins })),
+      claimFirstReviewReward: (amount) => {
+        const state = get()
+        if (state.reviewRewards.firstReviewCreditsClaimed || amount <= 0) {
+          return false
+        }
+
+        set((current) => ({
+          ...current,
+          reviewRewards: {
+            firstReviewCreditsClaimed: true,
+            claimedAt: new Date().toISOString(),
+            claimedAmount: amount,
+          },
+          activityLog: prependActivityLogEntry(current.activityLog, {
+            eventType: 'system',
+            source: 'settings',
+            title: 'Review reward claimed',
+            description: `First review reward claimed for ${amount} credits.`,
+          }),
+        }))
+
+        return true
+      },
       saveCustomInterviewPrep: (prep) =>
         set((state) => {
           const key = `${prep.inferredRole}::${prep.companyName ?? ''}`

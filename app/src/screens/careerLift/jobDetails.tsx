@@ -20,6 +20,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { JobEntry, useJobTrackerStore } from '../../store/jobTrackerStore'
 import { CREDIT_COSTS, useCreditsStore } from '../../store/creditsStore'
 import { CLTheme } from './theme'
+import { ApplicationPrepOptions } from './components/applicationPrepOptions'
 
 type JobDetailsRouteParams = {
   job?: JobEntry
@@ -493,7 +494,11 @@ export function JobDetailsScreen() {
             {isSaved ? 'Saved' : 'Save'}
           </Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.primaryButton} activeOpacity={0.88} onPress={() => setApplyDrawerVisible(true)}>
+        <TouchableOpacity
+          style={styles.primaryButton}
+          activeOpacity={0.88}
+          onPress={() => navigation.navigate('ApplyPack', { job })}
+        >
           <Text style={styles.primaryButtonText}>Submit Application</Text>
         </TouchableOpacity>
       </View>

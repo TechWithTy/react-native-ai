@@ -1,12 +1,12 @@
 import { useContext } from 'react'
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import MaterialIcons from '@expo/vector-icons/MaterialIcons'
-import { ThemeContext } from '../../context'
+import { useCLTheme, CLThemeTokens } from './theme'
 
 export function SplashScreen({ navigation }: any) {
-  // Enforce dark theme for splash screen
-  const isDark = true
-  const styles = getStyles(isDark)
+  const clTheme = useCLTheme()
+  const isDark = clTheme.background === '#101722'
+  const styles = getStyles(clTheme, isDark)
 
   return (
     <View style={styles.screen}>
@@ -40,7 +40,7 @@ export function SplashScreen({ navigation }: any) {
           activeOpacity={0.9}
         >
           <Text style={[styles.ctaText, styles.secondaryCtaText]}>Get Started with AI</Text>
-          <MaterialIcons name='auto-awesome' size={16} color='#fff' />
+          <MaterialIcons name='auto-awesome' size={16} color={isDark ? '#fff' : clTheme.accent} />
         </TouchableOpacity>
 
         <View style={styles.footer}>
@@ -54,11 +54,11 @@ export function SplashScreen({ navigation }: any) {
   )
 }
 
-const getStyles = (isDark: boolean) =>
+const getStyles = (clTheme: CLThemeTokens, isDark: boolean) =>
   StyleSheet.create({
     screen: {
       flex: 1,
-      backgroundColor: isDark ? '#101722' : '#f5f7f8',
+      backgroundColor: clTheme.background,
       position: 'relative',
       overflow: 'hidden',
     },
@@ -98,8 +98,8 @@ const getStyles = (isDark: boolean) =>
       borderRadius: 16,
       alignItems: 'center',
       justifyContent: 'center',
-      backgroundColor: '#0d6cf2',
-      shadowColor: '#0d6cf2',
+      backgroundColor: clTheme.accent,
+      shadowColor: clTheme.accent,
       shadowOpacity: 0.35,
       shadowOffset: { width: 0, height: 6 },
       shadowRadius: 12,
@@ -109,14 +109,14 @@ const getStyles = (isDark: boolean) =>
       marginTop: 28,
       fontSize: 40,
       fontWeight: '700',
-      color: isDark ? '#fff' : '#111827',
+      color: clTheme.text.primary,
       letterSpacing: -0.5,
     },
     tagline: {
       marginTop: 10,
       fontSize: 18,
       fontWeight: '300',
-      color: isDark ? '#9ca3af' : '#6b7280',
+      color: clTheme.text.muted,
       textAlign: 'center',
       letterSpacing: 0.2,
     },
@@ -131,14 +131,14 @@ const getStyles = (isDark: boolean) =>
       width: '100%',
       maxWidth: 380,
       borderRadius: 10,
-      backgroundColor: '#0d6cf2',
+      backgroundColor: clTheme.accent,
       paddingVertical: 16,
       paddingHorizontal: 20,
       flexDirection: 'row',
       justifyContent: 'center',
       alignItems: 'center',
       gap: 8,
-      shadowColor: '#0d6cf2',
+      shadowColor: clTheme.accent,
       shadowOpacity: 0.3,
       shadowOffset: { width: 0, height: 6 },
       shadowRadius: 14,
@@ -151,14 +151,14 @@ const getStyles = (isDark: boolean) =>
     },
     secondaryCta: {
       marginTop: 0,
-      backgroundColor: 'rgba(255,255,255,0.1)',
+      backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(13,108,242,0.06)',
       borderWidth: 1,
-      borderColor: 'rgba(255,255,255,0.15)',
+      borderColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(13,108,242,0.12)',
       shadowOpacity: 0,
       elevation: 0,
     },
     secondaryCtaText: {
-      color: '#fff',
+      color: isDark ? '#fff' : clTheme.accent,
     },
     footer: {
       alignItems: 'center',
@@ -168,7 +168,7 @@ const getStyles = (isDark: boolean) =>
       width: 128,
       height: 4,
       borderRadius: 999,
-      backgroundColor: isDark ? '#1f2937' : '#e5e7eb',
+      backgroundColor: clTheme.border,
       overflow: 'hidden',
     },
     progressFill: {
@@ -180,6 +180,6 @@ const getStyles = (isDark: boolean) =>
     version: {
       fontSize: 12,
       fontWeight: '500',
-      color: isDark ? '#4b5563' : '#9ca3af',
+      color: clTheme.text.muted,
     },
   })

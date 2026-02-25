@@ -57,6 +57,8 @@ const defaultCareerSetupState: CareerSetupState = {
   desiredSalaryRange: '',
   targetSeniority: '',
   locationPreference: '',
+  autoApplyEnabled: false,
+  autoApplyDailyLimit: 10,
   selectedGoals: [],
   selectedSkills: [],
   sourceResumeName: null,
