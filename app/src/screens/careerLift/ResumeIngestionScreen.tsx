@@ -12,12 +12,19 @@ import Feather from '@expo/vector-icons/Feather'
 import MaterialIcons from '@expo/vector-icons/MaterialIcons'
 import * as DocumentPicker from 'expo-document-picker'
 import { useCareerSetupStore } from '../../store/careerSetup'
+import { useUserProfileStore } from '../../store/userProfileStore'
 import { requestPushNotificationsPermission } from '../../utils/pushNotificationsPermission'
 import { CLTheme } from './theme'
 
 export function ResumeIngestionScreen({ navigation }: any) {
   const selectedFile = useCareerSetupStore(state => state.sourceResumeName)
   const setCareerSetup = useCareerSetupStore(state => state.setCareerSetup)
+  const hasPromptedPushPermissionsOnboarding = useUserProfileStore(
+    state => state.hasPromptedPushPermissionsOnboarding
+  )
+  const setHasPromptedPushPermissionsOnboarding = useUserProfileStore(
+    state => state.setHasPromptedPushPermissionsOnboarding
+  )
   const [showLinkedInAuth, setShowLinkedInAuth] = useState(false)
   const [linkedInAuthorized, setLinkedInAuthorized] = useState(false)
 
@@ -46,9 +53,11 @@ export function ResumeIngestionScreen({ navigation }: any) {
     setShowLinkedInAuth(true)
   }
 
-  const promptPushPermissions = useCallback(() => {
-    void requestPushNotificationsPermission('onboarding')
-  }, [])
+  const promptPushPermissions = useCallback(async () => {
+    if (hasPromptedPushPermissionsOnboarding) return
+    setHasPromptedPushPermissionsOnboarding(true)
+    await requestPushNotificationsPermission('onboarding')
+  }, [hasPromptedPushPermissionsOnboarding, setHasPromptedPushPermissionsOnboarding])
 
   const authorizeLinkedIn = () => {
     setLinkedInAuthorized(true)
@@ -117,9 +126,9 @@ export function ResumeIngestionScreen({ navigation }: any) {
 
       <View style={styles.footer}>
         <TouchableOpacity 
-          onPress={() => {
+          onPress={async () => {
             if (!canProceed) return
-            promptPushPermissions()
+            await promptPushPermissions()
             navigation.navigate('MainTabs')
           }} 
           style={[
@@ -185,9 +194,9 @@ export function ResumeIngestionScreen({ navigation }: any) {
                 </>
               ) : (
                 <TouchableOpacity
-                  onPress={() => {
+                  onPress={async () => {
                     setShowLinkedInAuth(false)
-                    promptPushPermissions()
+                    await promptPushPermissions()
                     navigation.navigate('MainTabs')
                   }}
                   style={styles.modalPrimary}

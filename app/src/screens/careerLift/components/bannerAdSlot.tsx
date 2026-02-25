@@ -1,7 +1,7 @@
 import React from 'react'
 import { StyleSheet, Text, View } from 'react-native'
 import { CLTheme } from '../theme'
-import { getAdMobTestIds } from '../../../services/adMob'
+import { getAdMobRuntimeDiagnostics, getAdMobTestIds, initializeAdMob } from '../../../services/adMob'
 
 type BannerAdSlotProps = {
   placement: string
@@ -11,18 +11,36 @@ type BannerAdSlotProps = {
 export function BannerAdSlot({ placement, enabled = true }: BannerAdSlotProps) {
   const [failed, setFailed] = React.useState(false)
   const [loaded, setLoaded] = React.useState(false)
+  const [adModule, setAdModule] = React.useState<any>(null)
+  const diagnostics = React.useMemo(() => getAdMobRuntimeDiagnostics(), [])
 
   if (!enabled) return null
 
-  let AdModule: any
-  try {
-    AdModule = require('react-native-google-mobile-ads')
-  } catch {
-    AdModule = null
-  }
+  React.useEffect(() => {
+    let mounted = true
 
-  const BannerAd = AdModule?.BannerAd
-  const BannerAdSize = AdModule?.BannerAdSize
+    const loadAdModule = async () => {
+      const isInitialized = await initializeAdMob()
+      if (!mounted || !isInitialized) {
+        setAdModule(null)
+        return
+      }
+
+      try {
+        setAdModule(require('react-native-google-mobile-ads'))
+      } catch {
+        setAdModule(null)
+      }
+    }
+
+    void loadAdModule()
+    return () => {
+      mounted = false
+    }
+  }, [])
+
+  const BannerAd = adModule?.BannerAd
+  const BannerAdSize = adModule?.BannerAdSize
   const adUnitId = getAdMobTestIds().banner
 
   if (!BannerAd || !BannerAdSize) {
@@ -30,6 +48,12 @@ export function BannerAdSlot({ placement, enabled = true }: BannerAdSlotProps) {
       <View style={styles.fallbackCard}>
         <Text style={styles.fallbackTitle}>Banner Ad Unavailable</Text>
         <Text style={styles.fallbackText}>Install native ads build to test banner placements.</Text>
+        {__DEV__ ? (
+          <Text style={styles.fallbackText}>
+            Native module: {diagnostics.nativeModulesHasBridge ? 'bridge-ok' : 'bridge-missing'} | Turbo:{' '}
+            {diagnostics.turboModuleAvailable ? 'ok' : 'missing'}
+          </Text>
+        ) : null}
         {__DEV__ ? <Text style={styles.placementText}>Placement: {placement}</Text> : null}
       </View>
     )
@@ -104,4 +128,3 @@ const styles = StyleSheet.create({
     lineHeight: 17,
   },
 })
-

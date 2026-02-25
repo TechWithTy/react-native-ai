@@ -31,7 +31,61 @@ const requestOptions = {
   requestNonPersonalizedAdsOnly: true,
 }
 
+function hasAdMobNativeModule(): boolean {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { NativeModules, TurboModuleRegistry } = require('react-native') as {
+      NativeModules?: Record<string, unknown>
+      TurboModuleRegistry?: { get?: (name: string) => unknown }
+    }
+
+    // New Architecture path: only trust Turbo module registration.
+    if (typeof TurboModuleRegistry?.get === 'function') {
+      return !!TurboModuleRegistry.get('RNGoogleMobileAdsModule')
+    }
+
+    // Legacy architecture fallback.
+    if (NativeModules?.RNGoogleMobileAdsModule) return true
+  } catch {
+    return false
+  }
+
+  return false
+}
+
+export function getAdMobRuntimeDiagnostics() {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { NativeModules, TurboModuleRegistry } = require('react-native') as {
+      NativeModules?: Record<string, unknown>
+      TurboModuleRegistry?: { get?: (name: string) => unknown }
+    }
+
+    const hasTurboRegistry = typeof TurboModuleRegistry?.get === 'function'
+    const nativeModulesHasBridge = !!NativeModules?.RNGoogleMobileAdsModule
+    const turboModuleAvailable = hasTurboRegistry
+      ? !!TurboModuleRegistry.get('RNGoogleMobileAdsModule')
+      : false
+    const available = hasTurboRegistry ? turboModuleAvailable : nativeModulesHasBridge
+
+    return {
+      available,
+      nativeModulesHasBridge,
+      turboModuleAvailable,
+      architecture: hasTurboRegistry ? 'new' : 'legacy',
+    }
+  } catch {
+    return {
+      available: false,
+      nativeModulesHasBridge: false,
+      turboModuleAvailable: false,
+      architecture: 'unknown',
+    }
+  }
+}
+
 function getAdMobModule(): AdMobModule | null {
+  if (!hasAdMobNativeModule()) return null
   try {
     return require('react-native-google-mobile-ads') as AdMobModule
   } catch {
@@ -154,4 +208,3 @@ export async function showRewardedAd(adUnitId?: string): Promise<RewardedAdResul
     rewarded.load()
   })
 }
-

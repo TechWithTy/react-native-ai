@@ -140,7 +140,6 @@ function main() {
 
   const manifestTargets = [
     'node_modules/@react-native-async-storage/async-storage/android/src/main/AndroidManifest.xml',
-    'node_modules/react-native-google-mobile-ads/android/src/main/AndroidManifest.xml',
     'node_modules/react-native-safe-area-context/android/src/main/AndroidManifest.xml',
     'node_modules/react-native-get-random-values/android/src/main/AndroidManifest.xml',
   ]
