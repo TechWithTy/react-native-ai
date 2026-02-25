@@ -64,7 +64,8 @@
           "userTrackingUsageDescription": "This identifier will be used to provide better ad relevance.",
           "delayAppMeasurementInit": true
         }
-      ]
+      ],
+      "expo-asset"
     ]
   }
 }

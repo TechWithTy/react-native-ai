@@ -41,6 +41,7 @@
     "@ronradtke/react-native-markdown-display": "^8.0.0",
     "country-state-city": "^3.2.1",
     "expo": "~54.0.33",
+    "expo-asset": "~12.0.12",
     "expo-audio": "^1.1.1",
     "expo-camera": "^17.0.10",
     "expo-clipboard": "~8.0.8",
