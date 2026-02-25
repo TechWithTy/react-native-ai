@@ -354,6 +354,7 @@ const memoryStorage = {
 }
 
 const isTest = typeof process !== 'undefined' && typeof process.env?.JEST_WORKER_ID !== 'undefined'
+const isDevRuntime = typeof __DEV__ !== 'undefined' && __DEV__
 const getPersistStorage = () => {
   if (isTest) return memoryStorage
   return require('@react-native-async-storage/async-storage').default
@@ -539,6 +540,18 @@ export const useUserProfileStore = create<UserProfileStore>()(
     {
       name: 'rnai-user-profile-zustand',
       storage: createJSONStorage(() => getPersistStorage()),
+      merge: (persistedState, currentState) => {
+        const next = {
+          ...currentState,
+          ...(persistedState as Partial<UserProfileStore>),
+        }
+
+        if (isDevRuntime) {
+          next.adsDebugModeEnabled = true
+        }
+
+        return next
+      },
     }
   )
 )
